@@ -1,0 +1,67 @@
+
+% This is an example of a string: this is the way you do variables in BiBTex
+% @string{variable_name="string the variable_name refers to"}
+@string{aij= "Artificial Intelligence"}
+
+
+% This is an example of a book. By putting the title in {{ double brackets,
+% capitalisation is preserved.
+
+@book{NumericalRecipes,
+  title={{Numerical recipes in C}},
+  author={Press, W.H. and others},
+  year={1992},
+  publisher={Cambridge University Press Cambridge},
+  isbn={0123456789},
+  pages = {349--361},
+  annote={This is my annotation. I can add in comments that are in \textbf{bold} and \em{italics} and then other content.},
+}
+
+
+% This is an example of a conference paper. Note the accented character in the 
+% author list.  Again, capitalisation of the title is important so it is in
+% double brackets 
+@INPROCEEDINGS{MarksPaper,
+    author = {Mark Neal and Jan Feyereisl and Rosario Rascun\`{a} and Xiaolei Wang},
+    title = {{Don't touch me, I'm fine: Robot autonomy using an artificial innate immune system}}, 
+    booktitle = {Proceedings of the 5th International Conference on Artificial Immune Systems},
+    year = {2006},
+    pages = {349--361},
+    publisher = {Springer},
+    annote={This paper...}
+}
+
+% This is an example of a journal article. We use the variable defined at the
+% top here - by typing aij, we get Artificial Intelligence journal title 
+% without having to type it out
+@article{HannahsPaper,
+ author={Dee, H. M. and Hogg, D. C.},
+ title={Navigational strategies in behaviour modelling},
+ year=2009,
+ journal=aij, 
+ volume={173(2)}, 
+ pages={329-342},
+  annote={This is my annotation. I should add in a description here.}
+}
+
+% This is an example of a URL reference
+% Note you should try to identify authorship of web resources
+% Also note you should include the date you last accessed the page.
+@MISC{FailBlog,
+author = {Various},
+title = {Fail Blog},
+month = Aug,
+year = {2011},
+howpublished={\url{http://www.failblog.org/}},
+note={Accessed August 2011},
+annote={This is my annotation. I should add in a description here.}
+}
+
+@misc{kittenpic_ref,
+  author="Sylvia Duckworth",
+ title={{A picture of a kitten at Hellifield Peel}},
+ howpublished={\url{http://www.geograph.org.uk/photo/640959}},
+ year=2007,
+ note={Copyright Sylvia Duckworth and licensed for reuse under a Creative Commons Attribution-Share Alike 2.0 Generic Licence. Accessed August 2011},
+  annote={This is my annotation. I should add in a description here.}
+}

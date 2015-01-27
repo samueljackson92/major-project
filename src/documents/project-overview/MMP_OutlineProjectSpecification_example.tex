@@ -1,0 +1,99 @@
+\documentclass[11pt,fleqn,twoside]{article}
+\usepackage{makeidx}
+\makeindex
+\usepackage{palatino} %or {times} etc
+\usepackage{plain} %bibliography style 
+\usepackage{amsmath} %math fonts - just in case
+\usepackage{amsfonts} %math fonts
+\usepackage{amssymb} %math fonts
+\usepackage{lastpage} %for footer page numbers
+\usepackage{fancyhdr} %header and footer package
+\usepackage{mmpv2} 
+\usepackage{url}
+
+% the following packages are used for citations - You only need to include one. 
+%
+% Use the cite package if you are using the numeric style (e.g. IEEEannot). 
+% Use the natbib package if you are using the author-date style (e.g. authordate2annot). 
+% Only use one of these and comment out the other one. 
+\usepackage{cite}
+%\usepackage{natbib}
+
+\begin{document}
+
+\name{Samuel Jackson}
+\userid{slj11}
+\projecttitle{Visualisation and Topological Aspects of Higher Dimensional Data}
+\projecttitlememoir{Visualisation and Topological Aspects of Higher Dimensional Data} %same as the project title or abridged version for page header
+\reporttitle{Outline Project Specification}
+\version{0.1}
+\docstatus{Draft}
+\modulecode{CS39440}
+\degreeschemecode{G601}
+\degreeschemename{Software Engineering}
+\supervisor{Reyer Zwiggelaar} % e.g. Neil Taylor
+\supervisorid{rrz}
+\wordcount{}
+
+%optional - comment out next line to use current date for the document
+%\documentdate{10th February 2014} 
+\mmp
+
+\setcounter{tocdepth}{3} %set required number of level in table of contents
+
+
+%==============================================================================
+\section{Project description}
+%==============================================================================
+This project is designed to examine the properties of mapping higher dimensional data onto a lower dimensional representation using manifold learning techniques. More specifically the project will aim to provide a study of using dimensionality reduction techniques on both real \cite{suckling1994mammographic} and synthetic\cite{bakic2002mammogram1, bakic2002mammogram2, bakic2003mammogram3} mammogram datasets to evaluate their correlation under the mapping.
+
+The main goal of the project will be to produce a processing pipeline that loads and pre-processes sample mammograms from both real and synthetic datasets and then use a feature extraction method to find relevant features within both the real and phantom mammograms simultaneously. Once features have been extracted various dimensionality reduction techniques can be applied and the results visualised in a lower dimensional space. It is hoped that a clear correlation will be found between both the synthetic and real data with the results from both datasets appearing close to each other in the lower dimensional representation.
+
+The choice of manifold learning algorithm and feature extraction techniques are the main components under consideration for this project. This will require further background reading and research to evaluate the best candidates for each of these components. Ideally the project should focus on feature extraction methods which are commonly used and well understood in mammogram analysis. A variety of different manifold learning approaches can then be applied to the extracted features to reduce the dimensionality of the resulting data and select only those features which are relevant.
+
+The result of the project will provide an evaluation of the similarities and differences between the lower dimensional mappings of a synthetic and real dataset and try to distinguish whether the differences are in agreement with the limitations discussed by the authors of the synthetic data. In particular it would be interesting to see the how well the different classes of risk line up under the lower dimensional mapping of the two datasets and which features selected using the dimensionality reduction techniques for each dataset.
+
+At this stage it would be beneficial to leave the choice of language and platform for the implementation open until further reading has been conducted. However, initial reading and discussion suggest that Python and/or C++ seem to be sensible candidate languages. Python in particular has lots of supporting libraries such as scikit-learn \cite{scikit-learn-site} and OpenCV \cite{opencv-site} which will aid the implementation.
+
+%==============================================================================
+\section{Proposed tasks}
+%==============================================================================
+
+\begin{itemize}
+\item \textbf{Background Reading \& Research}: Initial research needs to be conducted to select appropriate techniques to be used for both the feature extraction and manifold learning components. Ideally this should include techniques commonly used by the mammogram analysis community (particularly in the case of features to be used). This should include an evaluation of any previous, similar research that may have been conducted. A short-list of appropriate techniques should be chosen for use in the project's implementation.
+
+\item \textbf{Research into Implementation Technologies}: The choice of languages and technologies used in the implementation needs to be examined. As mentioned previously, on the surface Python appears to be an good choice, but a brief but more thorough study should be done.
+
+\item \textbf{Implementation}: The project needs to be implemented using the chosen technology and using the selected techniques. The implementation should include a test suite for each of the components in the pipeline as well as a way to visualise the results.
+
+\item \textbf{Evaluation of Results}: Once the pipeline has been implemented, the results of using different feature extraction and manifold learning techniques on the real and artificial datasets should be examined and conclusions drawn from the experiment. These should be presented as part of the final dissertation report. Key questions for consideration are whether there is a correlation between the lower dimensional mapping of the real and synthetic data. If there is then is it what we should expect? If not, then how do they differ and is this to be expected based on the limitations of the synthetic model?
+
+\end{itemize}
+
+%==============================================================================
+\section{Project deliverables}
+%==============================================================================
+
+\begin{itemize}
+\item \textbf{Final Implementation}: A final implementation of the system should be produced as part of the project. This should provide a pipeline for transforming real  \& phantom mammograms to their representation as features and then maps them to their lower dimensional representation and includes a way to sensibly visualise the results.
+
+\item \textbf{Documentation of Final System}: There should be some documentation produced describing the system at a low level. This should include instructions for setting up and running the system and should include specifics about the implementation of each of the components in the pipeline.
+
+\item \textbf{Final Report}: A final dissertation report should be produced. This should include and overview of the techniques researched as part of the project, the techniques that were selected for the implementation in the pipeline (and why), a discussion of the system produced, and a discussion of the results found.
+
+\end{itemize}
+
+\nocite{*} % include everything from the bibliography, irrespective of whether it has been referenced.
+
+% the following line is included so that the bibliography is also shown in the table of contents. There is the possibility that this is added to the previous page for the bibliography. To address this, a newline is added so that it appears on the first page for the bibliography. 
+\newpage
+\addcontentsline{toc}{section}{Initial Annotated Bibliography} 
+
+%
+% example of including an annotated bibliography. The current style is an author date one. If you want to change, comment out the line and uncomment the subsequent line. You should also modify the packages included at the top (see the notes earlier in the file) and then trash your aux files and re-run. 
+%\bibliographystyle{authordate2annot}
+\bibliographystyle{IEEEannot}
+\renewcommand{\refname}{Annotated Bibliography}  % if you put text into the final {} on this line, you will get an extra title, e.g. References. This isn't necessary for the outline project specification. 
+\bibliography{mmp} % References file
+
+\end{document}

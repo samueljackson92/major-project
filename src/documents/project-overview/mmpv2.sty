@@ -1,0 +1,135 @@
+%% LaTeX class to write Major/Minor projects for the Computer Science Department,
+%% Aberystwyth University.
+%%
+%% Written by Neil Taylor
+%% Comments and bugs to nst@aber.ac.uk
+%%
+%% See the accompanying file MMP_ProgressReport_example.tex for an example on how to
+%% use it.
+%%
+\ProvidesPackage{mmpv2}
+\usepackage[a4paper,margin=2.5cm,nohead, headheight=3cm, headsep=20pt]{geometry}
+\usepackage{graphicx} %to allow images to be imported see example at end of template
+
+\newcommand{\is}{\hspace*{0.2in}} %little indent space
+
+\newcommand{\mmpdocdate}{\today}
+
+\newcommand{\documentdate}[1]{
+  \renewcommand{\mmpdocdate}{#1}
+}
+
+\newcommand{\name}[1]{
+  \newcommand{\showname}{#1}
+}
+
+\newcommand{\userid}[1]{ 
+   \newcommand{\showuserid}{#1}
+}
+
+\newcommand{\supervisor}[1]{
+  \newcommand{\showsupervisor}{#1}
+}
+
+\newcommand{\supervisorid}[1]{
+  \newcommand{\showsupervisorid}{#1}
+}
+
+\newcommand{\projecttitle}[1]{
+  \newcommand{\showprojecttitle}{#1}
+}
+
+\newcommand{\reporttitle}[1]{
+  \newcommand{\showreporttitle}{#1}
+}
+
+\newcommand{\projecttitlememoir}[1]{
+  \newcommand{\showprojecttitlememoir}{#1}
+}
+
+\newcommand{\version}[1]{
+  \newcommand{\showversion}{#1}
+}
+
+\newcommand{\docstatus}[1]{
+  \newcommand{\showdocstatus}{#1}
+}
+
+\newcommand{\degreeschemecode}[1]{
+  \newcommand{\showdegreeschemecode}{#1}
+}
+
+\newcommand{\degreeschemename}[1]{
+  \newcommand{\showdegreeschemename}{#1}
+}
+
+\newcommand{\modulecode}[1]{
+  \newcommand{\showmodulecode}{#1}
+}
+
+\newcommand{\wordcount}[1]{
+  \newcommand{\showwordcount}{#1}
+}
+
+\newcommand{\helv}{ 
+	%bold, 18point, 21point line spacing
+	\fontfamily{phv}\fontseries{b}\fontsize{18}{21}\selectfont
+} 
+
+\newcommand{\mmp}{
+\pagestyle{fancy}
+\thispagestyle{empty} %no headers/footers on title page
+%
+\begin{center}
+\parbox{\textwidth}{
+  \begin{center} \helv
+  \showprojecttitle
+  \end{center}
+}
+%
+\vspace{0.3in}\\
+%
+\fontsize{10}{12}
+\selectfont
+\begin{tabular}[t]{ll}
+ \hline
+ \\
+ Report Name & \parbox{4in}{\showreporttitle}\\
+ Author (User Id) &  \parbox{4in}{\showname \hspace*{0.05in}(\showuserid)}\\
+ Supervisor (User Id) & \showsupervisor \hspace*{0.05in}(\showsupervisorid)\\
+ \\
+ Module & \parbox{4in}{\showmodulecode}\\
+ Degree Scheme &  \showdegreeschemecode \hspace*{0.05in}(\showdegreeschemename)\\
+ \\
+ Date & \mmpdocdate\\
+ Revision & \showversion\\
+ Status & \showdocstatus\\
+ %Word Count & \showwordcount\\
+ \\
+ \hline
+ \vspace{0.1in}
+ \end{tabular}
+ \end{center}
+ %
+ \pagebreak
+ \newpage
+ \makeheaders
+ \setcounter{page}{1}
+ \normalsize
+}
+
+%==============================================================================
+%header and footer information
+%==============================================================================
+\newcommand{\makeheaders}{
+	\fancyhead{}
+	%Right on Odd numberd pages and Left on Even numbered pages
+	\fancyhead[LO,RE]{{\showreporttitle} - {\showversion} ({\showdocstatus})}	
+	\fancyhead[RO,LE]{{\showname} ({\showuserid})}
+	\fancyfoot{}
+	\fancyfoot[RO,LE]{{\thepage} of {\pageref{LastPage}}}
+	\fancyfoot[LO,RE]{\showprojecttitlememoir}
+	\renewcommand{\headrulewidth}{0.0pt}
+	\renewcommand{\footrulewidth}{0.0pt}
+}
+

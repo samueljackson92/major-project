@@ -86,3 +86,6 @@ include
 *.mtc1
 *.out
 *.synctex.gz
+
+#Custom Ignore
+data

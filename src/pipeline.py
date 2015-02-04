@@ -13,6 +13,7 @@ import numpy as np
 from skimage import transform, io
 
 from mammogram.orientated_bins import orientated_bins
+from mammogram.plotting import plot_multiple_images
 from mammogram.utils import non_maximal_suppression
 
 if __name__ == '__main__':
@@ -35,5 +36,4 @@ if __name__ == '__main__':
     line_strength, line_orientation = orientated_bins(img, 5, nbins=4)
     # img = non_maximal_suppression(img, kernel=np.ones((5,5)))
 
-    io.imshow(line_strength)
-    io.show()
+    plot_multiple_images([img, line_strength, line_orientation])

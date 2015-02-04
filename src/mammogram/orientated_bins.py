@@ -67,14 +67,14 @@ def create_sectors(nbins, radius):
         start_theta = start_theta % (2*math.pi)
         end_theta = end_theta % (2*math.pi)
 
-        sector = _create_sector(window_coordinates, centre_point,
+        sector = create_sector(window_coordinates, centre_point,
                                     radius, start_theta, end_theta)
 
         sectors.append(sector)
 
     return sectors
 
-def _create_sector(window_coordinates, centre_point, radius,
+def create_sector(window_coordinates, centre_point, radius,
                      start_theta, end_theta):
     """Compute a sector bins using the centre point and a start and end radius
 
@@ -188,7 +188,7 @@ def apply_filter(img, kernel):
 
 
 def in_sector_bounding_box(polar_point, radius, start_theta, end_theta):
-    """Check if a polar coordinates lies within the segment of a circle
+    """Check if a polar coordinate lies within the segment of a circle
 
     :param polar_point: tuple representing the point to check (r,phi)
     :param radius: radius of the segement

@@ -3,7 +3,8 @@ python:
   - "2.7"
 
 before_install:
-  - pip install six 
+  - pip install six
+  - pip install numpy
 # command to install dependencies
 install:
   # - "pip install ."

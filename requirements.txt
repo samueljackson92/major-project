@@ -1,8 +1,8 @@
+six
 matplotlib
 nose
 pandas
 scipy
 scikit-image
 scikit-learn
-six>=1.3
 Sphinx

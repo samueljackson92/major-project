@@ -1,7 +1,9 @@
 import unittest
 import nose.tools
 import numpy as np
-from skimage import filters, io, transform
+
+from skimage import io, transform
+import skimage.filter as filters
 
 from mammogram.orientated_bins import orientated_bins
 

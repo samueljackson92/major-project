@@ -1,0 +1,7 @@
+matplotlib
+nose
+pandas
+scipy
+scikit-image
+scikit-learn
+Sphinx

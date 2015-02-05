@@ -1,4 +1,5 @@
 """Mammogram Processing Pipeline.
+
 Usage:
   pipeline.py IMAGE [MASK]
   pipeline.py (-h | --help)
@@ -6,6 +7,7 @@ Usage:
 Options:
   -h --help     Show this screen.
   --version     Show version.
+
 """
 from docopt import docopt
 
@@ -35,5 +37,10 @@ if __name__ == '__main__':
 
     line_strength, line_orientation = orientated_bins(img, 5, nbins=4)
     # img = non_maximal_suppression(img, kernel=np.ones((5,5)))
+
+    # line_strength[line_strength>0.1] = 1
+    # line_strength[line_strength<=0.1] = 0
+    # from skimage import morphology
+    # line_strength = morphology.medial_axis(line_strength)
 
     plot_multiple_images([img, line_strength, line_orientation])

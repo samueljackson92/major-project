@@ -11,12 +11,35 @@ Options:
 """
 from docopt import docopt
 
+import math
 import numpy as np
 from skimage import measure, transform, io
 
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
-from mammogram.plotting import plot_multiple_images
+from mammogram.plotting import plot_multiple_images, plot_region_props
+from mammogram.utils import binary_image, binary_thinning
+
+def linear_features(img, radius, nbins):
+    """Compute linear features from an image
+
+    Uses orientated bins with nonmaximum suppression and binary thinning.
+
+    :param img: image to find linear features in
+    :param radius: radius of the bins to use
+    :param nbins: number of bins to use
+    :returns: tuple -- containing (line_image, regions)
+    """
+    line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
+    line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
+
+    line_image = binary_image(line_strength_suppressed, 0.05)
+    line_image = binary_thinning(line_image, 8)
+
+    labelled_image = measure.label(line_image)
+    regions = measure.regionprops(labelled_image)
+
+    return line_image, regions
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='0.1.0')
@@ -36,21 +59,6 @@ if __name__ == '__main__':
         img = img * msk
 
     nbins, size = 12, 5
-    line_strength, line_orientation = orientated_bins(img, size, nbins=nbins)
-    line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
+    line_image, regions = linear_features(img, size, nbins)
 
-    from skimage import morphology
-    threshold = 0.05
-    binary_image = np.zeros(line_strength_suppressed.shape)
-    binary_image[line_strength_suppressed>threshold] = 1
-
-    skeleton = morphology.skeletonize(binary_image)
-    morphology.remove_small_objects(skeleton, 8, connectivity=2, in_place=True)
-
-    labelled_image = measure.label(skeleton)
-    props = measure.regionprops(labelled_image)
-
-    print len(props)
-    print props[0].perimeter
-
-    plot_multiple_images([img, line_strength_suppressed, skeleton])
+    plot_region_props(line_image, regions)

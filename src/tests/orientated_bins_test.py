@@ -3,8 +3,7 @@ import nose.tools
 import numpy as np
 
 from skimage import io, transform
-import skimage.filter as filters
-
+from test_utils import generate_linear_structure
 from mammogram.orientated_bins import orientated_bins
 
 class OrientatedBinsTest(unittest.TestCase):
@@ -28,17 +27,3 @@ class OrientatedBinsTest(unittest.TestCase):
         line_strength, line_orinetation = orientated_bins(linear_structure, 10)
         line_strength[line_strength<0.05] = 0
         nose.tools.assert_almost_equal(np.count_nonzero(line_strength), 312, delta=10)
-
-
-def generate_linear_structure(size, with_noise=False):
-    """Generate a basic linear structure, optionally with noise"""
-    linear_structure = np.zeros(shape=(size,size))
-    linear_structure[:,size/2] = np.ones(size)
-
-    if with_noise:
-        linear_structure = np.identity(size)
-        noise = np.random.rand(size, size) * 0.1
-        linear_structure += noise
-        linear_structure = filters.gaussian_filter(linear_structure, 1.5)
-
-    return linear_structure

@@ -1,12 +1,6 @@
 import math
 from skimage import morphology
 
-def non_maximal_suppression(img, kernel):
-    max_dst = morphology.dilation(img, kernel)
-    img = img * (img == max_dst)
-    return img
-
-
 def to_polar_coordinates(x, y):
     """Convert the 2D pixel coordinates to polar coordinates
 

@@ -15,8 +15,8 @@ import numpy as np
 from skimage import measure, transform, io
 
 from mammogram.orientated_bins import orientated_bins
+from mammogram.nonmaximum_suppression import nonmaximum_suppression
 from mammogram.plotting import plot_multiple_images
-from mammogram.utils import non_maximal_suppression
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='0.1.0')
@@ -35,39 +35,9 @@ if __name__ == '__main__':
         msk = io.imread(mask_path, as_grey=True)
         img = img * msk
 
-    nbins = 12
-    size = 5
+    nbins, size = 12, 5
     line_strength, line_orientation = orientated_bins(img, size, nbins=nbins)
-    parallel_orientation = (line_orientation + (nbins/2)) % nbins
-    np.max(parallel_orientation)
-
-    from scipy.ndimage import filters
-
-    horizontal = np.zeros(shape=(3,3), dtype='int64')
-    horizontal[1] = np.ones(3)
-
-    vertical = np.zeros(shape=(3,3), dtype='int64')
-    vertical[:,1] = np.ones(3, dtype='int64')
-
-    left_diagonal = np.eye(3, dtype='int64')
-    right_diagonal = np.fliplr(left_diagonal)
-
-    kernels = np.array([
-        np.where(horizontal),
-        np.where(left_diagonal),
-        np.where(vertical),
-        np.where(right_diagonal)
-    ])
-
-    filterd_images = []
-    for kernel in kernels:
-        filterd_image = np.zeros(line_strength.shape)
-        filters.maximum_filter(line_strength, footprint=kernel, output=filterd_image)
-        filterd_images.append(filterd_image)
-
-    parallel_orientation = parallel_orientation % len(kernels)
-    line_strength_suppressed = np.zeros(line_strength.shape)
-    np.choose(parallel_orientation, filterd_images, out=line_strength_suppressed)
+    line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
 
     from skimage import morphology
     threshold = 0.05

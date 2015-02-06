@@ -12,26 +12,26 @@ class OrientatedBinsTest(unittest.TestCase):
     def test_with_pure_structure(self):
         linear_structure = generate_linear_structure(20)
         line_strength, line_orinetation = orientated_bins(linear_structure, 7)
-        line_strength[line_strength<0.15] = 0
+        line_strength[line_strength<0.3] = 0
 
         nose.tools.assert_equal(np.count_nonzero(line_strength), 20)
-        nose.tools.assert_equal(np.count_nonzero(line_orinetation), 60)
+        nose.tools.assert_equal(np.count_nonzero(line_orinetation), 100)
 
     def test_with_noisy_structure(self):
         linear_structure = generate_linear_structure(100, with_noise=True)
         line_strength, line_orinetation = orientated_bins(linear_structure, 10)
         line_strength[line_strength<0.05] = 0
-        nose.tools.assert_almost_equal(np.count_nonzero(line_strength), 7, delta=2)
+        nose.tools.assert_almost_equal(np.count_nonzero(line_strength), 312, delta=10)
 
     def test_with_multiple_many_bins(self):
         linear_structure = generate_linear_structure(100, with_noise=True)
         line_strength, line_orinetation = orientated_bins(linear_structure, 10)
         line_strength[line_strength<0.05] = 0
-        nose.tools.assert_almost_equal(np.count_nonzero(line_strength), 7, delta=2)
+        nose.tools.assert_almost_equal(np.count_nonzero(line_strength), 312, delta=10)
 
 
 def generate_linear_structure(size, with_noise=False):
-    """Generate a basic linear structure, possibly with noise"""
+    """Generate a basic linear structure, optionally with noise"""
     linear_structure = np.zeros(shape=(size,size))
     linear_structure[:,size/2] = np.ones(size)
 

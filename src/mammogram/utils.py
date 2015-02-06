@@ -31,6 +31,18 @@ def binary_thinning(img, min_object_size):
                                     connectivity=2, in_place=True)
     return skeleton
 
+def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
+    """Erode a mask using a kernel
+
+    Uses binary_erosion to erode the edge of a mask.
+
+    :param mask: the mask to erode
+    :param kernel_func: the function used to generate the kernel (default: disk)
+    :param kernel_size: the size of the kernel to use (default: 30)
+    """
+    eroded_mask = np.zeros(mask.shape)
+    morphology.binary_erosion(mask, kernel_func(kernel_size), out=eroded_mask)
+    return eroded_mask
 
 def to_polar_coordinates(x, y):
     """Convert the 2D pixel coordinates to polar coordinates

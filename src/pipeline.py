@@ -18,7 +18,7 @@ from skimage import measure, transform, io
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
 from mammogram.plotting import plot_multiple_images, plot_region_props
-from mammogram.utils import binary_image, binary_thinning
+from mammogram.utils import binary_image, binary_thinning, erode_mask
 
 def linear_features(img, radius, nbins):
     """Compute linear features from an image
@@ -56,6 +56,7 @@ if __name__ == '__main__':
     #mask image
     if mask_path:
         msk = io.imread(mask_path, as_grey=True)
+        msk = erode_mask(msk)
         img = img * msk
 
     nbins, size = 12, 5

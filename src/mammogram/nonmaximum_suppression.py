@@ -19,7 +19,7 @@ def nonmaximum_suppression(line_strength, line_orientation, nbins, kernel_size=3
     :param kernel_size: size of the kernel neighbourhood (default 3)
     :returns: ndarray -- the suppressed line strength image
     """
-    if (kernel_size % nbins) == 0:
+    if (nbins % 4) != 0:
         raise ValueError("nbins must be a multiple of 4")
 
     kernels = generate_kernels(kernel_size)

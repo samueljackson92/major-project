@@ -115,7 +115,7 @@ def create_orientated_bins(sectors, radius):
     """
     nbins = len(sectors)/2
     orientated_bins = []
-    sector_pairs = zip(sectors[:nbins/2], sectors[nbins/2:])
+    sector_pairs = zip(sectors[:nbins], sectors[nbins:])
 
     for left, right in sector_pairs:
         orientated_bin = np.zeros(shape=(radius, radius), dtype="int64")

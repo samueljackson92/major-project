@@ -1,0 +1,163 @@
+%%% LaTeX Template
+%%% This template can be used for both articles and reports.
+%%%
+%%% Copyright: http://www.howtotex.com/
+%%% Date: February 2011
+
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}	% Article class of KOMA-script with 11pt font and a4 format
+\usepackage[margin=0.7in]{geometry}
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}				% Better typography
+\usepackage{amsmath,amsfonts,amsthm}										% Math packages
+%\usepackage{color,transparent}													% If you use color and/or transparency
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}	% Custom captions under/above floats
+\usepackage{epstopdf}																	% Converts .eps to .pdf
+\usepackage{subfig}																		% Subfigures
+\usepackage{booktabs}																	% Nicer tables
+\usepackage[pdftex]{graphicx}
+
+%%% Advanced verbatim environment
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\DefineShortVerb{\|}								% delimiter to display inline verbatim text
+
+
+%%% Custom sectioning (sectsty package)
+\usepackage{sectsty}								% Custom sectioning (see below)
+\allsectionsfont{%									% Change font of al section commands
+	\usefont{OT1}{bch}{b}{n}%					% bch-b-n: CharterBT-Bold font
+%	\hspace{15pt}%									% Uncomment for indentation
+	}
+
+\sectionfont{%										% Change font of \section command
+	\usefont{OT1}{bch}{b}{n}%					% bch-b-n: CharterBT-Bold font
+	\sectionrule{0pt}{0pt}{-5pt}{0.8pt}%	% Horizontal rule below section
+	}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}														% No page header
+\fancyfoot[C]{\thepage}										% Pagenumbering at center of footer
+\renewcommand{\headrulewidth}{0pt}				% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}															% Equationnumbering: section.eq#
+\numberwithin{figure}{section}																% Figurenumbering: section.fig#
+\numberwithin{table}{section}
+
+\usepackage[parfill]{parskip}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}															% Tablenumbering: section.tab#
+
+
+%%% Title
+\title{
+	\vspace{-0.5in} 	\usefont{OT1}{bch}{b}{n}
+	 Final Report \
+}
+
+% Authors
+\author{
+	\usefont{OT1}{bch}{m}{n} Samuel Jackson
+	\\ \usefont{OT1}{bch}{m}{n} University Of Aberystwyth
+	\\   \texttt{slj11@aber.ac.uk}
+}
+
+\author{Samuel Jackson}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Abstract}
+
+\subsection{Project Overview}
+
+\subsection{Project Deliverables}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background of Mammography}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Breast Anatomy}
+
+\subsubsection{Risk Assessment}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Literature Review}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Feature Detection}
+
+\subsubsection{Shape Features}
+
+\subsubsection{Texture Features}
+
+\subsection{Dimensionality Reduction}
+
+\subsubsection{Linear}
+
+\subsubsection{Non-Linear}
+
+\subsection{Visualisation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Datasets}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Artificial Data}
+
+\subsection{Real Data}
+
+\subsection{Synthetic Data}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methods}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Preprocessing}
+
+\subsection{Features}
+
+\subsection{Dimensionality Reduction}
+
+\subsection{Visualisation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Comparison of Real and Synthetic Dataset}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Evaluation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Critical Evaluation}
+
+\subsection{Future Work}
+
+\clearpage
+\bibliographystyle{unsrtnat}
+\bibliography{mmp}
+\end{document}

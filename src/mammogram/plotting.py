@@ -6,7 +6,7 @@ import matplotlib.cm as cm
 def plot_multiple_images(images):
     """Plot a list of images on horizontal subplots
 
-    :param images -- the list of images to plot
+    :param images: -- the list of images to plot
     """
     fig = plt.figure()
 

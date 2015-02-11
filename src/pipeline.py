@@ -1,12 +1,13 @@
 """Mammogram Processing Pipeline.
 
 Usage:
-  pipeline.py IMAGE [MASK]
+  pipeline.py IMAGE [MASK] [--scale-to-mask]
   pipeline.py (-h | --help)
   pipeline.py --version
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
+  -h --help         Show this screen.
+  --version         Show version.
+  --scale-to-mask   Scale the image to the mask.
 
 """
 from docopt import docopt
@@ -17,8 +18,8 @@ from skimage import measure, transform, io
 
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
-from mammogram.plotting import plot_multiple_images, plot_region_props
-from mammogram.utils import binary_image, binary_thinning, erode_mask
+import mammogram.plotting as plotting
+from mammogram.utils import binary_image, binary_thinning, erode_mask, normalise_image
 
 def linear_features(img, radius, nbins):
     """Compute linear features from an image
@@ -48,39 +49,35 @@ if __name__ == '__main__':
     mask_path = arguments["MASK"]
     img = io.imread(image_path, as_grey=True)
 
+    print np.amax(img), np.amin(img)
+    img = normalise_image(img)
+    print np.amax(img), np.amin(img)
+
     #scale with gaussian pyramid
-    pyramid = transform.pyramid_gaussian(img, downscale=4)
-    img = pyramid.next()
-    img = pyramid.next()
+    if arguments['--scale-to-mask']:
+        img = transform.pyramid_reduce(img, downscale=4)
 
     #mask image
     if mask_path:
         msk = io.imread(mask_path, as_grey=True)
-        msk = erode_mask(msk)
+        msk = erode_mask(msk, kernel_size=35)
+        if not arguments['--scale-to-mask']:
+            msk = transform.rescale(msk,4)
         img = img * msk
 
-    nbins, size, threshold = 12, 5, 10.0
+    nbins, size = 12, 5
+    line_image, regions = linear_features(img, size, nbins)
+
+    nbins, size, threshold = 12, 5, 0.045
     line_image, regions = linear_features(img, size, nbins, threshold)
+
+
     line_image = np.ma.masked_where(line_image == 0, line_image)
 
-    # plt.show()
-    from pylab import *
-    fname = "/Users/samuel/Desktop/testimg/thresh%f.png" % threshold
-    fig.savefig(fname, bbox_inches='tight', dpi=500)
-
-    # blobs = blob_detection(img, msk)
-    #
-    # fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.0))
-    # ax.set_title(title)
-    # ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
-    # ax.imshow(line_image, cmap=cm.autumn)
-    # for blob in blobs:
-    #     y, x, r = blob
-    #     c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
-    #     ax.add_patch(c)
-
-    # plt.show()
-
+    fig, ax = plt.subplots()
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.imshow(line_image, cmap=cm.autumn)
+    plt.show()
 
     #
     # import matplotlib.cm as cm

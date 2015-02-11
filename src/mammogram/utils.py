@@ -2,6 +2,19 @@ import math
 import numpy as np
 from skimage import morphology
 
+
+def normalise_image(img, new_min=0, new_max=1):
+    """Normalise an image between a range.
+
+    :param new_min: lower bound to normalise to. Default 0
+    :param new_min: upper bound to normalise to. Default 1
+    :returns: ndarry --  the normalise image
+    """
+    old_max, old_min = np.amax(img), np.amin(img)
+    img = (img - old_min) * (new_max - new_min) / (old_max - old_min) + new_min
+    return img
+
+
 def binary_image(img, threshold):
     """Create a binary image using a threshold.
 

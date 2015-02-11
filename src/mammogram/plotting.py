@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+from skimage import draw
 
 def plot_multiple_images(images):
     """Plot a list of images on horizontal subplots
@@ -45,5 +46,22 @@ def plot_region_props(image, regions):
         bx = (minc, maxc, maxc, minc, minc)
         by = (minr, minr, maxr, maxr, minr)
         ax.plot(bx, by, '-b', linewidth=2.5)
+
+    plt.show()
+
+
+def plot_blobs(img, blobs):
+    """Plot the output of blob detection on an image.
+
+    Original code from
+    """
+
+    fig, ax = plt.subplots(1, 1)
+    # ax.set_title(title)
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    for blob in blobs:
+        y, x, r = blob
+        c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+        ax.add_patch(c)
 
     plt.show()

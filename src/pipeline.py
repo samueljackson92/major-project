@@ -59,7 +59,35 @@ if __name__ == '__main__':
         msk = erode_mask(msk)
         img = img * msk
 
-    nbins, size = 12, 5
-    line_image, regions = linear_features(img, size, nbins)
+    nbins, size, threshold = 12, 5, 10.0
+    line_image, regions = linear_features(img, size, nbins, threshold)
+    line_image = np.ma.masked_where(line_image == 0, line_image)
 
-    plot_region_props(line_image, regions)
+    # plt.show()
+    from pylab import *
+    fname = "/Users/samuel/Desktop/testimg/thresh%f.png" % threshold
+    fig.savefig(fname, bbox_inches='tight', dpi=500)
+
+    # blobs = blob_detection(img, msk)
+    #
+    # fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.0))
+    # ax.set_title(title)
+    # ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    # ax.imshow(line_image, cmap=cm.autumn)
+    # for blob in blobs:
+    #     y, x, r = blob
+    #     c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+    #     ax.add_patch(c)
+
+    # plt.show()
+
+
+    #
+    # import matplotlib.cm as cm
+    # io.imshow(img)
+    # io.imshow(line_image, cmap=cm.autumn)
+    # io.show()
+
+    # plotting.plot_blobs(img, blobs)
+    # plot_multiple_images([img, line_image])
+    # plot_region_props(line_image, regions)

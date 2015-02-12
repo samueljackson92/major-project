@@ -21,7 +21,7 @@ from mammogram.nonmaximum_suppression import nonmaximum_suppression
 import mammogram.plotting as plotting
 from mammogram.utils import binary_image, binary_thinning, erode_mask, normalise_image
 
-def linear_features(img, radius, nbins):
+def linear_features(img, radius, nbins, threshold):
     """Compute linear features from an image
 
     Uses orientated bins with nonmaximum suppression and binary thinning.
@@ -34,7 +34,7 @@ def linear_features(img, radius, nbins):
     line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
     line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
 
-    line_image = binary_image(line_strength_suppressed, 0.05)
+    line_image = binary_image(line_strength_suppressed, threshold)
     line_image = binary_thinning(line_image, 8)
 
     labelled_image = measure.label(line_image)
@@ -49,10 +49,6 @@ if __name__ == '__main__':
     mask_path = arguments["MASK"]
     img = io.imread(image_path, as_grey=True)
 
-    print np.amax(img), np.amin(img)
-    img = normalise_image(img)
-    print np.amax(img), np.amin(img)
-
     #scale with gaussian pyramid
     if arguments['--scale-to-mask']:
         img = transform.pyramid_reduce(img, downscale=4)
@@ -61,30 +57,20 @@ if __name__ == '__main__':
     if mask_path:
         msk = io.imread(mask_path, as_grey=True)
         msk = erode_mask(msk, kernel_size=35)
+
         if not arguments['--scale-to-mask']:
             msk = transform.rescale(msk,4)
+
         img = img * msk
 
-    nbins, size = 12, 5
-    line_image, regions = linear_features(img, size, nbins)
+    img = normalise_image(img)
 
-    nbins, size, threshold = 12, 5, 0.045
+    nbins, size, threshold = 12, 5, 5.0e-2
     line_image, regions = linear_features(img, size, nbins, threshold)
-
-
     line_image = np.ma.masked_where(line_image == 0, line_image)
 
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots()
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
-    ax.imshow(line_image, cmap=cm.autumn)
+    ax.imshow(line_image, cmap=plt.cm.autumn)
     plt.show()
-
-    #
-    # import matplotlib.cm as cm
-    # io.imshow(img)
-    # io.imshow(line_image, cmap=cm.autumn)
-    # io.show()
-
-    # plotting.plot_blobs(img, blobs)
-    # plot_multiple_images([img, line_image])
-    # plot_region_props(line_image, regions)

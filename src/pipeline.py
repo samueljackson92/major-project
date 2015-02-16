@@ -14,7 +14,7 @@ from docopt import docopt
 
 import math
 import numpy as np
-from skimage import measure, transform, io
+from skimage import exposure, measure, transform, io
 
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
@@ -63,9 +63,11 @@ if __name__ == '__main__':
 
         img = img * msk
 
-    img = normalise_image(img)
-
     nbins, size, threshold = 12, 5, 5.0e-2
+
+    img = normalise_image(img)
+    # img = exposure.equalize_adapthist(img)
+
     line_image, regions = linear_features(img, size, nbins, threshold)
     line_image = np.ma.masked_where(line_image == 0, line_image)
 

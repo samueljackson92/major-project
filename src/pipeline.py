@@ -43,7 +43,7 @@ def linear_features(img, radius, nbins, threshold):
     return line_image, regions
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='0.1.0')
+    arguments = docopt(__doc__, version='0.3.0')
 
     image_path = arguments["IMAGE"]
     mask_path = arguments["MASK"]

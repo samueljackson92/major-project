@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from skimage import morphology
+from skimage import morphology, measure
 
 
 def normalise_image(img, new_min=0, new_max=1):
@@ -25,24 +25,33 @@ def binary_image(img, threshold):
     :param threshold: the value to threshold the image with
     :returns: ndarray -- int64 array representing the binary version of the image
     """
-    binary_image = np.zeros(img.shape, dtype='int64')
+    binary_image = np.zeros(img.shape, dtype='uint8')
     binary_image[img>threshold] = 1
     return binary_image
 
 
-def binary_thinning(img, min_object_size):
-    """Thin a binary image
+def skeletonize_image(img, min_object_size, dilation_size=3):
+    """Convert a binary image to skeleton representation.
 
-    Objects below the value of min_object_size are discarded
+    This will remove any small artifacts below min_object_size. Then the
+    remaining artifacts will be dilated to produce better connectivity. The
+    result is skeletonized to produce the final image.
 
-    :param img: the binary image on which to perform thinning
-    :param min_object_size: the minium size of object to keep
-    :returns: ndarry -- thinned binary image
+    :param min_object_size: minimum size of artifact to keep
+    :param dilation_size: radius of the disk kernel to use for dilation.
+    :returns: ndarray -- skeletonized image.
     """
-    skeleton = morphology.skeletonize(img)
-    morphology.remove_small_objects(skeleton, min_object_size,
-                                    connectivity=2, in_place=True)
-    return skeleton
+    img = measure.label(img)
+    img = morphology.remove_small_objects(img, min_object_size, connectivity=4)
+
+    #dilate to connect bigger structures
+    dilation_kernel = morphology.disk(dilation_size)
+    img = morphology.binary_closing(img, dilation_kernel)
+
+    img[img>0] = 1
+
+    return img
+
 
 def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     """Erode a mask using a kernel
@@ -56,6 +65,7 @@ def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     eroded_mask = np.zeros(mask.shape)
     morphology.binary_erosion(mask, kernel_func(kernel_size), out=eroded_mask)
     return eroded_mask
+
 
 def to_polar_coordinates(x, y):
     """Convert the 2D pixel coordinates to polar coordinates

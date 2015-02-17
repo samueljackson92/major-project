@@ -14,12 +14,13 @@ from docopt import docopt
 
 import math
 import numpy as np
-from skimage import exposure, measure, transform, io
+from skimage import exposure, measure, transform, io, morphology
+import skimage.filter as filters
 
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
 import mammogram.plotting as plotting
-from mammogram.utils import binary_image, binary_thinning, erode_mask, normalise_image
+from mammogram.utils import *
 
 def linear_features(img, radius, nbins, threshold):
     """Compute linear features from an image
@@ -35,18 +36,20 @@ def linear_features(img, radius, nbins, threshold):
     line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
 
     line_image = binary_image(line_strength_suppressed, threshold)
-    line_image = binary_thinning(line_image, 8)
+    line_image = skeletonize_image(line_image, 50, dilation_size=1)
 
-    labelled_image = measure.label(line_image)
-    regions = measure.regionprops(labelled_image)
+    #find image regions
+    line_image = measure.label(line_image)
+    regions = measure.regionprops(line_image)
 
-    return line_image, regions
+    return line_strength_suppressed, regions
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='0.3.0')
 
     image_path = arguments["IMAGE"]
     mask_path = arguments["MASK"]
+
     img = io.imread(image_path, as_grey=True)
 
     #scale with gaussian pyramid
@@ -63,16 +66,17 @@ if __name__ == '__main__':
 
         img = img * msk
 
-    nbins, size, threshold = 12, 5, 5.0e-2
-
     img = normalise_image(img)
-    # img = exposure.equalize_adapthist(img)
 
+    nbins, size, threshold = 12, 5, 4.0e-2
     line_image, regions = linear_features(img, size, nbins, threshold)
     line_image = np.ma.masked_where(line_image == 0, line_image)
 
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots()
-    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.imshow(img, cmap=plt.cm.gray)
     ax.imshow(line_image, cmap=plt.cm.autumn)
+
+    fname = "/Users/samuel/Desktop/testimg/hard_with_contrast.png"
+    # fig.savefig(fname, bbox_inches='tight', dpi=500)
     plt.show()

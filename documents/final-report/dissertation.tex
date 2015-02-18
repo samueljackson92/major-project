@@ -1,0 +1,129 @@
+\documentclass[11pt,a4paper]{report}
+
+% Aberstwyth dissertation LaTeX Template
+% Authors: Dr. Hannah Dee (hmd1@aber.ac.uk), Neil Taylor (nst@aber.ac.uk)
+% This has been adapted from the Leeds Thesis template and the 
+% Group Project template for Computer Science in Aberystywth University.
+% 
+% All comments and suggestions welcome.
+%
+% Template designed to be used with pdflatex: it may need alteration to
+% run with a different LaTeX engine
+
+% To build document on the unix command line, run four commands:
+ 
+% pdflatex dissertation
+% bibtex dissertation
+% pdflatex dissertation
+% pdflatex dissertation
+
+% you will end up with dissertation.pdf 
+\usepackage{mmp}
+
+% the following packages are used for citations - You only need to include one. 
+%
+% Use the cite package if you are using the numeric style (e.g. IEEEannot). 
+% Use the natbib package if you are using the author-date style (e.g. authordate2annot). 
+% Only use one of these and comment out the other one. 
+\usepackage{cite}
+%\usepackage{natbib}
+
+% Use the following to selectively exclude chapters
+%\includeonly{cover,abstract,acknowledge,declare,chapter1,chapter2}
+
+\begin{document}
+
+% all of the include directives below refer to tex files
+% so \include{cover} includes cover.tex - to change the content,
+% edit the tex file
+
+\pagenumbering{roman}
+
+% This is the front page
+\include{cover}                        
+
+% Set up page numbering
+\pagestyle{empty}
+
+% declarations of originality 
+\include{declaration}               
+
+\include{acknowledgements} % Acknowledgements
+\include{abstract}                 % Abstract
+
+\pagenumbering{roman}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0 pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+\tableofcontents   
+\newpage
+\listoffigures
+\newpage 
+\listoftables
+\newpage
+
+% Set up page numbering
+\pagenumbering{arabic}
+
+\setchapterheaderfooter
+
+% include the chapters
+\include{Chapter1/chapter1}
+\include{Chapter2/chapter2}
+\include{Chapter3/chapter3}
+\include{Chapter4/chapter4}
+% add any additional chapters here
+
+\setemptyheader
+\addcontentsline{toc}{chapter}{Appendices}
+\chapter*{Appendices}
+\pagebreak
+
+% start the appendix - sets up different numbering
+\fancypagestyle{plain}{%
+%\fancyhf{} % clear all header and footer fields
+\fancyhead[L]{\textsl{Appendix\ \thechapter}}
+\fancyhead[R]{\textsl{\leftmark}}}
+
+\appendix
+\fancyhead[L]{\textsl{Appendix\ \thechapter}}
+\fancyhead[R]{\textsl{\leftmark}}
+\fancyhead[C]{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+\fancyhead[L]{\textsl{Appendix\ \thechapter}}
+\fancyhead[R]{\textsl{\leftmark}}
+\fancyfoot[C]{{\thepage} of \pageref{LastPage}}
+
+% include any appendices here
+\include{Appendix1/appendix1}
+\include{Appendix2/appendix2}
+
+\fancypagestyle{plain}{%
+   \fancyhead{} %[C]{Annotated Bibliography}
+   \fancyfoot[C]{{\thepage} of \pageref{LastPage}} % except the center
+   \renewcommand{\headrulewidth}{0pt}
+   \renewcommand{\footrulewidth}{0pt}
+}
+
+\setemptyheader
+
+\nocite{*} % include everything from the bibliography, irrespective of whether it has been referenced.
+
+% the following line is included so that the bibliography is also shown in the table of contents. There is the possibility that this is added to the previous page for the bibliography. To address this, a newline is added so that it appears on the first page for the bibliography. 
+\addcontentsline{toc}{chapter}{Annotated Bibliography} % Adds References to contents page
+
+%
+% example of including an annotated bibliography. The current style is an author date one. If you want to change, comment out the line and uncomment the subsequent line. You should also modify the packages included at the top (see the notes earlier in the file) and then trash your aux files and re-run. 
+%\bibliographystyle{authordate2annot}
+\bibliographystyle{IEEEannot}
+\renewcommand{\bibname}{Annotated Bibliography} 
+\bibliography{References/references} % References file
+
+
+\end{document}

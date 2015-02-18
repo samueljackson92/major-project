@@ -63,14 +63,7 @@ if __name__ == '__main__':
         msk = transform.rescale(msk,4)
         img = img * msk
 
-    nbins, size = 12, 5
-    line_image, regions = linear_features(img, size, nbins)
-
-    nbins, size, threshold = 12, 5, 10.0
-    line_image, regions = linear_features(img, size, nbins, threshold)
-    line_image = np.ma.masked_where(line_image == 0, line_image)
-
-    end = time.time()
+    # blob_detection(img, msk)
     # ax.set_title(title)
     # ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
     # ax.imshow(line_image, cmap=cm.autumn)

@@ -89,16 +89,21 @@ if __name__ == '__main__':
     log = log_kernel(5, 1.5)
 
     msk = msk.astype('int')
-    blob_detection(img, msk)
-    # ax.set_title(title)
-    # ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
-    # ax.imshow(line_image, cmap=cm.autumn)
-    # for blob in blobs:
-    #     y, x, r = blob
-    #     c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
-    #     ax.add_patch(c)
 
-    # plt.show()
+    import time
+    start = time.time()
+    blobs = blob_detection(img)
+    end = time.time()
+    print end-start
+
+    fig, ax = plt.subplots(1,1)
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    for blob in blobs:
+        y, x, r = blob
+        c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+        ax.add_patch(c)
+
+    plt.show()
 
 
 

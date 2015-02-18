@@ -4,14 +4,15 @@ Blob Detection
 import numpy as np
 from skimage import feature, transform, io
 import skimage.filter as filters
-from scipy.ndimage.filters import gaussian_laplace, generic_filter, generic_laplace, gaussian_filter, convolve
+from scipy.ndimage.filters import laplace
+from mammogram.utils import normalise_image
 
 def blob_detection(image, mask, min_sigma=8, max_sigma=10*np.sqrt(2), num_sigma=10, threshold=.1, overlap=.5):
 
-    image  = image * mask
     for img in laplacian_pyramid(image, mask, max_layer=10, downscale=np.sqrt(2), sigma=1.0):
-        io.imshow(img)
-        io.show()
+        pass
+        # io.imshow(img)
+        # io.show()
 
 def laplacian_pyramid(image, mask, max_layer, downscale, sigma):
     import scipy.ndimage.filters as filters
@@ -29,28 +30,24 @@ def laplacian_pyramid(image, mask, max_layer, downscale, sigma):
 
     def log_kernel(size, sigma):
         g = gaussian_kernel(size+1, sigma)
-        log = filters.laplace(g, mode='wrap')
+        log = laplace(g, mode='wrap')
         log = log[1:-1,1:-1] #remove the edge crap
         return log
 
     log = log_kernel(5, sigma)
     layer = 0
     while layer != max_layer:
-        #smoothed = deformable_convolution(image, mask, log)
-        yield smoothed
+        io.imshow(image)
+        io.show()
 
-        image = transform.rescale(image, 1/downscale)
-        mask = transform.rescale(mask, 1/downscale)
+        # from convolve_tools import deformable_covolution
+        # smoothed = deformable_covolution(image, mask, log)
+        # yield smoothed
+        image = normalise_image(image)
+        image = transform.rescale(image, 1./downscale)
+        # mask = transform.rescale(mask.astype('float64'), 1/downscale)
+        # mask = mask.astype('int')
         layer += 1
-
-
-def filter_image(image, mask, sigma):
-
-    filtered_image = np.zeros(image.shape)
-    laplace(image, filtered_image)
-    filtered_image[mask!=1]=0
-    generic_filter(filtered_image, func, output=filtered_image, extra_arguments=(sigma,))
-    return filtered_image
 
 
 def vanilla_log(img):

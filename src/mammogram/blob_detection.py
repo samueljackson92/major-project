@@ -20,14 +20,15 @@ def multiscale_pyramid_detection(image):
                                               threshold_rel=0.0,
                                               exclude_border=False)
 
-        #Generate array of sigma sizes for this level.
-        local_sigma = 8.0*factor**i
-        sigmas = np.empty((local_maxima.shape[0], 1))
-        sigmas.fill(local_sigma)
+        if len(local_maxima) > 0:
+            #Generate array of sigma sizes for this level.
+            local_sigma = 8.0*factor**i
+            sigmas = np.empty((local_maxima.shape[0], 1))
+            sigmas.fill(local_sigma)
 
-        #stack detections together into single list of blobs.
-        local_maxima = np.hstack((local_maxima, sigmas))
-        maxima = np.vstack((maxima, local_maxima))
+            #stack detections together into single list of blobs.
+            local_maxima = np.hstack((local_maxima, sigmas))
+            maxima = np.vstack((maxima, local_maxima))
 
     return maxima
 

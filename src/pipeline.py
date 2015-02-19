@@ -67,6 +67,8 @@ if __name__ == '__main__':
             msk = transform.rescale(msk,4)
         img = img * msk
 
+    img = normalise_image(img)
+
     import time
     start = time.time()
     blobs = blob_detection(img, msk)

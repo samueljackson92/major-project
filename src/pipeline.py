@@ -1,9 +1,9 @@
-"""Mammogram Processing Pipeline.
+"""Mammogram Image Analysis.
 
 Usage:
-  pipeline.py IMAGE [MASK] [--scale-to-mask]
-  pipeline.py (-h | --help)
-  pipeline.py --version
+  mia.py IMAGE [MASK] [--scale-to-mask]
+  mia.py (-h | --help)
+  mia.py --version
 Options:
   -h --help         Show this screen.
   --version         Show version.
@@ -44,7 +44,7 @@ def linear_features(img, radius, nbins, threshold):
 
     return line_strength_suppressed, regions
 
-if __name__ == '__main__':
+def main():
     arguments = docopt(__doc__, version='0.3.0')
 
     image_path = arguments["IMAGE"]

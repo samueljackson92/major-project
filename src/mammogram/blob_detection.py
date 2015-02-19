@@ -7,15 +7,15 @@ import skimage.filter as filters
 from scipy.ndimage.filters import laplace, gaussian_laplace
 from mammogram.utils import normalise_image
 
-def blob_detection(image):
-    return multiscale_pyramid_detection(image)
+def blob_detection(image, max_layer=10, downscale=np.sqrt(2), sigma=8.0):
+    return multiscale_pyramid_detection(image, max_layer, downscale, sigma)
 
-def multiscale_pyramid_detection(image):
+def multiscale_pyramid_detection(image, *args):
     factor = np.sqrt(2)
     maxima = np.empty((0,3))
-    for i, img in enumerate(laplacian_pyramid(image, max_layer=10, downscale=factor, sigma=8.0)):
+    for i, img in enumerate(laplacian_pyramid(image, *args)):
 
-        local_maxima = feature.peak_local_max(img, min_distance=0, threshold_abs=0.0,
+        local_maxima = feature.peak_local_max(img, min_distance=0, threshold_abs=0.003,
                                               footprint=np.ones((5, 5)),
                                               threshold_rel=0.0,
                                               exclude_border=False)
@@ -38,7 +38,7 @@ def laplacian_pyramid(image, max_layer, downscale, sigma):
     layer = 0
     while layer != max_layer:
 
-        log_filtered = -gaussian_laplace(image, sigma)
+        log_filtered = -gaussian_laplace(image, sigma, mode='constant', cval=0)
 
         #upscale to original image size
         if layer > 0:

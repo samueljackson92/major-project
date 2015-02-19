@@ -67,29 +67,6 @@ if __name__ == '__main__':
             msk = transform.rescale(msk,4)
         img = img * msk
 
-    import scipy.ndimage.filters as filters
-
-    def gaussian_kernel(size, fwhm = 3):
-        """ Make gaussian kernel."""
-
-        fwhm = 2.355*fwhm
-
-        x = np.arange(0, size, 1, float)
-        y = x[:,np.newaxis]
-
-        x0 = y0 = size // 2
-        return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
-
-    def log_kernel(size, sigma):
-        g = gaussian_kernel(size+1, sigma)
-        log = filters.laplace(g, mode='wrap')
-        log = log[1:-1,1:-1] #remove the edge crap
-        return log
-
-    log = log_kernel(5, 1.5)
-
-    msk = msk.astype('int')
-
     import time
     start = time.time()
     blobs = blob_detection(img)

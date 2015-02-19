@@ -33,6 +33,7 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8
     blobs = multiscale_pyramid_detection(image, max_layer, downscale, sigma)
     blobs = remove_edge_blobs(blobs, image.shape)
     blobs = remove_false_positives(blobs, image, mask)
+    blobs = merge_blobs(blobs)
     return blobs
 
 
@@ -96,11 +97,6 @@ def log_pyramid(image, max_layer, downscale, sigma):
         image = transform.rescale(image, 1./downscale)
         layer += 1
 
-
-def merge_blobs(blobs, image_shape):
-    return blobs
-
-
 def remove_edge_blobs(blobs, image_shape):
     """Remove blobs detected around the edge of the image.
 
@@ -112,7 +108,8 @@ def remove_edge_blobs(blobs, image_shape):
 
     def check_within_image(blob):
         y,x,r = blob
-        return not (x - r < 0 or x + r > img_width) or (y - r < 0 or y + r > img_height)
+        return not (x - r < 0 or x + r > img_width)
+               or (y - r < 0 or y + r > img_height)
 
     return filter(check_within_image, blobs)
 
@@ -198,3 +195,7 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
 
     #Compute threshold from the high density cluster intensity
     return np.mean(hdc_avg) - np.std(hdc_std)
+
+
+def merge_blobs(blobs):
+    return blobs

@@ -108,7 +108,7 @@ def remove_edge_blobs(blobs, image_shape):
 
     def check_within_image(blob):
         y,x,r = blob
-        return not (x - r < 0 or x + r > img_width)
+        return not (x - r < 0 or x + r > img_width) \
                or (y - r < 0 or y + r > img_height)
 
     return filter(check_within_image, blobs)

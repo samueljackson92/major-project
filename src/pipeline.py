@@ -69,9 +69,9 @@ if __name__ == '__main__':
 
     import time
     start = time.time()
-    blobs = blob_detection(img)
+    blobs = blob_detection(img, msk)
     end = time.time()
-    print end-start
+    print "Execution time: %f" % (end-start)
 
     fig, ax = plt.subplots(1,1)
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
@@ -81,8 +81,6 @@ if __name__ == '__main__':
         ax.add_patch(c)
 
     plt.show()
-
-
 
     #
     # import matplotlib.cm as cm

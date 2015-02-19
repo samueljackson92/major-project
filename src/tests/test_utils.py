@@ -20,7 +20,7 @@ def generate_blob():
     and binning it to the required size
     """
     mean = [0,0]
-    cov = [[1,1],[10,100]] # diagonal covariance, points lie on x or y-axis
-    x,y = np.random.multivariate_normal(mean,cov,5000).T
+    cov = [[1,0],[0,1]] # diagonal covariance, points lie on x or y-axis
+    x,y = np.random.multivariate_normal(mean,cov,50000).T
     h, xedges, yedges = np.histogram2d(x,y, bins=100)
     return h

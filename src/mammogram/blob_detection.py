@@ -1,5 +1,13 @@
 """
-Blob Detection
+Multi-scale blob detection.
+
+Uses a Laplacian of Gaussian pyramid to detect blobs over multiple scales.
+
+References:
+
+Chen, Zhili, et al. "A multiscale blob representation of mammographic
+parenchymal patterns and mammographic risk assessment." Computer Analysis of
+Images and Patterns. Springer Berlin Heidelberg, 2013.
 """
 
 import math

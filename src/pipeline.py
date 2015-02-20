@@ -17,6 +17,10 @@ import numpy as np
 from skimage import exposure, measure, transform, io, morphology
 import skimage.filter as filters
 
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+from mammogram.blob_detection import blob_detection
 from mammogram.orientated_bins import orientated_bins
 from mammogram.nonmaximum_suppression import nonmaximum_suppression
 import mammogram.plotting as plotting
@@ -52,7 +56,6 @@ def main():
 
     img = io.imread(image_path, as_grey=True)
 
-    #scale with gaussian pyramid
     if arguments['--scale-to-mask']:
         img = transform.pyramid_reduce(img, downscale=4)
 
@@ -60,23 +63,33 @@ def main():
     if mask_path:
         msk = io.imread(mask_path, as_grey=True)
         msk = erode_mask(msk, kernel_size=35)
-
         if not arguments['--scale-to-mask']:
             msk = transform.rescale(msk,4)
-
         img = img * msk
 
     img = normalise_image(img)
 
-    nbins, size, threshold = 12, 5, 4.0e-2
-    line_image, regions = linear_features(img, size, nbins, threshold)
-    line_image = np.ma.masked_where(line_image == 0, line_image)
+    import time
+    start = time.time()
+    blobs = blob_detection(img, msk)
+    end = time.time()
+    print "Execution time: %f" % (end-start)
 
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.imshow(img, cmap=plt.cm.gray)
-    ax.imshow(line_image, cmap=plt.cm.autumn)
+    fig, ax = plt.subplots(1,1)
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    for blob in blobs:
+        y, x, r = blob
+        c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+        ax.add_patch(c)
 
-    fname = "/Users/samuel/Desktop/testimg/hard_with_contrast.png"
-    # fig.savefig(fname, bbox_inches='tight', dpi=500)
     plt.show()
+
+    #
+    # import matplotlib.cm as cm
+    # io.imshow(img)
+    # io.imshow(line_image, cmap=cm.autumn)
+    # io.show()
+
+    # plotting.plot_blobs(img, blobs)
+    # plot_multiple_images([img, line_image])
+    # plot_region_props(line_image, regions)

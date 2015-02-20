@@ -190,6 +190,12 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
 
 
 def merge_blobs(blobs, image):
+    """Merge blobs found from the LoG pyramid
+
+    :param blobs: list of blobs detected from the image
+    :param image: image the blobs were found in
+    :returns: a filtered list of blobs remaining after merging
+    """
     #reverse so largest blobs are at the start
     blobs = np.array(blobs[::-1])
     blob_graph, remove_list = build_graph(blobs)
@@ -199,6 +205,14 @@ def merge_blobs(blobs, image):
 
 
 def build_graph(blobs):
+    """Build a directed graph of blobs from the largest scale to the smallest
+
+    This will also return a list of blobs to remove because they are entirely
+    contianed within a larger blob.
+
+    :param blobs: blobs to build the graph with
+    :returns: tuple containing the graph and a list of nodes to remove
+    """
     g = Graph()
 
     remove_list = set()
@@ -223,6 +237,13 @@ def build_graph(blobs):
 
 
 def merge_intersecting_blobs(blobs, blob_graph, image):
+    """Merge the intersecting blobs using a directed graph
+
+    :param blobs: list of blobs detected from the image to merge
+    :param blob_graph: directed graph of blobs from largest to smallest
+    :param image: image that the blobs were detected in
+    :returns: list of indicies of detected blobs to remove
+    """
     remove_list = set()
 
     for index, neighbours_indicies in blob_graph.iterate():
@@ -246,6 +267,12 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
 
 
 def is_intersecting(a,b):
+    """ Check if two blobs intersect each other
+
+    :param a: first blob. This is larger than b.
+    :param b: second blob. This is smaller than a.
+    :returns: if the radius of b overlaps with the radius of a
+    """
     ay, ax, ar = a
     by, bx, br = b
 
@@ -254,6 +281,12 @@ def is_intersecting(a,b):
 
 
 def is_internal(a,b):
+    """ Check if blob b is within blob a
+
+    :param a: first blob. This is larger than b.
+    :param b: second blob. This is smaller than a.
+    :returns: if b is inside the radius of a
+    """
     ay, ax, ar = a
     by, bx, br = b
 
@@ -262,6 +295,12 @@ def is_internal(a,b):
 
 
 def is_external(a,b):
+    """ Check if blob b is outside blob a
+
+    :param a: first blob. This is larger than b.
+    :param b: second blob. This is smaller than a.
+    :returns: if b is outside the radius of a
+    """
     ay, ax, ar = a
     by, bx, br = b
 
@@ -270,6 +309,13 @@ def is_external(a,b):
 
 
 def is_close(a,b,alpha=0.0):
+    """ Check if two blobs are close to one another
+
+    :param a: first blob. This is larger than b.
+    :param b: second blob. This is smaller than a.
+    :param alpha: The amount of overlap allowed between blobs
+    :returns: if blobs are close
+    """
     if alpha < 0 or alpha > 1:
         raise ValueError("Value of alpha must be between 0 and 1.")
 
@@ -281,6 +327,12 @@ def is_close(a,b,alpha=0.0):
 
 
 def extract_blob(blob, image):
+    """ Extract the pixels that make up the blob's neighbourhood
+
+    :param blob: the blob to extract
+    :param image: the image to extract the blob from
+    :returns: extracted square neighbourhood
+    """
     y,x,r = blob
     hs, he = y - math.ceil(r), y + math.ceil(r)+1
     ws, we = x - math.ceil(r), x + math.ceil(r)+1
@@ -289,6 +341,13 @@ def extract_blob(blob, image):
 
 
 def extract_radial_blob(blob, image):
+    """ Extract the pixels that make up the blob's neighbourhood
+
+    This uses a disk to extract only the pixels within the radius of the blob
+    :param blob: the blob to extract
+    :param image: the image to extract the blob from
+    :returns: extracted disk neighbourhood
+    """
     image_section = extract_blob(blob, image)
     kernel = morphology.disk(math.ceil(blob[2]))
     image_section = image_section[kernel==1]
@@ -297,6 +356,12 @@ def extract_radial_blob(blob, image):
 
 
 def remove_blobs(blobs, remove_list):
+    """Remove blobs corresponding to the indicies in remove_list
+
+    :param blobs: list of blobs to filter
+    :param remove_list: list of indicies to remove from the blob list
+    :returns: filtered list of blobs
+    """
     remove_list = np.array(remove_list)
     mask = np.ones_like(blobs,dtype=bool)
     mask[remove_list] = False

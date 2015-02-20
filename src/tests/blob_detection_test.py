@@ -8,7 +8,7 @@ from mammogram.plotting import plot_blobs
 from skimage import io, transform
 from tests import load_file
 from test_utils import generate_blob
-from .. import utils
+from mammogram import utils
 
 class BlobDetectionTests(unittest.TestCase):
 

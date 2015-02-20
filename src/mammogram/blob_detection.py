@@ -14,8 +14,9 @@ import math
 import numpy as np
 import skimage.filter as filters
 
+from mammogram._adjacency_graph import Graph
 from mammogram.utils import normalise_image
-from scipy.ndimage.filters import laplace, gaussian_laplace
+from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
 from skimage import feature, transform, io, morphology
 
@@ -33,7 +34,7 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8
     blobs = multiscale_pyramid_detection(image, max_layer, downscale, sigma)
     blobs = remove_edge_blobs(blobs, image.shape)
     blobs = remove_false_positives(blobs, image, mask)
-    blobs = merge_blobs(blobs)
+    blobs = merge_blobs(blobs, image)
     return blobs
 
 
@@ -157,16 +158,7 @@ def filter_blobs_by_mean_intensity(blobs, image, threshold):
     """
     filtered_blobs = []
     for blob in blobs:
-        y,x,r = blob
-
-        kernel = morphology.disk(math.ceil(r))
-        hs, he = y - math.ceil(r), y + math.ceil(r)+1
-        ws, we = x - math.ceil(r), x + math.ceil(r)+1
-
-        image_section = image[hs:he,ws:we]
-        image_section = image_section[kernel==1]
-        image_section = image_section.reshape(image_section.size, 1)
-
+        image_section = extract_radial_blob(blob, image)
         if np.mean(image_section) > threshold:
             filtered_blobs.append(blob)
 
@@ -197,5 +189,117 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
     return np.mean(hdc_avg) - np.std(hdc_std)
 
 
-def merge_blobs(blobs):
+def merge_blobs(blobs, image):
+    #reverse so largest blobs are at the start
+    blobs = np.array(blobs[::-1])
+    blob_graph, remove_list = build_graph(blobs)
+    remove_list += merge_intersecting_blobs(blobs, blob_graph, image)
+    blobs = remove_blobs(blobs, remove_list)
+    return blobs
+
+
+def build_graph(blobs):
+    g = Graph()
+
+    remove_list = set()
+    for index, blob in enumerate(blobs):
+
+        g.add_node(index, blob)
+
+        #check if blob has been marked as entirely within a larger blob
+        if index in remove_list:
+            continue
+
+        for neighbour_index, neighbour in enumerate(blobs):
+            if index != neighbour_index:
+                if is_external(blob, neighbour):
+                    continue
+                elif is_intersecting(blob, neighbour):
+                    g.add_adjacent(index, neighbour_index)
+                elif is_internal(blob, neighbour):
+                    remove_list.add(neighbour_index)
+
+    return g, list(remove_list)
+
+
+def merge_intersecting_blobs(blobs, blob_graph, image):
+    remove_list = set()
+
+    for index, neighbours_indicies in blob_graph.iterate():
+        blob = blob_graph.get_node(index)
+        blob_section = extract_blob(blob, image)
+
+        for neighbour_index in neighbours_indicies:
+            neighbour = blob_graph.get_node(neighbour_index)
+
+            if is_close(blob, neighbour):
+                neighbour_section = extract_blob(neighbour, image)
+                blob_gss = np.sum(gaussian_filter(blob_section, blob[2]))
+                neighbour_gss = np.sum(gaussian_filter(neighbour_section, neighbour[2]))
+
+                if blob_gss > neighbour_gss:
+                    remove_list.add(neighbour_index)
+                elif blob_gss < neighbour_gss:
+                    remove_list.add(index)
+
+    return list(remove_list)
+
+
+def is_intersecting(a,b):
+    ay, ax, ar = a
+    by, bx, br = b
+
+    d = math.sqrt((ax - bx)**2 + (ay - by)**2)
+    return ar - br < d and d < ar + br
+
+
+def is_internal(a,b):
+    ay, ax, ar = a
+    by, bx, br = b
+
+    d = math.sqrt((ax - bx)**2 + (ay - by)**2)
+    return d <= ar - br
+
+
+def is_external(a,b):
+    ay, ax, ar = a
+    by, bx, br = b
+
+    d = math.sqrt((ax - bx)**2 + (ay - by)**2)
+    return d >= ar + br
+
+
+def is_close(a,b,alpha=0.0):
+    if alpha < 0 or alpha > 1:
+        raise ValueError("Value of alpha must be between 0 and 1.")
+
+    ay, ax, ar = a
+    by, bx, br = b
+
+    d = math.sqrt((ax - bx)**2 + (ay - by)**2)
+    return d <= ar - br*alpha
+
+
+def extract_blob(blob, image):
+    y,x,r = blob
+    hs, he = y - math.ceil(r), y + math.ceil(r)+1
+    ws, we = x - math.ceil(r), x + math.ceil(r)+1
+    image_section = image[hs:he,ws:we]
+    return image_section
+
+
+def extract_radial_blob(blob, image):
+    image_section = extract_blob(blob, image)
+    kernel = morphology.disk(math.ceil(blob[2]))
+    image_section = image_section[kernel==1]
+    image_section = image_section.reshape(image_section.size, 1)
+    return image_section
+
+
+def remove_blobs(blobs, remove_list):
+    remove_list = np.array(remove_list)
+    mask = np.ones_like(blobs,dtype=bool)
+    mask[remove_list] = False
+    blobs = blobs[mask]
+    blobs = blobs.reshape(blobs.size/3, 3)
     return blobs

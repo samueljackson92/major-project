@@ -1,6 +1,9 @@
 import numpy as np
 import skimage.filter as filters
 
+def assert_lists_equal(a,b):
+    return len(a) == len(b) and sorted(a) == sorted(b)
+
 def generate_linear_structure(size, with_noise=False):
     """Generate a basic linear structure, optionally with noise"""
     linear_structure = np.zeros(shape=(size,size))

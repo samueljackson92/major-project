@@ -1,6 +1,34 @@
 import math
 import numpy as np
-from skimage import morphology, measure
+from skimage import io, transform, morphology, measure
+
+
+def preprocess_image(image_path, mask_path=None, scale_to_mask=False, normalise=True):
+    """Preprocess an image, optionally using a mask.
+
+    :param image_path: path to the image.
+    :param mask_path: path to the mask to use (optional).
+    :param scale_to_mask: image to the mask rather than the other way around.
+                          This provides quicker processing but often worsens results.
+                          Useful for debugging.
+    """
+    img = io.imread(image_path, as_grey=True)
+
+    if scale_to_mask:
+        img = transform.pyramid_reduce(img, downscale=4)
+
+    #mask image
+    if mask_path is not None:
+        msk = io.imread(mask_path, as_grey=True)
+        msk = erode_mask(msk, kernel_size=35)
+        if not scale_to_mask:
+            msk = transform.rescale(msk,4)
+        img = img * msk
+
+    if normalise:
+        img = normalise_image(img)
+
+    return img
 
 
 def normalise_image(img, new_min=0, new_max=1):

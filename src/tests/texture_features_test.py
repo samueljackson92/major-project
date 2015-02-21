@@ -4,7 +4,6 @@ import nose.tools
 
 from mammogram.texture_features import *
 from mammogram.utils import *
-from mammogram.plotting import plot_image_cube
 from test_utils import get_file_path
 
 from skimage import io, feature

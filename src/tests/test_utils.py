@@ -1,8 +1,23 @@
 import numpy as np
 import skimage.filter as filters
+import os.path
+import tests
 
 def assert_lists_equal(a,b):
+    """Check if two lists are equal"""
     return len(a) == len(b) and sorted(a) == sorted(b)
+
+
+def load_file(file_name):
+    """Load a testing image"""
+    path = get_file_path(file_name)
+    return io.imread(path, as_grey=True)
+
+
+def get_file_path(file_name):
+    """Get the path to a test file"""
+    return os.path.abspath(os.path.join(tests.TEST_DATA_FOLDER, file_name))
+
 
 def generate_linear_structure(size, with_noise=False):
     """Generate a basic linear structure, optionally with noise"""

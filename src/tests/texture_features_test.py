@@ -25,6 +25,10 @@ class TextureFeatureTests(unittest.TestCase):
         nose.tools.assert_equals(gabor_magnitudes.shape, (5,8,100,100))
         nose.tools.assert_equals(stats.shape, (3,5))
 
+        results_path = get_file_path('reference_results/tex1_gabor_features.npy')
+        expected_stats = np.load(results_path)
+        np.testing.assert_array_equal(stats, expected_stats)
+
 
     def test_glcm_features(self):
         properties = ['contrast', 'dissimilarity']
@@ -33,3 +37,8 @@ class TextureFeatureTests(unittest.TestCase):
 
         features = glcm_features(self._img, distances, orientations, properties)
         nose.tools.assert_equals(features.shape, (2,4,8))
+
+        results_path = get_file_path('reference_results/tex1_glcm_features.npy')
+        expected_result = np.load(results_path)
+        np.testing.assert_array_equal(features, expected_result)
+

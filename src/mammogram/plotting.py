@@ -65,3 +65,22 @@ def plot_blobs(img, blobs):
         ax.add_patch(c)
 
     plt.show()
+
+
+def plot_image_orthotope(image_orthotope, titles=None):
+    """ Plot an image orthotope """
+
+    fig, ax = plt.subplots(*image_orthotope.shape[:2])
+
+    if titles is not None:
+        title_iter = titles.__iter__()
+
+    for i in range(image_orthotope.shape[0]):
+        for j in range(image_orthotope.shape[1]):
+            if titles is not None:
+                ax[i][j].set_title(title_iter.next())
+
+            ax[i][j].imshow(image_orthotope[i][j], cmap=plt.cm.gray)
+            ax[i][j].axis('off')
+
+    plt.show()

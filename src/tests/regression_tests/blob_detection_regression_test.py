@@ -14,5 +14,4 @@ class BlobDetectionRegressionTests(unittest.TestCase):
 		img, msk = preprocess_image(img_path, msk_path)
 
 		blobs = blob_detection(img, msk)
-		print blobs
-		assert False
+		nose.tools.assert_equal(blobs.shape[1], 3)

@@ -24,11 +24,13 @@ def preprocess_image(image_path, mask_path=None, scale_to_mask=False, normalise=
         if not scale_to_mask:
             msk = transform.rescale(msk,4)
         img = img * msk
+    else:
+        msk = None
 
     if normalise:
         img = normalise_image(img)
 
-    return img
+    return img, msk
 
 
 def normalise_image(img, new_min=0, new_max=1):

@@ -30,6 +30,7 @@ def gabor_features(image, frequencies, orientations):
 
 	return np.array(gabor_magnitudes)
 
+
 def glcm_features(image, distances, orientations, properties):
 	""" Compute properties of the Grey-Level Co-occurance Matrix for an image
 

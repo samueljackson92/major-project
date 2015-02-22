@@ -1,19 +1,16 @@
 import unittest
-import test_utils
 import nose.tools
 
 from mammogram.texture_features import *
 from mammogram.utils import *
-from test_utils import get_file_path
-
-from skimage import io, feature
+from ..test_utils import get_file_path
 
 class TextureFeatureTests(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
         img_path = get_file_path("texture_patches/texture1.png")
-        cls._img = preprocess_image(img_path, normalise=False)
+        cls._img, msk = preprocess_image(img_path, normalise=False)
 
     def test_gabor_bank_features(self):
         orientations = np.arange(0, np.pi, np.pi/8)
@@ -41,4 +38,3 @@ class TextureFeatureTests(unittest.TestCase):
         results_path = get_file_path('reference_results/tex1_glcm_features.npy')
         expected_result = np.load(results_path)
         np.testing.assert_array_equal(features, expected_result)
-

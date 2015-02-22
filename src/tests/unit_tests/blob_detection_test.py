@@ -6,7 +6,7 @@ import os.path
 from mammogram.blob_detection import blob_detection
 from mammogram.plotting import plot_blobs
 from skimage import io, transform
-from test_utils import *
+from ..test_utils import *
 from mammogram import utils
 
 class BlobDetectionTests(unittest.TestCase):

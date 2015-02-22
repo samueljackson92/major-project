@@ -144,6 +144,7 @@ def cluster_image(image, num_clusters=9):
               belonging to a particular cluster.
     """
     k_means = cluster.KMeans(n_clusters=num_clusters)
+    image = image.reshape(image.size, 1)
     labels = k_means.fit_predict(image)
     return [image[labels==i] for i in range(num_clusters)]
 

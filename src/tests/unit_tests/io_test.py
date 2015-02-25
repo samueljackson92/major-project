@@ -8,13 +8,13 @@ from ..test_utils import *
 class IOTests(unittest.TestCase):
 
     def test_iterate_dir(self):
-        directory = get_file_path("texture_patches")
+        img_directory = get_file_path("texture_patches")
         expected_files = ['texture1.png', 'texture2.png', 'texture3.png',
                           'texture4.png', 'texture5.png']
 
-        expected_files = [os.path.join(directory, p) for p in expected_files]
+        expected_files = [os.path.join(img_directory, p) for p in expected_files]
 
-        for img_path, expected in zip(iterate_directory(directory), expected_files):
+        for (img_path, msk_path), expected in zip(iterate_directory(img_directory), expected_files):
             nose.tools.assert_equal(img_path, expected)
 
     def test_check_is_image(self):

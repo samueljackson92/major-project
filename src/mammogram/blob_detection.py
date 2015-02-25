@@ -131,8 +131,8 @@ def remove_edge_blobs(blobs, image_shape):
     def check_within_image(blob):
         y,x,r = blob
         r = math.ceil(r)
-        return not (x - r < 0 or x + r > img_width) \
-               or (y - r < 0 or y + r > img_height)
+        return not ((x - r < 0 or x + r >= img_width) \
+               or (y - r < 0 or y + r >= img_height))
 
     return filter(check_within_image, blobs)
 
@@ -357,8 +357,8 @@ def extract_blob(blob, image):
     :returns: extracted square neighbourhood
     """
     y,x,r = blob
-    hs, he = y - math.ceil(r), y + math.ceil(r)
-    ws, we = x - math.ceil(r), x + math.ceil(r)
+    hs, he = y - math.floor(r), y + math.floor(r)
+    ws, we = x - math.floor(r), x + math.floor(r)
     image_section = image[hs:he,ws:we]
     return image_section
 
@@ -372,7 +372,7 @@ def extract_radial_blob(blob, image):
     :returns: extracted disk neighbourhood
     """
     image_section = extract_blob(blob, image)
-    kernel = morphology.disk(math.ceil(blob[2])-1)
+    kernel = morphology.disk(math.floor(blob[2])-1)
     image_section = image_section[kernel==1]
     image_section = image_section.reshape(image_section.size, 1)
     return image_section

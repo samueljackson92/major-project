@@ -24,6 +24,4 @@ class BlobDetectionTests(unittest.TestCase):
         blobs = [blobs1[:,2], blobs2[:,2]]
 
         feature_matrix = blob_props(blobs)
-        print feature_matrix
-        assert False
         np.testing.assert_allclose(feature_matrix.as_matrix(), expected_result)

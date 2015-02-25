@@ -12,10 +12,12 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 
 import math
 import numpy as np
+import pandas as pd
 import skimage.filter as filters
 
 from mammogram._adjacency_graph import Graph
 from mammogram.utils import normalise_image
+
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
 from skimage import feature, transform, io, morphology
@@ -36,6 +38,30 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8
     blobs = remove_false_positives(blobs, image, mask)
     blobs = merge_blobs(blobs, image)
     return blobs
+
+
+def blob_props(blobs):
+    """Contstruct a feature matrix from a list of blobs
+
+    This will compute the # of blobs, mean radius, std, min radius, and max
+    radius for all blobs in an image.
+
+    :param blobs: 3D list of blobs to compute statistics on.
+    :returns: DataFrame - the feature matrix of statistics.
+    """
+
+    def calculate_stats(blob_radii):
+        num_blobs = blob_radii.size
+        mean = np.mean(blob_radii)
+        std = np.std(blob_radii)
+        min_radius = np.amin(blob_radii)
+        max_radius = np.amax(blob_radii)
+        return [num_blobs, mean, std, min_radius, max_radius]
+
+    column_names = ['blob_count', 'mean_radius', 'std_radius', 'min_radius', 'max_radius']
+    feature_matrix = np.array([calculate_stats(blob_radii) for blob_radii in blobs])
+    feature_matrix = pd.DataFrame(feature_matrix, columns=column_names)
+    return feature_matrix
 
 
 def multiscale_pyramid_detection(image, *args):

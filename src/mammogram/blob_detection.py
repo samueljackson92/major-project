@@ -165,7 +165,9 @@ def cluster_image(image, num_clusters=9):
     :returns: list of clusters. Each cluster is an array of intensity values
               belonging to a particular cluster.
     """
-    k_means = cluster.KMeans(n_clusters=num_clusters)
+    k_means = cluster.KMeans(n_clusters=num_clusters,
+                             precompute_distances=True,
+                             n_init=5)
     image = image.reshape(image.size, 1)
     labels = k_means.fit_predict(image)
     return [image[labels==i] for i in range(num_clusters)]

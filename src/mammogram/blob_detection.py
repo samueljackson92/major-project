@@ -50,19 +50,13 @@ def blob_props(blobs):
     :returns: DataFrame - the feature matrix of statistics.
     """
 
-    def calculate_stats(blob_radii):
-        num_blobs = blob_radii.size
-        mean = np.mean(blob_radii)
-        std = np.std(blob_radii)
-        min_radius = np.amin(blob_radii)
-        max_radius = np.amax(blob_radii)
-        return [num_blobs, mean, std, min_radius, max_radius]
-
-    column_names = ['blob_count', 'mean_radius', 'std_radius', 'min_radius', 'max_radius']
-    feature_matrix = np.array([calculate_stats(blob_radii) for blob_radii in blobs])
-    feature_matrix = pd.DataFrame(feature_matrix, columns=column_names)
-    return feature_matrix
-
+    blob_radii = blobs[:,2]
+    num_blobs = blob_radii.size
+    mean = np.mean(blob_radii)
+    std = np.std(blob_radii)
+    min_radius = np.amin(blob_radii)
+    max_radius = np.amax(blob_radii)
+    return np.array([num_blobs, mean, std, min_radius, max_radius])
 
 def multiscale_pyramid_detection(image, *args):
     """ Detects blobs over multiple scales using an LoG pyramid

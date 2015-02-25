@@ -11,8 +11,8 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 """
 
 import math
+import logging
 import numpy as np
-import pandas as pd
 import skimage.filter as filters
 
 from mammogram._adjacency_graph import Graph
@@ -22,6 +22,7 @@ from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
 from skimage import feature, transform, io, morphology
 
+logger = logging.getLogger(__name__)
 
 def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8.0):
     """Performs multi-scale blob detection
@@ -150,7 +151,7 @@ def remove_false_positives(blobs, image, mask):
     clusters = cluster_image(tissue)
     threshold = compute_mean_intensity_threshold(clusters)
 
-    print "Threshold: %f" % threshold
+    logger.debug("Min blob intensity threshold: %f" % threshold)
 
     #Filter blobs by mean intensity using threshold
     return filter_blobs_by_mean_intensity(blobs, image, threshold)

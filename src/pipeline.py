@@ -19,10 +19,8 @@ import time
 import numpy as np
 import pandas as pd
 import multiprocessing
-import itertools
 
 from docopt import docopt
-from mammogram.plotting import plot_blobs
 from mammogram.blob_detection import blob_detection, blob_props
 from mammogram.io import iterate_directory
 from mammogram.utils import preprocess_image
@@ -50,7 +48,7 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     props = blob_props(b)
     end = time.time()
 
-    logger.info("%d blobs found in image" % b.shape[0])
+    logger.info("%d blobs found in image %s" % (b.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
     return props

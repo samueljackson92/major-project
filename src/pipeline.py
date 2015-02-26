@@ -1,13 +1,14 @@
 """Mammogram Image Analysis.
 
 Usage:
-  mia.py IMAGE [MASK] [--scale-to-mask, --output-dir=<output>, --verbose]
+  mia.py IMAGE [MASK] [--scale-to-mask, --output-dir=<output>, --num_processes=<num>, --verbose]
   mia.py (-h | --help)
   mia.py --version
 Options:
   -h --help                  Show this screen.
   --version                  Show version.
   --verbose                  Turn on debug logging
+  --num_processes=<num>       Number of processes to use [default: 4].
   --scale-to-mask            Scale the image to the mask.
   -o --output-dir=<output>   Directory to output the results to.
 
@@ -82,7 +83,7 @@ def multiprocess_images(args):
     return process_image(*args)
 
 
-def run_multi_process(image_dir, mask_dir):
+def run_multi_process(image_dir, mask_dir, num_processes=4):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
@@ -93,7 +94,7 @@ def run_multi_process(image_dir, mask_dir):
     img_names = [os.path.basename(img_path) for img_path, msk_path in paths]
 
     multiprocessing.freeze_support()
-    pool = multiprocessing.Pool(4)
+    pool = multiprocessing.Pool(num_processes)
     features = np.array(pool.map(multiprocess_images, paths))
 
     return create_feature_matrix(features, img_names)
@@ -104,12 +105,13 @@ def main():
     image_dir = arguments["IMAGE"]
     mask_dir = arguments["MASK"]
     output_directory = arguments['--output-dir']
+    num_processes = int(arguments['--num_processes'])
 
     if arguments['--verbose']:
         logger.setLevel(logging.DEBUG)
 
     s = time.time()
-    feature_matrix = run_multi_process(image_dir, mask_dir)
+    feature_matrix = run_multi_process(image_dir, mask_dir, num_processes)
     e = time.time()
     logger.info("TOTAL PROCESSING TIME: %.2f" % (e-s))
 

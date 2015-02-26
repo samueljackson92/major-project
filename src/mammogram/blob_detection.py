@@ -11,15 +11,18 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 """
 
 import math
+import logging
 import numpy as np
 import skimage.filter as filters
 
 from mammogram._adjacency_graph import Graph
 from mammogram.utils import normalise_image
+
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
 from skimage import feature, transform, io, morphology
 
+logger = logging.getLogger(__name__)
 
 def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8.0):
     """Performs multi-scale blob detection
@@ -37,6 +40,24 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8
     blobs = merge_blobs(blobs, image)
     return blobs
 
+
+def blob_props(blobs):
+    """Contstruct a feature matrix from a list of blobs
+
+    This will compute the # of blobs, mean radius, std, min radius, and max
+    radius for all blobs in an image.
+
+    :param blobs: 3D list of blobs to compute statistics on.
+    :returns: DataFrame - the feature matrix of statistics.
+    """
+
+    blob_radii = blobs[:,2]
+    num_blobs = blob_radii.size
+    mean = np.mean(blob_radii)
+    std = np.std(blob_radii)
+    min_radius = np.amin(blob_radii)
+    max_radius = np.amax(blob_radii)
+    return np.array([num_blobs, mean, std, min_radius, max_radius])
 
 def multiscale_pyramid_detection(image, *args):
     """ Detects blobs over multiple scales using an LoG pyramid
@@ -109,8 +130,9 @@ def remove_edge_blobs(blobs, image_shape):
 
     def check_within_image(blob):
         y,x,r = blob
-        return not (x - r < 0 or x + r > img_width) \
-               or (y - r < 0 or y + r > img_height)
+        r = math.ceil(r)
+        return not ((x - r < 0 or x + r >= img_width) \
+               or (y - r < 0 or y + r >= img_height))
 
     return filter(check_within_image, blobs)
 
@@ -129,7 +151,7 @@ def remove_false_positives(blobs, image, mask):
     clusters = cluster_image(tissue)
     threshold = compute_mean_intensity_threshold(clusters)
 
-    print "Threshold: %f" % threshold
+    logger.debug("Min blob intensity threshold: %f" % threshold)
 
     #Filter blobs by mean intensity using threshold
     return filter_blobs_by_mean_intensity(blobs, image, threshold)
@@ -143,7 +165,9 @@ def cluster_image(image, num_clusters=9):
     :returns: list of clusters. Each cluster is an array of intensity values
               belonging to a particular cluster.
     """
-    k_means = cluster.KMeans(n_clusters=num_clusters)
+    k_means = cluster.KMeans(n_clusters=num_clusters,
+                             precompute_distances=True,
+                             n_init=5)
     image = image.reshape(image.size, 1)
     labels = k_means.fit_predict(image)
     return [image[labels==i] for i in range(num_clusters)]
@@ -335,8 +359,8 @@ def extract_blob(blob, image):
     :returns: extracted square neighbourhood
     """
     y,x,r = blob
-    hs, he = y - math.ceil(r), y + math.ceil(r)+1
-    ws, we = x - math.ceil(r), x + math.ceil(r)+1
+    hs, he = y - math.floor(r), y + math.floor(r)
+    ws, we = x - math.floor(r), x + math.floor(r)
     image_section = image[hs:he,ws:we]
     return image_section
 
@@ -350,7 +374,7 @@ def extract_radial_blob(blob, image):
     :returns: extracted disk neighbourhood
     """
     image_section = extract_blob(blob, image)
-    kernel = morphology.disk(math.ceil(blob[2]))
+    kernel = morphology.disk(math.floor(blob[2])-1)
     image_section = image_section[kernel==1]
     image_section = image_section.reshape(image_section.size, 1)
     return image_section

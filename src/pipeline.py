@@ -17,6 +17,8 @@ import logging
 import time
 import numpy as np
 import pandas as pd
+import multiprocessing
+import itertools
 
 from docopt import docopt
 from mammogram.plotting import plot_blobs
@@ -28,34 +30,38 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MIA Pipeline")
 
 
-def process_blobs(image_dir, mask_dir, output_directory, scale_to_mask=False):
-    img_names = []
-    features = np.empty((0,5))
-    for image_path, mask_path in iterate_directory(image_dir, mask_dir):
+def process_image(image_path, mask_path, scale_to_mask=False):
+    """Process a single image.
 
-        img_name = os.path.basename(image_path)
-        img_names.append(img_name)
+    :param image_path: the absolute file path to the image
+    :param mask_path: the absolute file path to the mask
+    :param scale_to_mask: whether to downscale the image to the mask
+    :returns: statistics of the blobs in the image
+    """
+    img_name = os.path.basename(image_path)
 
-        logger.info("Processing image %s" % img_name)
+    logger.info("Processing image %s" % img_name)
 
-        start = time.time()
-        img, msk = preprocess_image(image_path, mask_path,
-                                    scale_to_mask=scale_to_mask)
+    start = time.time()
+    img, msk = preprocess_image(image_path, mask_path,
+                                scale_to_mask=scale_to_mask)
+    b = blob_detection(img, msk)
+    props = blob_props(b)
+    end = time.time()
 
-        b = blob_detection(img, msk)
-        end = time.time()
+    logger.info("%d blobs found in image" % b.shape[0])
+    logger.debug("%.2f seconds to process" % (end-start))
 
-        props = blob_props(b)
-        props = props.reshape(1, props.size)
-        features = np.vstack([features, props])
+    return props
 
-        logger.info("%d blobs found in image" % b.shape[0])
-        logger.debug("%.2f seconds to process" % (end-start))
-
-    feature_matrix = create_feature_matrix(features, img_names)
-    return feature_matrix
 
 def create_feature_matrix(features, img_names):
+    """Create a pandas DataFrame for the features
+
+    :param features: numpy array for features
+    :param img_names: list of image names to use as the index
+    :returns: DataFrame representing the features
+    """
     column_names = ['blob_count', 'mean_radius', 'std_radius',
                     'min_radius', 'max_radius']
 
@@ -63,18 +69,34 @@ def create_feature_matrix(features, img_names):
                                   index=img_names,
                                   columns=column_names)
     feature_matrix.index.name = 'image_name'
-    feature_matrix.to_csv(output_directory, Header=False)
     return feature_matrix
 
 
-def process_image(img_path, mask_path):
-    img, msk = preprocess_image(img_path, mask_path)
-    import time
-    start = time.time()
-    blobs = blob_detection(img,msk)
-    end = time.time()
-    logger.debug(end-start)
-    plot_blobs(img, blobs)
+def multiprocess_images(args):
+    """Helper method for multiprocessing images.
+
+    Pass the function arguments to the functions running in the child process
+    :param args: arguments to the process_image function
+    :returns: result of the process image function
+    """
+    return process_image(*args)
+
+
+def run_multi_process(image_dir, mask_dir):
+    """Process a collection of images using multiple process
+
+    :param image_dir: image directory where the data set is stored
+    :param mask_dir: mask directory where the data set is stored
+    :returns: pandas DataFrame with the features for each image
+    """
+    paths = [p for p in iterate_directory(image_dir, mask_dir)]
+    img_names = [os.path.basename(img_path) for img_path, msk_path in paths]
+
+    multiprocessing.freeze_support()
+    pool = multiprocessing.Pool(4)
+    features = np.array(pool.map(multiprocess_images, paths))
+
+    return create_feature_matrix(features, img_names)
 
 
 def main():
@@ -86,9 +108,13 @@ def main():
     if arguments['--verbose']:
         logger.setLevel(logging.DEBUG)
 
-    # process_image(image_dir, mask_dir)
-    feature_matrix = process_blobs(image_dir, mask_dir, output_directory,
-                                   arguments['--scale-to-mask'])
+    s = time.time()
+    feature_matrix = run_multi_process(image_dir, mask_dir)
+    e = time.time()
+    logger.info("TOTAL PROCESSING TIME: %.2f" % (e-s))
+
+    feature_matrix.to_csv(output_directory, Header=False)
+
 
 if __name__ == "__main__":
     main()

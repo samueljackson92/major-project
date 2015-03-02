@@ -66,6 +66,16 @@ def image_orthotope_statistics(image_orthotope):
 
 def compute_texture_features_from_blob(blob, image, properties,
                                        distances, orientations):
+    """ Compute texture features from the patch of image defined by a blob
+
+    :param blob: the blob defining the patch of image to use.
+    :param image: the image to extract the blob from.
+    :param properties: list of properties to use during the extraction
+    :param orientations: list of orientations to use to compute the GLCM.
+    :param distances: list of distances to use to compute the GLCM.
+    :returns: ndarray of the mean value for each property over all angles
+              and distances
+    """
     img_section = extract_blob(blob, image)
     # GCLM only supports images that have values not in the 0-1 range
     img_section = normalise_image(img_section, 0, 255)
@@ -78,6 +88,13 @@ def compute_texture_features_from_blob(blob, image, properties,
 
 
 def vectorize_array(f, array, *args):
+    """ Helper function to vectorize across the rows of a 2D numpy array
+
+    :params f: function to vectorize
+    :params array: 2darray to iterate over.
+    :params args: list of arguments to pass to the function f
+    :returns: ndarray of the results of applying the function to each row.
+    """
     return np.array([f(row, *args) for row in array])
 
 

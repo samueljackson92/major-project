@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2),
-                   sigma=8.0):
+                   sigma=8.0, overlap=0.01):
     """Performs multi-scale blob detection
 
     :param image: image to detect blobs in.
@@ -33,12 +33,13 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2),
     :param max_layer: maximum depth of image to produce
     :param downscale: factor to downscale the image by
     :param sigma: sigma of the gaussian used as part of the filter
+    :param overlap: amount of tolerated overlap between two blobs
     :yields: ndarry - filtered images at each scale in the pyramid.
     """
     blobs = multiscale_pyramid_detection(image, max_layer, downscale, sigma)
     blobs = remove_edge_blobs(blobs, image.shape)
     blobs = remove_false_positives(blobs, image, mask)
-    blobs = merge_blobs(blobs, image)
+    blobs = merge_blobs(blobs, image, overlap)
     return blobs
 
 
@@ -193,7 +194,7 @@ def filter_blobs_by_mean_intensity(blobs, image, threshold):
     return filtered_blobs
 
 
-def compute_mean_intensity_threshold(clusters, k_largest=3):
+def compute_mean_intensity_threshold(clusters, k_largest=5):
     """Compute a threshold based on the mean intensity for tissue in a mammogram
 
     The threshold is the average intensity from the k most dense clusters less
@@ -211,24 +212,26 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
     std_cluster_intensity = np.array([np.std(c) for c in clusters])
 
     indicies = avg_cluster_intensity.argsort()[-k_largest:]
-    hdc_avg = avg_cluster_intensity[indicies].reshape(k_largest, 1)
-    hdc_std = std_cluster_intensity[indicies].reshape(k_largest, 1)
+
+    hdc_avg = avg_cluster_intensity[indicies]
+    hdc_std = std_cluster_intensity[indicies]
 
     # Compute threshold from the high density cluster intensity
     return np.mean(hdc_avg) - np.std(hdc_std)
 
 
-def merge_blobs(blobs, image):
+def merge_blobs(blobs, image, overlap):
     """Merge blobs found from the LoG pyramid
 
     :param blobs: list of blobs detected from the image
     :param image: image the blobs were found in
+    :para overlap: amount of tolerated overlap between two blobs
     :returns: a filtered list of blobs remaining after merging
     """
     # reverse so largest blobs are at the start
     blobs = np.array(blobs[::-1])
     blob_graph, remove_list = build_graph(blobs)
-    remove_list += merge_intersecting_blobs(blobs, blob_graph, image)
+    remove_list += merge_intersecting_blobs(blobs, blob_graph, image, overlap)
     blobs = remove_blobs(blobs, remove_list)
     return blobs
 
@@ -265,12 +268,13 @@ def build_graph(blobs):
     return g, list(remove_list)
 
 
-def merge_intersecting_blobs(blobs, blob_graph, image):
+def merge_intersecting_blobs(blobs, blob_graph, image, overlap):
     """Merge the intersecting blobs using a directed graph
 
     :param blobs: list of blobs detected from the image to merge
     :param blob_graph: directed graph of blobs from largest to smallest
     :param image: image that the blobs were detected in
+    :param overlap: amount of acceptable overlap between two blobs
     :returns: list of indicies of detected blobs to remove
     """
     remove_list = set()
@@ -282,7 +286,7 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
         for neighbour_index in neighbours_indicies:
             neighbour = blob_graph.get_node(neighbour_index)
 
-            if is_close(blob, neighbour):
+            if is_close(blob, neighbour, overlap):
                 neighbour_section = extract_blob(neighbour, image)
                 blob_gss = np.sum(gaussian_filter(blob_section, blob[2]))
                 neighbour_gss = np.sum(gaussian_filter(neighbour_section,

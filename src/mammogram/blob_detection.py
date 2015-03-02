@@ -13,16 +13,16 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 import math
 import logging
 import numpy as np
-import skimage.filter as filters
 
 from mammogram._adjacency_graph import Graph
 from mammogram.utils import normalise_image
 
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
-from skimage import feature, transform, io, morphology
+from skimage import feature, transform, morphology
 
 logger = logging.getLogger(__name__)
+
 
 def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8.0):
     """Performs multi-scale blob detection
@@ -59,6 +59,7 @@ def blob_props(blobs):
     max_radius = np.amax(blob_radii)
     return np.array([num_blobs, mean, std, min_radius, max_radius])
 
+
 def multiscale_pyramid_detection(image, *args):
     """ Detects blobs over multiple scales using an LoG pyramid
 
@@ -77,12 +78,12 @@ def multiscale_pyramid_detection(image, *args):
                                               exclude_border=False)
 
         if len(local_maxima) > 0:
-            #Generate array of sigma sizes for this level.
+            # generate array of sigma sizes for this level.
             local_sigma = 8.0*factor**i
             sigmas = np.empty((local_maxima.shape[0], 1))
             sigmas.fill(local_sigma)
 
-            #stack detections together into single list of blobs.
+            # stack detections together into single list of blobs.
             local_maxima = np.hstack((local_maxima, sigmas))
             maxima = np.vstack((maxima, local_maxima))
 
@@ -109,15 +110,16 @@ def log_pyramid(image, max_layer, downscale, sigma):
 
         log_filtered = -gaussian_laplace(image, sigma, mode='reflect')
 
-        #upscale to original image size
+        # upscale to original image size
         if layer > 0:
             log_filtered = transform.rescale(log_filtered, downscale**layer)
 
         yield log_filtered
 
-        #downscale image, but keep sigma the same.
+        # downscale image, but keep sigma the same.
         image = transform.rescale(image, 1./downscale)
         layer += 1
+
 
 def remove_edge_blobs(blobs, image_shape):
     """Remove blobs detected around the edge of the image.
@@ -129,10 +131,10 @@ def remove_edge_blobs(blobs, image_shape):
     img_height, img_width = image_shape
 
     def check_within_image(blob):
-        y,x,r = blob
+        y, x, r = blob
         r = math.ceil(r)
-        return not ((x - r < 0 or x + r >= img_width) \
-               or (y - r < 0 or y + r >= img_height))
+        return not ((x - r < 0 or x + r >= img_width)
+                    or (y - r < 0 or y + r >= img_height))
 
     return filter(check_within_image, blobs)
 
@@ -144,8 +146,8 @@ def remove_false_positives(blobs, image, mask):
     :param image: image that the blobs came from
     :param mask: mask used to filter the image tissue
     """
-    #Find breast tissue for clustering
-    tissue = image[mask==1] if mask is not None else image
+    # Find breast tissue for clustering
+    tissue = image[mask == 1] if mask is not None else image
     tissue = tissue.reshape(tissue.size, 1)
 
     clusters = cluster_image(tissue)
@@ -153,7 +155,7 @@ def remove_false_positives(blobs, image, mask):
 
     logger.debug("Min blob intensity threshold: %f" % threshold)
 
-    #Filter blobs by mean intensity using threshold
+    # Filter blobs by mean intensity using threshold
     return filter_blobs_by_mean_intensity(blobs, image, threshold)
 
 
@@ -170,7 +172,7 @@ def cluster_image(image, num_clusters=9):
                              n_init=5)
     image = image.reshape(image.size, 1)
     labels = k_means.fit_predict(image)
-    return [image[labels==i] for i in range(num_clusters)]
+    return [image[labels == i] for i in range(num_clusters)]
 
 
 def filter_blobs_by_mean_intensity(blobs, image, threshold):
@@ -202,7 +204,7 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
                       (Default is 3)
     :returns: int - threshold based on the mean intensity
     """
-    #Find the high density clusters
+    # Find the high density clusters
     avg_cluster_intensity = np.array([np.average(c) for c in clusters])
     std_cluster_intensity = np.array([np.std(c) for c in clusters])
 
@@ -210,7 +212,7 @@ def compute_mean_intensity_threshold(clusters, k_largest=3):
     hdc_avg = avg_cluster_intensity[indicies].reshape(k_largest,1)
     hdc_std = std_cluster_intensity[indicies].reshape(k_largest,1)
 
-    #Compute threshold from the high density cluster intensity
+    # Compute threshold from the high density cluster intensity
     return np.mean(hdc_avg) - np.std(hdc_std)
 
 
@@ -221,7 +223,7 @@ def merge_blobs(blobs, image):
     :param image: image the blobs were found in
     :returns: a filtered list of blobs remaining after merging
     """
-    #reverse so largest blobs are at the start
+    # reverse so largest blobs are at the start
     blobs = np.array(blobs[::-1])
     blob_graph, remove_list = build_graph(blobs)
     remove_list += merge_intersecting_blobs(blobs, blob_graph, image)
@@ -245,7 +247,7 @@ def build_graph(blobs):
 
         g.add_node(index, blob)
 
-        #check if blob has been marked as entirely within a larger blob
+        # check if blob has been marked as entirely within a larger blob
         if index in remove_list:
             continue
 
@@ -281,7 +283,8 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
             if is_close(blob, neighbour):
                 neighbour_section = extract_blob(neighbour, image)
                 blob_gss = np.sum(gaussian_filter(blob_section, blob[2]))
-                neighbour_gss = np.sum(gaussian_filter(neighbour_section, neighbour[2]))
+                neighbour_gss = np.sum(gaussian_filter(neighbour_section,
+                                                       neighbour[2]))
 
                 if blob_gss > neighbour_gss:
                     remove_list.add(neighbour_index)
@@ -358,10 +361,10 @@ def extract_blob(blob, image):
     :param image: the image to extract the blob from
     :returns: extracted square neighbourhood
     """
-    y,x,r = blob
+    y, x, r = blob
     hs, he = y - math.floor(r), y + math.floor(r)
     ws, we = x - math.floor(r), x + math.floor(r)
-    image_section = image[hs:he,ws:we]
+    image_section = image[hs:he, ws:we]
     return image_section
 
 
@@ -375,7 +378,7 @@ def extract_radial_blob(blob, image):
     """
     image_section = extract_blob(blob, image)
     kernel = morphology.disk(math.floor(blob[2])-1)
-    image_section = image_section[kernel==1]
+    image_section = image_section[kernel == 1]
     image_section = image_section.reshape(image_section.size, 1)
     return image_section
 
@@ -388,7 +391,7 @@ def remove_blobs(blobs, remove_list):
     :returns: filtered list of blobs
     """
     remove_list = np.array(remove_list)
-    mask = np.ones_like(blobs,dtype=bool)
+    mask = np.ones_like(blobs, dtype=bool)
     mask[remove_list] = False
     blobs = blobs[mask]
     blobs = blobs.reshape(blobs.size/3, 3)

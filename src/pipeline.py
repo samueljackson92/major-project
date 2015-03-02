@@ -1,21 +1,23 @@
 """Mammogram Image Analysis.
 
 Usage:
-  mia.py IMAGE [MASK] [--scale-to-mask, --output-dir=<output>, --num_processes=<num>, --verbose]
+  mia.py IMAGE [MASK] [--scale-to-mask, --output-dir=<output>, --labels=<BIRADS-FILE>, --num_processes=<num>, --verbose]
   mia.py (-h | --help)
   mia.py --version
 Options:
   -h --help                  Show this screen.
   --version                  Show version.
   --verbose                  Turn on debug logging
-  --num_processes=<num>       Number of processes to use [default: 4].
+  --num_processes=<num>      Number of processes to use [default: 4].
   --scale-to-mask            Scale the image to the mask.
   -o --output-dir=<output>   Directory to output the results to.
+  -l --labels=<BIRADS-FILE>  CSV file containing the BIRADS classes.
 
 """
 import os.path
 import logging
 import time
+import re
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -60,14 +62,43 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     return props
 
 
-def create_feature_matrix(features, img_names):
+def add_BIRADS_class(feature_matrix, class_labels_file):
+    """Add the BIRADS classes to the data frame given a file with the class
+    labels
+
+    :param feature_matrix: DataFrame for features where the index is the image
+                           names
+    :param class_labels_file: csv file containg the class labels
+    :returns: DataFrame with the class labels added under the column 'class'
+    """
+    class_labels = pd.DataFrame().from_csv(class_labels_file)
+    class_labels = class_labels['BI-RADS']
+
+    name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-[a-z]{2}.png')
+
+    class_hash = {}
+    for img, c in class_labels.iteritems():
+        class_hash[img] = c
+
+    def transform_name_to_index(name):
+        return int(re.match(name_regex, name).group(1).replace('-', ''))
+
+    img_names = [transform_name_to_index(v)
+                 for v in feature_matrix.index.values]
+    img_classes = [class_hash[key] for key in img_names]
+
+    feature_matrix['class'] = pd.Series(img_classes,
+                                        index=feature_matrix.index)
+    return feature_matrix
+
+
+def create_feature_matrix(features, img_names, class_labels_file):
     """Create a pandas DataFrame for the features
 
     :param features: numpy array for features
     :param img_names: list of image names to use as the index
     :returns: DataFrame representing the features
     """
-
     texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
                           for prefix in ['avg', 'std', 'min', 'max']]
 
@@ -79,6 +110,10 @@ def create_feature_matrix(features, img_names):
                                   index=img_names,
                                   columns=column_names)
     feature_matrix.index.name = 'image_name'
+
+    if class_labels_file is not None:
+        feature_matrix = add_BIRADS_class(feature_matrix, class_labels_file)
+
     return feature_matrix
 
 
@@ -92,7 +127,8 @@ def multiprocess_images(args):
     return process_image(*args)
 
 
-def run_multi_process(image_dir, mask_dir, num_processes=4):
+def run_multi_process(image_dir, mask_dir, num_processes=4,
+                      class_labels_file=None):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
@@ -106,7 +142,7 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
     pool = multiprocessing.Pool(num_processes)
     features = np.array(pool.map(multiprocess_images, paths))
 
-    return create_feature_matrix(features, img_names)
+    return create_feature_matrix(features, img_names, class_labels_file)
 
 
 def main():
@@ -116,11 +152,14 @@ def main():
     output_directory = arguments['--output-dir']
     num_processes = int(arguments['--num_processes'])
 
+    class_labels_file = arguments['--labels']
+
     if arguments['--verbose']:
         logger.setLevel(logging.DEBUG)
 
     s = time.time()
-    feature_matrix = run_multi_process(image_dir, mask_dir, num_processes)
+    feature_matrix = run_multi_process(image_dir, mask_dir, num_processes,
+                                       class_labels_file)
     e = time.time()
     logger.info("TOTAL PROCESSING TIME: %.2f" % (e-s))
 

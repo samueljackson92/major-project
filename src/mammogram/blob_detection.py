@@ -296,7 +296,7 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
     return list(remove_list)
 
 
-def is_intersecting(a,b):
+def is_intersecting(a, b):
     """ Check if two blobs intersect each other
 
     :param a: first blob. This is larger than b.
@@ -338,7 +338,7 @@ def is_external(a, b):
     return d >= ar + br
 
 
-def is_close(a, b, alpha=0.0):
+def is_close(a, b, alpha=0.01):
     """ Check if two blobs are close to one another
 
     :param a: first blob. This is larger than b.

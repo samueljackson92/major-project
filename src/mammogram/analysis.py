@@ -61,7 +61,7 @@ def plot_scattermatrix(data_frame):
 
 
 def main():
-    arguments = docopt(__doc__, version='0.4.0')
+    arguments = docopt(__doc__, version='0.5.0')
     results_file = arguments["RESULTS"]
     output_file = arguments['--output-file']
     feature_matrix = pd.DataFrame().from_csv(results_file)

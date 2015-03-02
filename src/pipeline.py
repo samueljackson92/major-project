@@ -146,7 +146,7 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
 
 
 def main():
-    arguments = docopt(__doc__, version='0.4.0')
+    arguments = docopt(__doc__, version='0.5.0')
     image_dir = arguments["IMAGE"]
     mask_dir = arguments["MASK"]
     output_directory = arguments['--output-dir']

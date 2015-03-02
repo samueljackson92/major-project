@@ -25,7 +25,7 @@ import multiprocessing
 from docopt import docopt
 from mammogram.blob_detection import blob_detection, blob_props
 from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
-from mammogram.io import iterate_directory
+from mammogram.io_tools import iterate_directory
 from mammogram.utils import preprocess_image
 
 logging.basicConfig(level=logging.INFO)

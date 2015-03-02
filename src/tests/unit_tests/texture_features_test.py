@@ -26,7 +26,6 @@ class TextureFeatureTests(unittest.TestCase):
         expected_stats = np.load(results_path)
         np.testing.assert_array_equal(stats, expected_stats)
 
-
     def test_glcm_features(self):
         properties = ['contrast', 'dissimilarity']
         orientations = np.arange(0, np.pi, np.pi/8)

@@ -22,6 +22,7 @@ import multiprocessing
 
 from docopt import docopt
 from mammogram.blob_detection import blob_detection, blob_props
+from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
 from mammogram.io import iterate_directory
 from mammogram.utils import preprocess_image
 
@@ -38,17 +39,22 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     :returns: statistics of the blobs in the image
     """
     img_name = os.path.basename(image_path)
+    orientations = np.arange(0, np.pi, np.pi/8)
+    distances = [1, 3, 5]
 
     logger.info("Processing image %s" % img_name)
-
     start = time.time()
+
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
-    b = blob_detection(img, msk)
-    props = blob_props(b)
-    end = time.time()
+    blobs = blob_detection(img, msk)
+    shape_props = blob_props(blobs)
+    tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
+                                   distances, orientations)
+    props = np.hstack([shape_props, tex_props])
 
-    logger.info("%d blobs found in image %s" % (b.shape[0], img_name))
+    end = time.time()
+    logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
     return props
@@ -61,8 +67,13 @@ def create_feature_matrix(features, img_names):
     :param img_names: list of image names to use as the index
     :returns: DataFrame representing the features
     """
-    column_names = ['blob_count', 'mean_radius', 'std_radius',
+
+    texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
+                          for prefix in ['avg', 'std', 'min', 'max']]
+
+    column_names = ['blob_count', 'avg_radius', 'std_radius',
                     'min_radius', 'max_radius']
+    column_names += texture_prop_names
 
     feature_matrix = pd.DataFrame(features,
                                   index=img_names,

@@ -11,9 +11,9 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
-		img_path = os.path.abspath(os.path.join('data', 'p214-010-60001-cl.png'))
-		msk_path = os.path.abspath(os.path.join('data', 'f214-010-60001-cl_mask.png'))
-		cls._img, cls._msk = preprocess_image(img_path, msk_path)
+        img_path = os.path.abspath(os.path.join('data', 'p214-010-60001-cl.png'))
+        msk_path = os.path.abspath(os.path.join('data/masks', 'f214-010-60001-cl_mask.png'))
+        cls._img, cls._msk = preprocess_image(img_path, msk_path)
 
     def test_blob_and_gabor(self):
         blobs = blob_detection(self._img, self._msk)
@@ -42,7 +42,7 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
             gabor_magnitudes = gabor_features(image_section, frequencies, orientations)
             stats = image_orthotope_statistics(gabor_magnitudes)
 
-            h,w = image_section.shape
+            h, w = image_section.shape
             nose.tools.assert_equals(gabor_magnitudes.shape, (5,8, h, w))
             nose.tools.assert_equals(stats.shape, (3,5))
 
@@ -70,3 +70,14 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
             image_section = extract_feature(props, self._img)
             features = glcm_features(image_section, distances, orientations, properties)
             nose.tools.assert_equals(features.shape, (2,4,8))
+
+    def test_compute_glcm_from_blob(self):
+        properties = ['contrast', 'dissimilarity', 'homogeneity',
+                      'energy', 'correlation']
+        orientations = np.arange(0, np.pi, np.pi/8)
+        distances = [1, 3, 5]
+
+        blobs = blob_detection(self._img, self._msk)
+        tex_props = blob_texture_props(self._img, blobs, properties,
+                                       distances, orientations)
+        nose.tools.assert_equal(tex_props.shape, (20,))

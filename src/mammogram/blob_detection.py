@@ -13,18 +13,19 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 import math
 import logging
 import numpy as np
-import skimage.filter as filters
 
 from mammogram._adjacency_graph import Graph
 from mammogram.utils import normalise_image
 
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster
-from skimage import feature, transform, io, morphology
+from skimage import feature, transform, morphology
 
 logger = logging.getLogger(__name__)
 
-def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8.0):
+
+def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2),
+                   sigma=8.0, overlap=0.01):
     """Performs multi-scale blob detection
 
     :param image: image to detect blobs in.
@@ -32,12 +33,13 @@ def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2), sigma=8
     :param max_layer: maximum depth of image to produce
     :param downscale: factor to downscale the image by
     :param sigma: sigma of the gaussian used as part of the filter
+    :param overlap: amount of tolerated overlap between two blobs
     :yields: ndarry - filtered images at each scale in the pyramid.
     """
     blobs = multiscale_pyramid_detection(image, max_layer, downscale, sigma)
     blobs = remove_edge_blobs(blobs, image.shape)
     blobs = remove_false_positives(blobs, image, mask)
-    blobs = merge_blobs(blobs, image)
+    blobs = merge_blobs(blobs, image, overlap)
     return blobs
 
 
@@ -51,13 +53,14 @@ def blob_props(blobs):
     :returns: DataFrame - the feature matrix of statistics.
     """
 
-    blob_radii = blobs[:,2]
+    blob_radii = blobs[:, 2]
     num_blobs = blob_radii.size
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)
     min_radius = np.amin(blob_radii)
     max_radius = np.amax(blob_radii)
     return np.array([num_blobs, mean, std, min_radius, max_radius])
+
 
 def multiscale_pyramid_detection(image, *args):
     """ Detects blobs over multiple scales using an LoG pyramid
@@ -67,7 +70,7 @@ def multiscale_pyramid_detection(image, *args):
     :returns: list of blobs detected over multiple scales in format (y,x,sigma)
     """
     factor = np.sqrt(2)
-    maxima = np.empty((0,3))
+    maxima = np.empty((0, 3))
     for i, img in enumerate(log_pyramid(image, *args)):
 
         local_maxima = feature.peak_local_max(img, min_distance=0,
@@ -77,12 +80,12 @@ def multiscale_pyramid_detection(image, *args):
                                               exclude_border=False)
 
         if len(local_maxima) > 0:
-            #Generate array of sigma sizes for this level.
+            # generate array of sigma sizes for this level.
             local_sigma = 8.0*factor**i
             sigmas = np.empty((local_maxima.shape[0], 1))
             sigmas.fill(local_sigma)
 
-            #stack detections together into single list of blobs.
+            # stack detections together into single list of blobs.
             local_maxima = np.hstack((local_maxima, sigmas))
             maxima = np.vstack((maxima, local_maxima))
 
@@ -109,15 +112,16 @@ def log_pyramid(image, max_layer, downscale, sigma):
 
         log_filtered = -gaussian_laplace(image, sigma, mode='reflect')
 
-        #upscale to original image size
+        # upscale to original image size
         if layer > 0:
             log_filtered = transform.rescale(log_filtered, downscale**layer)
 
         yield log_filtered
 
-        #downscale image, but keep sigma the same.
+        # downscale image, but keep sigma the same.
         image = transform.rescale(image, 1./downscale)
         layer += 1
+
 
 def remove_edge_blobs(blobs, image_shape):
     """Remove blobs detected around the edge of the image.
@@ -129,10 +133,10 @@ def remove_edge_blobs(blobs, image_shape):
     img_height, img_width = image_shape
 
     def check_within_image(blob):
-        y,x,r = blob
+        y, x, r = blob
         r = math.ceil(r)
-        return not ((x - r < 0 or x + r >= img_width) \
-               or (y - r < 0 or y + r >= img_height))
+        return not ((x - r < 0 or x + r >= img_width)
+                    or (y - r < 0 or y + r >= img_height))
 
     return filter(check_within_image, blobs)
 
@@ -144,8 +148,8 @@ def remove_false_positives(blobs, image, mask):
     :param image: image that the blobs came from
     :param mask: mask used to filter the image tissue
     """
-    #Find breast tissue for clustering
-    tissue = image[mask==1] if mask is not None else image
+    # Find breast tissue for clustering
+    tissue = image[mask == 1] if mask is not None else image
     tissue = tissue.reshape(tissue.size, 1)
 
     clusters = cluster_image(tissue)
@@ -153,7 +157,7 @@ def remove_false_positives(blobs, image, mask):
 
     logger.debug("Min blob intensity threshold: %f" % threshold)
 
-    #Filter blobs by mean intensity using threshold
+    # Filter blobs by mean intensity using threshold
     return filter_blobs_by_mean_intensity(blobs, image, threshold)
 
 
@@ -170,7 +174,7 @@ def cluster_image(image, num_clusters=9):
                              n_init=5)
     image = image.reshape(image.size, 1)
     labels = k_means.fit_predict(image)
-    return [image[labels==i] for i in range(num_clusters)]
+    return [image[labels == i] for i in range(num_clusters)]
 
 
 def filter_blobs_by_mean_intensity(blobs, image, threshold):
@@ -190,41 +194,44 @@ def filter_blobs_by_mean_intensity(blobs, image, threshold):
     return filtered_blobs
 
 
-def compute_mean_intensity_threshold(clusters, k_largest=3):
+def compute_mean_intensity_threshold(clusters, k_largest=5):
     """Compute a threshold based on the mean intensity for tissue in a mammogram
 
     The threshold is the average intensity from the k most dense clusters less
     the standard deviation of those clusters.
 
-    :param clusters: list of clusters of image segements. The k largest clusters
-                     will be used to compute the average intensity threshold.
+    :param clusters: list of clusters of image segements. The k largest
+                    clusters will be used to compute the average intensity
+                    threshold.
     :param k_largest: number of clusters to use to compute the threshold.
                       (Default is 3)
     :returns: int - threshold based on the mean intensity
     """
-    #Find the high density clusters
+    # Find the high density clusters
     avg_cluster_intensity = np.array([np.average(c) for c in clusters])
     std_cluster_intensity = np.array([np.std(c) for c in clusters])
 
     indicies = avg_cluster_intensity.argsort()[-k_largest:]
-    hdc_avg = avg_cluster_intensity[indicies].reshape(k_largest,1)
-    hdc_std = std_cluster_intensity[indicies].reshape(k_largest,1)
 
-    #Compute threshold from the high density cluster intensity
+    hdc_avg = avg_cluster_intensity[indicies]
+    hdc_std = std_cluster_intensity[indicies]
+
+    # Compute threshold from the high density cluster intensity
     return np.mean(hdc_avg) - np.std(hdc_std)
 
 
-def merge_blobs(blobs, image):
+def merge_blobs(blobs, image, overlap):
     """Merge blobs found from the LoG pyramid
 
     :param blobs: list of blobs detected from the image
     :param image: image the blobs were found in
+    :para overlap: amount of tolerated overlap between two blobs
     :returns: a filtered list of blobs remaining after merging
     """
-    #reverse so largest blobs are at the start
+    # reverse so largest blobs are at the start
     blobs = np.array(blobs[::-1])
     blob_graph, remove_list = build_graph(blobs)
-    remove_list += merge_intersecting_blobs(blobs, blob_graph, image)
+    remove_list += merge_intersecting_blobs(blobs, blob_graph, image, overlap)
     blobs = remove_blobs(blobs, remove_list)
     return blobs
 
@@ -245,7 +252,7 @@ def build_graph(blobs):
 
         g.add_node(index, blob)
 
-        #check if blob has been marked as entirely within a larger blob
+        # check if blob has been marked as entirely within a larger blob
         if index in remove_list:
             continue
 
@@ -261,12 +268,13 @@ def build_graph(blobs):
     return g, list(remove_list)
 
 
-def merge_intersecting_blobs(blobs, blob_graph, image):
+def merge_intersecting_blobs(blobs, blob_graph, image, overlap):
     """Merge the intersecting blobs using a directed graph
 
     :param blobs: list of blobs detected from the image to merge
     :param blob_graph: directed graph of blobs from largest to smallest
     :param image: image that the blobs were detected in
+    :param overlap: amount of acceptable overlap between two blobs
     :returns: list of indicies of detected blobs to remove
     """
     remove_list = set()
@@ -278,10 +286,11 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
         for neighbour_index in neighbours_indicies:
             neighbour = blob_graph.get_node(neighbour_index)
 
-            if is_close(blob, neighbour):
+            if is_close(blob, neighbour, overlap):
                 neighbour_section = extract_blob(neighbour, image)
                 blob_gss = np.sum(gaussian_filter(blob_section, blob[2]))
-                neighbour_gss = np.sum(gaussian_filter(neighbour_section, neighbour[2]))
+                neighbour_gss = np.sum(gaussian_filter(neighbour_section,
+                                                       neighbour[2]))
 
                 if blob_gss > neighbour_gss:
                     remove_list.add(neighbour_index)
@@ -291,7 +300,7 @@ def merge_intersecting_blobs(blobs, blob_graph, image):
     return list(remove_list)
 
 
-def is_intersecting(a,b):
+def is_intersecting(a, b):
     """ Check if two blobs intersect each other
 
     :param a: first blob. This is larger than b.
@@ -305,7 +314,7 @@ def is_intersecting(a,b):
     return ar - br < d and d < ar + br
 
 
-def is_internal(a,b):
+def is_internal(a, b):
     """ Check if blob b is within blob a
 
     :param a: first blob. This is larger than b.
@@ -319,7 +328,7 @@ def is_internal(a,b):
     return d <= ar - br
 
 
-def is_external(a,b):
+def is_external(a, b):
     """ Check if blob b is outside blob a
 
     :param a: first blob. This is larger than b.
@@ -333,7 +342,7 @@ def is_external(a,b):
     return d >= ar + br
 
 
-def is_close(a,b,alpha=0.0):
+def is_close(a, b, alpha=0.01):
     """ Check if two blobs are close to one another
 
     :param a: first blob. This is larger than b.
@@ -358,10 +367,10 @@ def extract_blob(blob, image):
     :param image: the image to extract the blob from
     :returns: extracted square neighbourhood
     """
-    y,x,r = blob
+    y, x, r = blob
     hs, he = y - math.floor(r), y + math.floor(r)
     ws, we = x - math.floor(r), x + math.floor(r)
-    image_section = image[hs:he,ws:we]
+    image_section = image[hs:he, ws:we]
     return image_section
 
 
@@ -375,7 +384,7 @@ def extract_radial_blob(blob, image):
     """
     image_section = extract_blob(blob, image)
     kernel = morphology.disk(math.floor(blob[2])-1)
-    image_section = image_section[kernel==1]
+    image_section = image_section[kernel == 1]
     image_section = image_section.reshape(image_section.size, 1)
     return image_section
 
@@ -388,7 +397,7 @@ def remove_blobs(blobs, remove_list):
     :returns: filtered list of blobs
     """
     remove_list = np.array(remove_list)
-    mask = np.ones_like(blobs,dtype=bool)
+    mask = np.ones_like(blobs, dtype=bool)
     mask[remove_list] = False
     blobs = blobs[mask]
     blobs = blobs.reshape(blobs.size/3, 3)

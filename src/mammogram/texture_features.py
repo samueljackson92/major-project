@@ -6,6 +6,13 @@ import scipy.stats as stats
 import skimage.filter as filters
 from skimage import feature
 
+from mammogram.blob_detection import extract_blob
+from mammogram.utils import normalise_image
+
+GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
+                 'correlation']
+
+
 def gabor_features(image, frequencies, orientations):
     """Filter a image using a Gabor filter bank
 
@@ -44,7 +51,6 @@ def glcm_features(image, distances, orientations, properties):
     return np.array([feature.greycoprops(glcm, prop) for prop in properties])
 
 
-
 def image_orthotope_statistics(image_orthotope):
     """ Calculate the mean, std, and skew of an image orthotope
 
@@ -56,3 +62,28 @@ def image_orthotope_statistics(image_orthotope):
     stds = np.array([np.std(image) for image in image_orthotope])
     skew = np.array([stats.skew(image.flatten()) for image in image_orthotope])
     return np.array([means, stds, skew])
+
+
+def compute_texture_features_from_blob(blob, image, properties,
+                                       distances, orientations):
+    img_section = extract_blob(blob, image)
+    # GCLM only supports images that have values not in the 0-1 range
+    img_section = normalise_image(img_section, 0, 255)
+    texture_props = glcm_features(img_section, distances, orientations,
+                                  properties)
+
+    # Compute the mean of all orientations and distances
+    avg_tex_features = np.mean(texture_props.mean(axis=2), axis=1)
+    return avg_tex_features
+
+
+def vectorize_array(f, array, *args):
+    return np.array([f(row, *args) for row in array])
+
+
+def blob_texture_props(image, blobs, properties, distances, orientations):
+    tex_props = vectorize_array(compute_texture_features_from_blob, blobs,
+                                image, properties, distances, orientations)
+    tex_props = np.hstack([tex_props.mean(axis=0), tex_props.std(axis=0),
+                           tex_props.max(axis=0), tex_props.min(axis=0)])
+    return tex_props

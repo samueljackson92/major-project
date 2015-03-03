@@ -1,7 +1,10 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import numpy as np
 import seaborn as sns
+from skimage import io, transform
+from mammogram.utils import normalise_image
 
 
 def plot_multiple_images(images):
@@ -98,3 +101,62 @@ def plot_scattermatrix(data_frame, label_name=None):
     column_names = filter(lambda x: x != 'class', data_frame.columns.values)
     sns.pairplot(data_frame, hue=label_name, size=1.5, vars=column_names)
     plt.show()
+
+
+def bin_data_frame(data_frame):
+    hist, xedges, yedges = np.histogram2d(data_frame['0'], data_frame['1'])
+    grid = []
+    for xlower, xupper in zip(xedges, xedges[1:]):
+        row = []
+        for ylower, yupper in zip(yedges, yedges[1:]):
+            xbounds = (data_frame['0'] >= xlower) & (data_frame['0'] < xupper)
+            ybounds = (data_frame['1'] >= ylower) & (data_frame['1'] < yupper)
+            entires = data_frame[xbounds & ybounds]
+
+            name = ''
+            num_rows = entires.shape[0]
+            if num_rows > 0:
+                sorted_df = entires.sort(['0', '1'])
+                med_df = sorted_df.iloc[[num_rows/2]]
+                name = med_df.index.values[0]
+
+            row.append(name)
+        grid.append(row)
+
+    return np.array(grid)
+
+
+def transform_grid(f, grid):
+    out_grid = []
+    for row in grid:
+        out_row = []
+        for value in row:
+            out_value = f(value)
+            out_row.append(out_value)
+        out_grid.append(out_row)
+    return np.array(out_grid)
+
+
+def filter_func(x):
+    import os.path
+    path = '/Volumes/Seagate/MammoData/pngs'
+
+    if x == '':
+        img = np.empty((3328, 2560))
+    else:
+        img = io.imread(os.path.join(path, x), as_grey=True)
+        img = transform.resize(img, (3328, 2560))
+        print img.shape
+
+    return img
+
+
+def plot_median_image_matrix(data_frame, label_name=None):
+    grid = bin_data_frame(data_frame)
+    images = transform_grid(filter_func, grid)
+
+    rows = []
+    for row in images:
+        rows.append(np.hstack(row))
+
+    io.imsave('/Users/samuel/Desktop/test_grid.jpg', np.vstack(rows))

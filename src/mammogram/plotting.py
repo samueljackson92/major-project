@@ -1,7 +1,31 @@
 import math
+import logging
+import os.path
+import functools
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import numpy as np
 import seaborn as sns
+from skimage import io, transform
+
+from mammogram.utils import transform_2d
+
+logger = logging.getLogger(__name__)
+
+
+def handle_plot_output(func):
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        image = func(*args, **kwargs)
+
+        output_file = kwargs['output_file']
+        if output_file is None:
+            io.imshow(image)
+            io.show()
+        else:
+            io.imsave(output_file, image)
+
+    return inner
 
 
 def plot_multiple_images(images):
@@ -98,3 +122,66 @@ def plot_scattermatrix(data_frame, label_name=None):
     column_names = filter(lambda x: x != 'class', data_frame.columns.values)
     sns.pairplot(data_frame, hue=label_name, size=1.5, vars=column_names)
     plt.show()
+
+
+@handle_plot_output
+def plot_median_image_matrix(data_frame, img_path, label_name=None,
+                             output_file=None):
+
+    def filter_func(x, path):
+        """ Filter function to load an image if one is present in the square"""
+        if x == '':
+            img = np.zeros((3328/8, 2560/8))
+        else:
+            logger.info("Loading image %s" % x)
+            img = io.imread(os.path.join(path, x), as_grey=True)
+            img = transform.resize(img, (3328/8, 2560/8))
+        return img
+
+    grid = _bin_data_frame_2d(data_frame)
+    images = transform_2d(filter_func, grid, img_path)
+
+    logger.info("Stacking images")
+    return _stack_images_in_grid(images)
+
+
+def _bin_data_frame_2d(data_frame):
+    hist, xedges, yedges = np.histogram2d(data_frame['0'], data_frame['1'])
+    grid = []
+    for x_bounds in zip(xedges, xedges[1:]):
+        row = []
+        for y_bounds in zip(yedges, yedges[1:]):
+            entries = _find_points_in_bounds(data_frame, x_bounds, y_bounds)
+            name = _find_median_image_name(entries)
+            row.append(name)
+        grid.append(row)
+
+    return np.array(grid)
+
+
+def _find_median_image_name(data_frame):
+    name = ''
+    num_rows = data_frame.shape[0]
+
+    if num_rows > 0:
+        sorted_df = data_frame.sort(['0', '1'])
+        med_df = sorted_df.iloc[[num_rows/2]]
+        name = med_df.index.values[0]
+
+    return name
+
+
+def _find_points_in_bounds(data_frame, x_bounds, y_bounds):
+    xlower, xupper = x_bounds
+    ylower, yupper = y_bounds
+    xbounds = (data_frame['0'] >= xlower) & (data_frame['0'] < xupper)
+    ybounds = (data_frame['1'] >= ylower) & (data_frame['1'] < yupper)
+    return data_frame[xbounds & ybounds]
+
+
+def _stack_images_in_grid(images):
+    rows = []
+    for row in images:
+        rows.append(np.hstack(row))
+    big_image = np.vstack(rows)
+    return transform.rotate(big_image, 90)

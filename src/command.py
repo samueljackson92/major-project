@@ -4,7 +4,8 @@ import pandas as pd
 
 from mammogram.reduction import run_reduction
 from mammogram.analysis import run_analysis
-from mammogram.plotting import plot_scatter_2d, plot_scattermatrix
+from mammogram.plotting import (plot_scatter_2d, plot_scattermatrix,
+                                plot_median_image_matrix)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MIA")
@@ -78,6 +79,19 @@ def scatter_plot(csv_file, label_column):
 def scatter_matrix(csv_file, label_column):
     df = pd.DataFrame.from_csv(csv_file)
     plot_scattermatrix(df, label_column)
+
+
+@plotting.command()
+@click.argument('csv-file')
+@click.argument('img_path')
+@click.option('--label-column', '-l', default=None,
+              help="Name of column to use as the class labels")
+@click.option('--output_file', '-o', default=None,
+              help="Name of the file to save the image to")
+def median_image_matrix(csv_file, img_path, label_column, output_file):
+    df = pd.DataFrame.from_csv(csv_file)
+    plot_median_image_matrix(df, img_path, label_column,
+                             output_file=output_file)
 
 
 if __name__ == '__main__':

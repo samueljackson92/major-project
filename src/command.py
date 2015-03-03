@@ -83,11 +83,15 @@ def scatter_matrix(csv_file, label_column):
 
 @plotting.command()
 @click.argument('csv-file')
+@click.argument('img_path')
 @click.option('--label-column', '-l', default=None,
               help="Name of column to use as the class labels")
-def median_image_matrix(csv_file, label_column):
+@click.option('--output_file', '-o', default=None,
+              help="Name of the file to save the image to")
+def median_image_matrix(csv_file, img_path, label_column, output_file):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_median_image_matrix(df, label_column)
+    plot_median_image_matrix(df, img_path, label_column,
+                             output_file=output_file)
 
 
 if __name__ == '__main__':

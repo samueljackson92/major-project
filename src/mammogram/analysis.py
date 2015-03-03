@@ -25,10 +25,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MIA Analysis")
 
 
-def copy_meta_columns(func):
+def handle_data_frame(func):
     @functools.wraps(func)
     def inner(data_frame):
-        fit_output = func(data_frame)
+        df = data_frame.drop('class', axis=1)
+
+        fit_output = func(df.as_matrix())
+
         fit_output.index = data_frame.index
         fit_output['class'] = pd.Series(data_frame['class'],
                                         index=fit_output.index)
@@ -36,13 +39,12 @@ def copy_meta_columns(func):
     return inner
 
 
-@copy_meta_columns
-def fit_tSNE(data_frame):
+@handle_data_frame
+def fit_tSNE(feature_matrix):
     scalar = preprocessing.StandardScaler()
-    feature_matrix = scalar.fit_transform(data_frame.as_matrix())
+    feature_matrix = scalar.fit_transform(feature_matrix)
 
-    tSNE = manifold.TSNE(learning_rate=250, perplexity=50, verbose=1,
-                         early_exaggeration=4.0)
+    tSNE = manifold.TSNE(learning_rate=400, perplexity=45, early_exaggeration=2.0, verbose=2)
     fit_output = tSNE.fit_transform(feature_matrix)
     fit_output = pd.DataFrame(fit_output)
 
@@ -65,9 +67,8 @@ def main():
     results_file = arguments["RESULTS"]
     output_file = arguments['--output-file']
     feature_matrix = pd.DataFrame().from_csv(results_file)
-
-    plot_scattermatrix(feature_matrix)
-
+    #feature_matrix = feature_matrix[['avg_radius', 'std_radius', 'class', 'min_radius', 'max_radius', 'blob_count']] 
+    # plot_scattermatrix(feature_matrix)
     tsne_output = fit_tSNE(feature_matrix)
     plot_scatter_2d(tsne_output)
 

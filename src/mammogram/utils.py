@@ -105,5 +105,24 @@ def to_polar_coordinates(x, y):
     :returns: tuple -- (r,phi) of the point as polar coordinates
     """
     theta = math.atan2(y, x)
-    if theta < 0: theta = theta + 2 * math.pi
+    if theta < 0:
+        theta = theta + 2 * math.pi
     return math.hypot(x, y), theta
+
+
+def transform_2d(f, grid, *args):
+    """Apply a function to every element in a 2d array
+
+    :param f: function to apply
+    :param grid: array to apply the function too. Must be 2D.
+    :param args: addtional arguments to the function
+    :returns: ndarray - of transformed data
+    """
+    out_grid = []
+    for row in grid:
+        out_row = []
+        for value in row:
+            out_value = f(value, *args)
+            out_row.append(out_value)
+        out_grid.append(out_row)
+    return np.array(out_grid)

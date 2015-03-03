@@ -1,35 +1,18 @@
-"""Mammogram Image Analysis.
-
-Usage:
-  mia.py IMAGE [MASK] [--scale-to-mask, --output-dir=<output>, --labels=<BIRADS-FILE>, --num_processes=<num>, --verbose]
-  mia.py (-h | --help)
-  mia.py --version
-Options:
-  -h --help                  Show this screen.
-  --version                  Show version.
-  --verbose                  Turn on debug logging
-  --num_processes=<num>      Number of processes to use [default: 4].
-  --scale-to-mask            Scale the image to the mask.
-  -o --output-dir=<output>   Directory to output the results to.
-  -l --labels=<BIRADS-FILE>  CSV file containing the BIRADS classes.
-
-"""
 import os.path
 import logging
+import datetime
 import time
 import re
 import numpy as np
 import pandas as pd
 import multiprocessing
 
-from docopt import docopt
 from mammogram.blob_detection import blob_detection, blob_props
-from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
+# from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
 from mammogram.io_tools import iterate_directory
 from mammogram.utils import preprocess_image
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("MIA Pipeline")
+logger = logging.getLogger(__name__)
 
 
 def process_image(image_path, mask_path, scale_to_mask=False):
@@ -41,8 +24,9 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     :returns: statistics of the blobs in the image
     """
     img_name = os.path.basename(image_path)
-    orientations = np.arange(0, np.pi, np.pi/8)
-    distances = [1, 3, 5]
+
+    # orientations = np.arange(0, np.pi, np.pi/8)
+    # distances = [1, 3, 5]
 
     logger.info("Processing image %s" % img_name)
     start = time.time()
@@ -51,15 +35,15 @@ def process_image(image_path, mask_path, scale_to_mask=False):
                                 scale_to_mask=scale_to_mask)
     blobs = blob_detection(img, msk)
     shape_props = blob_props(blobs)
-    tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
-                                   distances, orientations)
-    props = np.hstack([shape_props, tex_props])
+    # tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
+    #                                distances, orientations)
+    # props = np.hstack([shape_props, tex_props])
 
     end = time.time()
     logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
-    return props
+    return shape_props
 
 
 def add_BIRADS_class(feature_matrix, class_labels_file):
@@ -99,12 +83,12 @@ def create_feature_matrix(features, img_names, class_labels_file):
     :param img_names: list of image names to use as the index
     :returns: DataFrame representing the features
     """
-    texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
-                          for prefix in ['avg', 'std', 'min', 'max']]
+    # texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
+    #                       for prefix in ['avg', 'std', 'min', 'max']]
 
     column_names = ['blob_count', 'avg_radius', 'std_radius',
                     'min_radius', 'max_radius']
-    column_names += texture_prop_names
+    # column_names += texture_prop_names
 
     feature_matrix = pd.DataFrame(features,
                                   index=img_names,
@@ -145,26 +129,27 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
     return create_feature_matrix(features, img_names, class_labels_file)
 
 
-def main():
-    arguments = docopt(__doc__, version='0.5.0')
-    image_dir = arguments["IMAGE"]
-    mask_dir = arguments["MASK"]
-    output_directory = arguments['--output-dir']
-    num_processes = int(arguments['--num_processes'])
+def run_reduction(image_directory, masks_directory, output_file, birads_file,
+                  num_processes):
+    logger.debug("Hi")
+    start_time = time.time()
 
-    class_labels_file = arguments['--labels']
+    if birads_file is None:
+        logger.warning("No BIRADS file supplied. Output will not contain "
+                       "risk class labels")
+    if output_file is None:
+        logger.warning("No output file supplied. Data will not be saved "
+                       "to file.")
 
-    if arguments['--verbose']:
-        logger.setLevel(logging.DEBUG)
+    feature_matrix = run_multi_process(image_directory, masks_directory,
+                                       num_processes, birads_file)
 
-    s = time.time()
-    feature_matrix = run_multi_process(image_dir, mask_dir, num_processes,
-                                       class_labels_file)
-    e = time.time()
-    logger.info("TOTAL PROCESSING TIME: %.2f" % (e-s))
+    if output_file is not None:
+        feature_matrix.to_csv(output_file, Header=False)
+    else:
+        logger.info(feature_matrix)
 
-    feature_matrix.to_csv(output_directory, Header=False)
-
-
-if __name__ == "__main__":
-    main()
+    end_time = time.time()
+    total_time = end_time - start_time
+    total_time = str(datetime.timedelta(seconds=total_time))
+    logger.info("TOTAL REDUCTION TIME: %s" % total_time)

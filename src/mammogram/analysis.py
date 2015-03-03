@@ -44,36 +44,21 @@ def fit_tSNE(feature_matrix):
     scalar = preprocessing.StandardScaler()
     feature_matrix = scalar.fit_transform(feature_matrix)
 
-    tSNE = manifold.TSNE(learning_rate=400, perplexity=45, early_exaggeration=2.0, verbose=2)
+    tSNE = manifold.TSNE(learning_rate=400, perplexity=45,
+                         early_exaggeration=2.0, verbose=2)
     fit_output = tSNE.fit_transform(feature_matrix)
     fit_output = pd.DataFrame(fit_output)
 
     return fit_output
 
 
-def plot_scatter_2d(data_frame):
-    data_frame.plot(kind='scatter', x=0, y=1, c='class', cmap=plt.cm.Spectral)
-    plt.show()
+def run_analysis(csv_file, output_file=None):
+    feature_matrix = pd.DataFrame.from_csv(csv_file)
+    # feature_matrix = feature_matrix[['avg_radius', 'std_radius', 'class',
+    #                                'min_radius', 'max_radius', 'blob_count']]
+    fit_output = fit_tSNE(feature_matrix)
 
-
-def plot_scattermatrix(data_frame):
-    column_names = filter(lambda x: x != 'class', data_frame.columns.values)
-    g = sns.pairplot(data_frame, hue="class", size=1.5, vars=column_names)
-    g.add_legend()
-
-
-def main():
-    arguments = docopt(__doc__, version='0.5.0')
-    results_file = arguments["RESULTS"]
-    output_file = arguments['--output-file']
-    feature_matrix = pd.DataFrame().from_csv(results_file)
-    #feature_matrix = feature_matrix[['avg_radius', 'std_radius', 'class', 'min_radius', 'max_radius', 'blob_count']] 
-    # plot_scattermatrix(feature_matrix)
-    tsne_output = fit_tSNE(feature_matrix)
-    plot_scatter_2d(tsne_output)
-
-    tsne_output.to_csv(output_file)
-
-
-if __name__ == "__main__":
-    main()
+    if output_file is not None:
+        fit_output.to_csv(output_file)
+    else:
+        logger.info(fit_output)

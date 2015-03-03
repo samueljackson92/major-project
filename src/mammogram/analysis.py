@@ -15,14 +15,10 @@ reduction of mammogram images.
 import functools
 import logging
 import pandas as pd
-import matplotlib.pyplot as plt
 
-from docopt import docopt
 from sklearn import manifold, preprocessing
-import seaborn as sns
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("MIA Analysis")
+logger = logging.getLogger(__name__)
 
 
 def handle_data_frame(func):

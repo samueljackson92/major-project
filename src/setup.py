@@ -16,10 +16,10 @@ config = {
     'install_requires': requirements,
     'entry_points': '''
         [console_scripts]
-        mia=pipeline:main
+        mia=command:cli
     ''',
     'packages': ['mammogram'],
-    'scripts': ['pipeline.py'],
+    'scripts': ['command.py'],
     'name': 'mia'
 }
 

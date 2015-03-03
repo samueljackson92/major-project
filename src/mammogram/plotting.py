@@ -1,8 +1,8 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import seaborn as sns
 
-from skimage import draw
 
 def plot_multiple_images(images):
     """Plot a list of images on horizontal subplots
@@ -13,7 +13,7 @@ def plot_multiple_images(images):
 
     num_images = len(images)
     for i, image in enumerate(images):
-        axis = fig.add_subplot(1, num_images, i+1)
+        fig.add_subplot(1, num_images, i+1)
         plt.imshow(image, cmap=cm.Greys_r)
 
     plt.show()
@@ -83,4 +83,18 @@ def plot_image_orthotope(image_orthotope, titles=None):
             ax[i][j].imshow(image_orthotope[i][j], cmap=plt.cm.gray)
             ax[i][j].axis('off')
 
+    plt.show()
+
+
+def plot_scatter_2d(data_frame, label_name=None):
+    """ Create a scatter plot from a pandas data frame """
+    label_name = 1 if label_name is None else label_name
+    data_frame.plot(kind='scatter', x=0, y=1, c=label_name, cmap=plt.cm.Spectral)
+    plt.show()
+
+
+def plot_scattermatrix(data_frame, label_name=None):
+    """ Create a scatter plot matrix from a pandas data frame """
+    column_names = filter(lambda x: x != 'class', data_frame.columns.values)
+    sns.pairplot(data_frame, hue=label_name, size=1.5, vars=column_names)
     plt.show()

@@ -1,7 +1,7 @@
+click
 numpy
 scipy
 pandas
-docopt>=0.6.2
 scikit-learn>=0.15.2
 scikit-image>=0.10.1
 

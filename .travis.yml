@@ -19,4 +19,4 @@ install:
   - "pip install ./src"
 
 # command to run tests
-script: nosetests -w src/tests/unit_tests --with-coverage --cover-package=mammogram
+script: nosetests -w src/tests/unit_tests --with-coverage --cover-package=mia

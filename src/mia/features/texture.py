@@ -1,4 +1,7 @@
-"""Texture filters
+"""Texture feature detection
+
+This module provides a collection of functions for running texture based
+features on patches of images. 
 
 """
 import numpy as np
@@ -7,7 +10,7 @@ import skimage.filter as filters
 from skimage import feature
 
 from mia.features.blobs import extract_blob
-from mia.utils import normalise_image
+from mia.utils import normalise_image, vectorize_array
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
                  'correlation']
@@ -87,18 +90,16 @@ def compute_texture_features_from_blob(blob, image, properties,
     return avg_tex_features
 
 
-def vectorize_array(f, array, *args):
-    """ Helper function to vectorize across the rows of a 2D numpy array
-
-    :params f: function to vectorize
-    :params array: 2darray to iterate over.
-    :params args: list of arguments to pass to the function f
-    :returns: ndarray of the results of applying the function to each row.
-    """
-    return np.array([f(row, *args) for row in array])
-
-
 def blob_texture_props(image, blobs, properties, distances, orientations):
+    """ Compute the GLCM texture properties of blobs in an image
+
+    :param image: the image the blobs were found in
+    :param blobs: list of blobs found in the image
+    :param properties: list of properties to extract using the GLCM
+    :param distances: list of distances to use to compute the GLCM
+    :param orientations: list of orientations to use to compute the GLCM
+    :returns: array containg the mean, std, max and min of the properties
+    """
     tex_props = vectorize_array(compute_texture_features_from_blob, blobs,
                                 image, properties, distances, orientations)
     tex_props = np.hstack([tex_props.mean(axis=0), tex_props.std(axis=0),

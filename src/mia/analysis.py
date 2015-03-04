@@ -1,3 +1,7 @@
+""" Analysis module for examining the results of running feature detection on
+a dataset of images.
+"""
+
 import functools
 import logging
 import pandas as pd
@@ -7,7 +11,7 @@ from sklearn import manifold, preprocessing
 logger = logging.getLogger(__name__)
 
 
-def handle_data_frame(func):
+def _handle_data_frame(func):
     @functools.wraps(func)
     def inner(data_frame):
         df = data_frame.drop('class', axis=1)
@@ -21,8 +25,13 @@ def handle_data_frame(func):
     return inner
 
 
-@handle_data_frame
+@_handle_data_frame
 def fit_tSNE(feature_matrix):
+    """Run the t-SNE algorithm on the feature space of a collection of images
+
+    :param feature_matrix: matrix of features use with the t-SNE
+    :returns: 2darray -- lower dimensional mapping of the t-SNE algorithm
+    """
     scalar = preprocessing.StandardScaler()
     feature_matrix = scalar.fit_transform(feature_matrix)
 
@@ -35,6 +44,12 @@ def fit_tSNE(feature_matrix):
 
 
 def run_analysis(csv_file, output_file=None):
+    """Run an analysis algorithm on the results of feature detection
+
+    :param csv_file: file to load the dataset from
+    :param output_file: file to output the results of the lower dimensional
+                        mapping to
+    """
     feature_matrix = pd.DataFrame.from_csv(csv_file)
     # feature_matrix = feature_matrix[['avg_radius', 'std_radius', 'class',
     #                                'min_radius', 'max_radius', 'blob_count']]

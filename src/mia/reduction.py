@@ -105,6 +105,7 @@ def multiprocess_images(args):
     """Helper method for multiprocessing images.
 
     Pass the function arguments to the functions running in the child process
+    
     :param args: arguments to the process_image function
     :returns: result of the process image function
     """
@@ -131,7 +132,15 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
 
 def run_reduction(image_directory, masks_directory, output_file, birads_file,
                   num_processes):
-    logger.debug("Hi")
+    """Run a redcution on an image dataset
+
+    :param image_directory: directory containing the images to process
+    :param masks_directory: directory containing the masks for the images
+    :param output_file: name of the file to output the results to
+    :param birads_file: name fof the file containing the class data from each
+                        image
+    :param num_processes: number of processes to use in a multiprocess reduction
+    """
     start_time = time.time()
 
     if birads_file is None:

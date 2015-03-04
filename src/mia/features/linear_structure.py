@@ -1,3 +1,13 @@
+"""Linear structure features
+
+This module provides an implementation of the orientated bins feature for
+detecting breast ducts in mammograms.
+
+
+Reference: Reyer Zwiggelaar, Tim C. Parr, and Christopher J. Taylor.
+"Finding Orientated Line Patterns in Digital Mammographic Images." BMVC. 1996.
+"""
+
 from skimage import measure
 
 from mia.features._orientated_bins import orientated_bins

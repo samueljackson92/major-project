@@ -4,5 +4,7 @@ src
 .. toctree::
    :maxdepth: 4
 
-   mammogram
-   pipeline
+   command
+   mia
+   setup
+   tests

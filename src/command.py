@@ -2,13 +2,13 @@ import click
 import logging
 import pandas as pd
 
-from mammogram.reduction import run_reduction
-from mammogram.analysis import run_analysis
-from mammogram.plotting import (plot_scatter_2d, plot_scattermatrix,
+from mia.reduction import run_reduction
+from mia.analysis import run_analysis
+from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
                                 plot_median_image_matrix)
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("MIA")
+logger = logging.getLogger("mia")
 
 LOG_LEVELS = {
     'debug': logging.DEBUG,

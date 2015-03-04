@@ -2,7 +2,7 @@ import unittest
 import nose.tools
 from ..test_utils import *
 
-from mammogram._adjacency_graph import Graph
+from mia._adjacency_graph import Graph
 
 class GraphTests(unittest.TestCase):
 

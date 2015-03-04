@@ -6,8 +6,8 @@ import scipy.stats as stats
 import skimage.filter as filters
 from skimage import feature
 
-from mammogram.blob_features import extract_blob
-from mammogram.utils import normalise_image
+from mia.blob_features import extract_blob
+from mia.utils import normalise_image
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
                  'correlation']

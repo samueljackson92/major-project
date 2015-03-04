@@ -2,7 +2,7 @@ import nose.tools
 import unittest
 import os.path
 
-from mammogram.io_tools import *
+from mia.io_tools import *
 from ..test_utils import get_file_path
 
 class IOTests(unittest.TestCase):

@@ -18,7 +18,7 @@ config = {
         [console_scripts]
         mia=command:cli
     ''',
-    'packages': ['mammogram'],
+    'packages': ['mia'],
     'scripts': ['command.py'],
     'name': 'mia'
 }

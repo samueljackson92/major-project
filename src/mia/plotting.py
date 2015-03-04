@@ -8,7 +8,7 @@ import numpy as np
 import seaborn as sns
 from skimage import io, transform
 
-from mammogram.utils import transform_2d
+from mia.utils import transform_2d
 
 logger = logging.getLogger(__name__)
 

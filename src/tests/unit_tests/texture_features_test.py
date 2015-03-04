@@ -1,8 +1,8 @@
 import unittest
 import nose.tools
 
-from mammogram.texture_features import *
-from mammogram.utils import *
+from mia.texture_features import *
+from mia.utils import *
 from ..test_utils import get_file_path
 
 class TextureFeatureTests(unittest.TestCase):

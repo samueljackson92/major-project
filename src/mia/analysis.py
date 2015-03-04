@@ -1,4 +1,4 @@
-""" Mammogram analysis from a reduced dataset
+""" mia analysis from a reduced dataset
 
 Usage:
   mia.py RESULTS --output-file=<output>
@@ -10,7 +10,7 @@ Options:
   -o --output-file=<output>   File to output the results to.
 
 This file produces a collection of commands for analysing the output of a
-reduction of mammogram images.
+reduction of mia images.
 """
 import functools
 import logging

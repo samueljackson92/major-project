@@ -2,10 +2,10 @@ import unittest
 import nose.tools
 import os.path
 
-from mammogram.linear_features import *
-from mammogram.blob_features import *
-from mammogram.texture_features import *
-from mammogram.utils import *
+from mia.linear_features import *
+from mia.blob_features import *
+from mia.texture_features import *
+from mia.utils import *
 
 class TextureFeaturesRegressionTest(unittest.TestCase):
 

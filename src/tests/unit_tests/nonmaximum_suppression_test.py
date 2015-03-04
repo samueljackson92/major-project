@@ -4,8 +4,8 @@ import numpy as np
 
 from skimage import io, transform
 from ..test_utils import generate_linear_structure
-from mammogram.orientated_bins import orientated_bins
-from mammogram.nonmaximum_suppression import nonmaximum_suppression
+from mia.orientated_bins import orientated_bins
+from mia.nonmaximum_suppression import nonmaximum_suppression
 
 class NonMaximumSuppressionTest(unittest.TestCase):
 

@@ -2,8 +2,8 @@ import unittest
 import nose.tools
 import os.path
 
-from mammogram.blob_features import blob_features
-from mammogram.utils import preprocess_image
+from mia.blob_features import blob_features
+from mia.utils import preprocess_image
 
 
 class BlobDetectionRegressionTests(unittest.TestCase):

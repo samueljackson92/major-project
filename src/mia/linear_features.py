@@ -1,8 +1,8 @@
 from skimage import measure
 
-from mammogram.orientated_bins import orientated_bins
-from mammogram.nonmaximum_suppression import nonmaximum_suppression
-from mammogram.utils import *
+from mia.orientated_bins import orientated_bins
+from mia.nonmaximum_suppression import nonmaximum_suppression
+from mia.utils import *
 
 def linear_features(img, radius, nbins, threshold):
     """Compute linear features from an image

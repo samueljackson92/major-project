@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
-from mammogram.blob_features import blob_features, blob_props
-# from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
-from mammogram.io_tools import iterate_directory
-from mammogram.utils import preprocess_image
+from mia.blob_features import blob_features, blob_props
+# from mia.texture_features import blob_texture_props, GLCM_FEATURES
+from mia.io_tools import iterate_directory
+from mia.utils import preprocess_image
 
 logger = logging.getLogger(__name__)
 

@@ -13,6 +13,7 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 import math
 import logging
 import numpy as np
+import pandas as pd
 
 from mia.features._adjacency_graph import Graph
 from mia.utils import normalise_image
@@ -44,6 +45,15 @@ def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
 
 
 def blob_props(blobs):
+    image_blobs = _split_data_frame_by_image_name(blobs)
+    return [_blob_statistics(blob_set['radius']) for blob_set in image_blobs]
+
+
+def _split_data_frame_by_image_name(df):
+    return [df[df['image_name'] == name] for name in df['image_name'].unique()]
+
+
+def _blob_statistics(blob_radii):
     """Contstruct a feature matrix from a list of blobs
 
     This will compute the # of blobs, mean radius, std, min radius, and max
@@ -53,7 +63,6 @@ def blob_props(blobs):
     :returns: DataFrame - the feature matrix of statistics.
     """
 
-    blob_radii = blobs[:, 2]
     num_blobs = blob_radii.size
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)

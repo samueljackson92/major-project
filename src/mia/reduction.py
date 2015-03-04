@@ -34,7 +34,6 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
     blobs = blob_features(img, msk)
-    shape_props = blob_props(blobs)
     # tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
     #                                distances, orientations)
     # props = np.hstack([shape_props, tex_props])
@@ -43,7 +42,11 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
-    return shape_props
+    blob_df = pd.DataFrame(blobs, columns=['x', 'y', 'radius'])
+    blob_df['image_name'] = pd.Series(np.repeat(img_name, len(blobs)),
+                                      index=blob_df.index)
+
+    return blob_df
 
 
 def add_BIRADS_class(feature_matrix, class_labels_file):
@@ -67,37 +70,10 @@ def add_BIRADS_class(feature_matrix, class_labels_file):
     def transform_name_to_index(name):
         return int(re.match(name_regex, name).group(1).replace('-', ''))
 
-    img_names = [transform_name_to_index(v)
-                 for v in feature_matrix.index.values]
-    img_classes = [class_hash[key] for key in img_names]
-
+    img_names = feature_matrix['image_name']
+    img_classes = [class_hash[transform_name_to_index(v)] for v in img_names]
     feature_matrix['class'] = pd.Series(img_classes,
                                         index=feature_matrix.index)
-    return feature_matrix
-
-
-def create_feature_matrix(features, img_names, class_labels_file):
-    """Create a pandas DataFrame for the features
-
-    :param features: numpy array for features
-    :param img_names: list of image names to use as the index
-    :returns: DataFrame representing the features
-    """
-    # texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
-    #                       for prefix in ['avg', 'std', 'min', 'max']]
-
-    column_names = ['blob_count', 'avg_radius', 'std_radius',
-                    'min_radius', 'max_radius']
-    # column_names += texture_prop_names
-
-    feature_matrix = pd.DataFrame(features,
-                                  index=img_names,
-                                  columns=column_names)
-    feature_matrix.index.name = 'image_name'
-
-    if class_labels_file is not None:
-        feature_matrix = add_BIRADS_class(feature_matrix, class_labels_file)
-
     return feature_matrix
 
 
@@ -105,7 +81,7 @@ def multiprocess_images(args):
     """Helper method for multiprocessing images.
 
     Pass the function arguments to the functions running in the child process
-    
+
     :param args: arguments to the process_image function
     :returns: result of the process image function
     """
@@ -121,13 +97,13 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
     :returns: pandas DataFrame with the features for each image
     """
     paths = [p for p in iterate_directory(image_dir, mask_dir)]
-    img_names = [os.path.basename(img_path) for img_path, msk_path in paths]
 
     multiprocessing.freeze_support()
     pool = multiprocessing.Pool(num_processes)
-    features = np.array(pool.map(multiprocess_images, paths))
+    features = pool.map(multiprocess_images, paths)
+    features = pd.concat(features, ignore_index=True)
 
-    return create_feature_matrix(features, img_names, class_labels_file)
+    return features
 
 
 def run_reduction(image_directory, masks_directory, output_file, birads_file,
@@ -153,12 +129,53 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
     feature_matrix = run_multi_process(image_directory, masks_directory,
                                        num_processes, birads_file)
 
+    feature_matrix = add_BIRADS_class(feature_matrix, birads_file)
+
     if output_file is not None:
         feature_matrix.to_csv(output_file, Header=False)
     else:
-        logger.info(feature_matrix)
+        print feature_matrix
 
     end_time = time.time()
     total_time = end_time - start_time
     total_time = str(datetime.timedelta(seconds=total_time))
     logger.info("TOTAL REDUCTION TIME: %s" % total_time)
+
+
+def blob_feature_statistics(csv_file, output_file):
+    """Create blob features from a file of blob detections
+
+    :param csv_file: file containing the detected blobs
+    :param output_file: name to output the resulting features to.
+    """
+    blobs = pd.DataFrame.from_csv(csv_file)
+    image_names = blobs['image_name'].unique()
+
+    shape_props = blob_props(blobs)
+    feature_matrix = _create_feature_matrix(shape_props, image_names, None)
+    feature_matrix.to_csv(output_file)
+
+
+def _create_feature_matrix(features, img_names, class_labels_file):
+    """Create a pandas DataFrame for the features
+
+    :param features: numpy array for features
+    :param img_names: list of image names to use as the index
+    :returns: DataFrame representing the features
+    """
+    # texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
+    #                       for prefix in ['avg', 'std', 'min', 'max']]
+
+    column_names = ['blob_count', 'avg_radius', 'std_radius',
+                    'min_radius', 'max_radius']
+    # column_names += texture_prop_names
+
+    feature_matrix = pd.DataFrame(features,
+                                  index=img_names,
+                                  columns=column_names)
+    feature_matrix.index.name = 'image_name'
+
+    if class_labels_file is not None:
+        feature_matrix = add_BIRADS_class(feature_matrix, class_labels_file)
+
+    return feature_matrix

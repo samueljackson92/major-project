@@ -2,10 +2,10 @@ import click
 import logging
 import pandas as pd
 
-from mia.reduction import run_reduction
+from mia.reduction import run_reduction, blob_feature_statistics
 from mia.analysis import run_analysis
 from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
-                                plot_median_image_matrix)
+                          plot_median_image_matrix)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mia")
@@ -48,6 +48,13 @@ def reduction(image_directory, masks_directory, output_file, birads_file,
               num_processes):
     run_reduction(image_directory, masks_directory, output_file, birads_file,
                   num_processes)
+
+
+@cli.command()
+@click.argument('csv-file')
+@click.argument('output-file')
+def blob_features(csv_file, output_file):
+    blob_feature_statistics(csv_file, output_file)
 
 
 @cli.command()

@@ -1,7 +1,8 @@
 import numpy as np
-import skimage.filter as filters
 import os.path
 import tests
+
+from skimage import filters
 
 def assert_lists_equal(a,b):
     """Check if two lists are equal"""

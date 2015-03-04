@@ -1,13 +1,12 @@
 """Texture feature detection
 
 This module provides a collection of functions for running texture based
-features on patches of images. 
+features on patches of images.
 
 """
 import numpy as np
 import scipy.stats as stats
-import skimage.filter as filters
-from skimage import feature
+from skimage import feature, filters
 
 from mia.features.blobs import extract_blob
 from mia.utils import normalise_image, vectorize_array

@@ -1,4 +1,5 @@
 seaborn
+networkx
 click
 numpy
 scipy

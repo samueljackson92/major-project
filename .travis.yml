@@ -12,8 +12,7 @@ virtualenv:
 before_install:
   - bash <(wget -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas python-sklearn python-skimage
-  - pip install six>=1.3
-
+  - pip install six==1.3
 # command to install dependencies
 install:
   - "pip install -r travis_requirements.txt"

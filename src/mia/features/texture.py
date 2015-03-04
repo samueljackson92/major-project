@@ -6,7 +6,7 @@ import scipy.stats as stats
 import skimage.filter as filters
 from skimage import feature
 
-from mia.blob_features import extract_blob
+from mia.features.blobs import extract_blob
 from mia.utils import normalise_image
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',

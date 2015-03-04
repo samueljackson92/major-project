@@ -14,7 +14,7 @@ import math
 import logging
 import numpy as np
 
-from mia._adjacency_graph import Graph
+from mia.features._adjacency_graph import Graph
 from mia.utils import normalise_image
 
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter

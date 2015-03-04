@@ -2,11 +2,11 @@ import unittest
 import nose.tools
 import os.path
 
-from mia.blob_features import blob_features
+from mia.features.blobs import blob_features
 from mia.utils import preprocess_image
 
 
-class BlobDetectionRegressionTests(unittest.TestCase):
+class BlobsRegressionTests(unittest.TestCase):
 
     def test_blob_features(self):
         img_path = os.path.abspath(os.path.join('data',

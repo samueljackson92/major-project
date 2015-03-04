@@ -2,12 +2,12 @@ import unittest
 import nose.tools
 import os.path
 
-from mia.linear_features import *
-from mia.blob_features import *
-from mia.texture_features import *
+from mia.features.linear_structure import *
+from mia.features.blobs import *
+from mia.features.texture import *
 from mia.utils import *
 
-class TextureFeaturesRegressionTest(unittest.TestCase):
+class TextureRegressionTest(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):

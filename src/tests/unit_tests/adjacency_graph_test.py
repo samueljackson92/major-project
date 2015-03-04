@@ -2,7 +2,7 @@ import unittest
 import nose.tools
 from ..test_utils import *
 
-from mia._adjacency_graph import Graph
+from mia.features._adjacency_graph import Graph
 
 class GraphTests(unittest.TestCase):
 

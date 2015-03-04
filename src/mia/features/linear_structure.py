@@ -1,7 +1,7 @@
 from skimage import measure
 
-from mia._orientated_bins import orientated_bins
-from mia._nonmaximum_suppression import nonmaximum_suppression
+from mia.features._orientated_bins import orientated_bins
+from mia.features._nonmaximum_suppression import nonmaximum_suppression
 from mia.utils import *
 
 def linear_features(img, radius, nbins, threshold):

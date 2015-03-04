@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 import os.path
 
-from mia.blob_features import blob_features, blob_props
+from mia.features.blobs import blob_features, blob_props
 from mia.plotting import plot_blobs
 from skimage import io, transform
 from ..test_utils import *

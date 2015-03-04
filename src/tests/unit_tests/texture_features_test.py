@@ -1,11 +1,11 @@
 import unittest
 import nose.tools
 
-from mia.texture_features import *
+from mia.features.texture import *
 from mia.utils import *
 from ..test_utils import get_file_path
 
-class TextureFeatureTests(unittest.TestCase):
+class TextureTests(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):

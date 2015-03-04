@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
-from mia.blob_features import blob_features, blob_props
-# from mia.texture_features import blob_texture_props, GLCM_FEATURES
+from mia.features.blobs import blob_features, blob_props
+# from mia.features.texture import blob_texture_props, GLCM_FEATURES
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
 

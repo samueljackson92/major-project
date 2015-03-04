@@ -8,12 +8,12 @@ import numpy as np
 import seaborn as sns
 from skimage import io, transform
 
-from mammogram.utils import transform_2d
+from mia.utils import transform_2d
 
 logger = logging.getLogger(__name__)
 
 
-def handle_plot_output(func):
+def _handle_plot_output(func):
     @functools.wraps(func)
     def inner(*args, **kwargs):
         image = func(*args, **kwargs)
@@ -31,7 +31,7 @@ def handle_plot_output(func):
 def plot_multiple_images(images):
     """Plot a list of images on horizontal subplots
 
-    :param images: -- the list of images to plot
+    :param images: the list of images to plot
     """
     fig = plt.figure()
 
@@ -77,7 +77,8 @@ def plot_region_props(image, regions):
 def plot_blobs(img, blobs):
     """Plot the output of blob detection on an image.
 
-    Original code from
+    :param img: the image to plot
+    :param blobs: list of blobs found in the image
     """
 
     fig, ax = plt.subplots(1, 1)
@@ -92,7 +93,11 @@ def plot_blobs(img, blobs):
 
 
 def plot_image_orthotope(image_orthotope, titles=None):
-    """ Plot an image orthotope """
+    """ Plot an image orthotope
+
+    :param image_orthotope: the orthotope of images to plot
+    :param titles: titles for each of the images in orthotope
+    """
 
     fig, ax = plt.subplots(*image_orthotope.shape[:2])
 
@@ -111,23 +116,45 @@ def plot_image_orthotope(image_orthotope, titles=None):
 
 
 def plot_scatter_2d(data_frame, label_name=None):
-    """ Create a scatter plot from a pandas data frame """
+    """ Create a scatter plot from a pandas data frame
+
+    :param data_frame: data frame containing the lower dimensional mapping
+    :param label_name: name of the column containing the class label for the
+                       image
+    """
     label_name = 1 if label_name is None else label_name
     data_frame.plot(kind='scatter', x=0, y=1, c=label_name, cmap=plt.cm.Spectral)
     plt.show()
 
 
 def plot_scattermatrix(data_frame, label_name=None):
-    """ Create a scatter plot matrix from a pandas data frame """
+    """ Create a scatter plot matrix from a pandas data frame
+
+    :param data_frame: data frame containing the lower dimensional mapping
+    :param label_name: name of the column containing the class label for the
+                       image
+    """
     column_names = filter(lambda x: x != 'class', data_frame.columns.values)
     sns.pairplot(data_frame, hue=label_name, size=1.5, vars=column_names)
     plt.show()
 
 
-@handle_plot_output
+@_handle_plot_output
 def plot_median_image_matrix(data_frame, img_path, label_name=None,
                              output_file=None):
+    """Plot images from a dataset according to their position defined by the
+    lower dimensional mapping
 
+    This rebins the points in the mapping using a 2D histogram then takes
+    the median point in each bin. The image corresponding to this point is
+    then plotted for that bin.
+
+    :param data_frame: data frame defining the lower dimensional mapping
+    :param img_path: path to find the images in
+    :param label_name: name of the column in the data frame containing the class
+                       labels
+    :param output_file: file name to output the resulting image to
+    """
     def filter_func(x, path):
         """ Filter function to load an image if one is present in the square"""
         if x == '':

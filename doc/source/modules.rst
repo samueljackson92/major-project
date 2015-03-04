@@ -1,8 +1,7 @@
-src
+mia
 ===
 
 .. toctree::
    :maxdepth: 4
 
-   mammogram
-   pipeline
+   mia

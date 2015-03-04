@@ -1,8 +1,12 @@
 seaborn
 click
+six>=1.3
+networkx>=1.8
+coverage>=3.7.1
+Sphinx>=1.2.3
+docutils>=0.12
+nose>=1.3.4
 numpy
 scipy
-pandas
-scikit-learn>=0.15.2
-scikit-image>=0.10.1
-
+scikit-learn
+scikit-image>=0.11.0

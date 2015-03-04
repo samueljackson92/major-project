@@ -126,3 +126,14 @@ def transform_2d(f, grid, *args):
             out_row.append(out_value)
         out_grid.append(out_row)
     return np.array(out_grid)
+
+
+def vectorize_array(f, array, *args):
+    """ Helper function to vectorize across the rows of a 2D numpy array
+
+    :params f: function to vectorize
+    :params array: 2darray to iterate over.
+    :params args: list of arguments to pass to the function f
+    :returns: ndarray of the results of applying the function to each row.
+    """
+    return np.array([f(row, *args) for row in array])

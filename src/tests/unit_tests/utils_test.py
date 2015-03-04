@@ -2,7 +2,7 @@ import unittest
 import nose.tools
 import numpy as np
 
-from mammogram.utils import *
+from mia.utils import *
 
 class UtilsTest(unittest.TestCase):
 

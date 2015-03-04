@@ -4,7 +4,7 @@ import numpy as np
 
 from skimage import io, transform
 from ..test_utils import generate_linear_structure
-from mammogram.orientated_bins import orientated_bins
+from mia.features._orientated_bins import orientated_bins
 
 class OrientatedBinsTest(unittest.TestCase):
 

@@ -13,7 +13,7 @@ import numpy as np
 from skimage import io
 from scipy.ndimage import filters
 
-from . import utils
+from mia import utils
 
 __all__ = ["orientated_bins"]
 

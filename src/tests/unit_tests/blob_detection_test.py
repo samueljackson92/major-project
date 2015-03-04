@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 import os.path
 
-from mammogram.blob_detection import blob_detection, blob_props
+from mammogram.blob_features import blob_features, blob_props
 from mammogram.plotting import plot_blobs
 from skimage import io, transform
 from ..test_utils import *

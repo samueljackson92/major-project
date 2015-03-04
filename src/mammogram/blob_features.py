@@ -24,7 +24,7 @@ from skimage import feature, transform, morphology
 logger = logging.getLogger(__name__)
 
 
-def blob_detection(image, mask=None, max_layer=10, downscale=np.sqrt(2),
+def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
                    sigma=8.0, overlap=0.01):
     """Performs multi-scale blob detection
 

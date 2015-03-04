@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
-from mammogram.blob_detection import blob_detection, blob_props
+from mammogram.blob_features import blob_features, blob_props
 # from mammogram.texture_features import blob_texture_props, GLCM_FEATURES
 from mammogram.io_tools import iterate_directory
 from mammogram.utils import preprocess_image
@@ -33,7 +33,7 @@ def process_image(image_path, mask_path, scale_to_mask=False):
 
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
-    blobs = blob_detection(img, msk)
+    blobs = blob_features(img, msk)
     shape_props = blob_props(blobs)
     # tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
     #                                distances, orientations)

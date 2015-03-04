@@ -3,7 +3,7 @@ import nose.tools
 import os.path
 
 from mammogram.linear_features import *
-from mammogram.blob_detection import *
+from mammogram.blob_features import *
 from mammogram.texture_features import *
 from mammogram.utils import *
 
@@ -16,7 +16,7 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
         cls._img, cls._msk = preprocess_image(img_path, msk_path)
 
     def test_blob_and_gabor(self):
-        blobs = blob_detection(self._img, self._msk)
+        blobs = blob_features(self._img, self._msk)
 
         orientations = np.arange(0, np.pi, np.pi/8)
         frequencies = np.arange(0.1,5.0)
@@ -51,7 +51,7 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
         orientations = np.arange(0, np.pi, np.pi/8)
         distances = [1,2,4,8]
 
-        blobs = blob_detection(self._img, self._msk)
+        blobs = blob_features(self._img, self._msk)
 
         for blob in blobs:
             image_section = extract_blob(blob, self._img)
@@ -77,7 +77,7 @@ class TextureFeaturesRegressionTest(unittest.TestCase):
         orientations = np.arange(0, np.pi, np.pi/8)
         distances = [1, 3, 5]
 
-        blobs = blob_detection(self._img, self._msk)
+        blobs = blob_features(self._img, self._msk)
         tex_props = blob_texture_props(self._img, blobs, properties,
                                        distances, orientations)
         nose.tools.assert_equal(tex_props.shape, (20,))

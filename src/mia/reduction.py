@@ -143,6 +143,11 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
 
 
 def blob_feature_statistics(csv_file, output_file):
+    """Create blob features from a file of blob detections
+
+    :param csv_file: file containing the detected blobs
+    :param output_file: name to output the resulting features to.
+    """
     blobs = pd.DataFrame.from_csv(csv_file)
     image_names = blobs['image_name'].unique()
 

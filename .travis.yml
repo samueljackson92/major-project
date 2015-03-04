@@ -10,7 +10,10 @@ virtualenv:
   system_site_packages: true
 
 before_install:
-  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas python-sklearn
+  - wget -O- http://neuro.debian.net/lists/utopic.us-ca.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+  - sudo apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
+  - sudo apt-get update
+  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas python-sklearn python-skimage
   - pip install six
 
 # command to install dependencies

@@ -6,7 +6,6 @@ import functools
 import logging
 import numpy as np
 import pandas as pd
-import re
 
 from sklearn import manifold, preprocessing
 

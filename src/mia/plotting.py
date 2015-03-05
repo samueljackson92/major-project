@@ -115,7 +115,7 @@ def plot_image_orthotope(image_orthotope, titles=None):
     plt.show()
 
 
-def plot_scatter_2d(data_frame, label_name=None):
+def plot_scatter_2d(data_frame, label_name=None, annotate=False):
     """ Create a scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the lower dimensional mapping
@@ -124,14 +124,14 @@ def plot_scatter_2d(data_frame, label_name=None):
     """
     label_name = 1 if label_name is None else label_name
 
-    fig, ax = plt.subplots()
     ax = data_frame.plot(kind='scatter', x=0, y=1, c=label_name,
-                         cmap=plt.cm.Spectral, ax=ax, s=50)
+                         cmap=plt.cm.Spectral, s=50)
 
-    def annotate_df(row):
-        ax.text(row.values[0], row.values[1], row.name, fontsize=10)
+    if annotate:
+        def annotate_df(row):
+            ax.text(row.values[0], row.values[1], row.name, fontsize=10)
+        data_frame.apply(annotate_df, axis=1)
 
-    data_frame.apply(annotate_df, axis=1)
     plt.show()
 
 

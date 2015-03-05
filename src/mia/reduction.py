@@ -156,7 +156,7 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
     logger.info("TOTAL REDUCTION TIME: %s" % total_time)
 
 
-def blob_feature_statistics(csv_file, output_file):
+def reduction_feature_statistics(csv_file, output_file):
     """Create blob features from a file of blob detections
 
     :param csv_file: file containing the detected blobs

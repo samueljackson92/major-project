@@ -2,7 +2,7 @@ import click
 import logging
 import pandas as pd
 
-from mia.reduction import run_reduction, blob_feature_statistics
+from mia.reduction import run_reduction, reduction_feature_statistics
 from mia.analysis import run_analysis, measure_closeness
 from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
                           plot_median_image_matrix)
@@ -44,8 +44,8 @@ def reduction(image_directory, masks_directory, output_file, birads_file,
 @cli.command()
 @click.argument('csv-file')
 @click.argument('output-file')
-def blob_features(csv_file, output_file):
-    blob_feature_statistics(csv_file, output_file)
+def feature_statistics(csv_file, output_file):
+    reduction_feature_statistics(csv_file, output_file)
 
 
 @cli.command()
@@ -81,9 +81,11 @@ def scatter_plot(csv_file, label_column):
 @click.argument('csv-file')
 @click.option('--label-column', '-l', default=None,
               help="Name of column to use as the class labels")
-def scatter_matrix(csv_file, label_column):
+@click.option('--annotate', is_flag=True,
+              help="Annotate the images with image names")
+def scatter_matrix(csv_file, label_column, annotate):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_scattermatrix(df, label_column)
+    plot_scattermatrix(df, label_column, annotate)
 
 
 @plotting.command()

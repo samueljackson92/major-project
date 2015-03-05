@@ -57,8 +57,8 @@ def image_orthotope_statistics(image_orthotope):
     """ Calculate the mean, std, and skew of an image orthotope
 
     :param image_orthotope: the image orthotope
-    :returns: feature matrix containing the column vectors [mean, std, skew] the
-              components of which first order statics of a single image.
+    :returns: feature matrix containing the column vectors [mean, std, skew]
+              the components of which first order statics of a single image.
     """
     means = np.array([np.mean(image) for image in image_orthotope])
     stds = np.array([np.std(image) for image in image_orthotope])

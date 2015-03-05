@@ -5,6 +5,7 @@ Various IO utility functions.
 import os
 import re
 
+
 def iterate_directory(directory, mask_directory=None):
     """ Iterate of a directory of images
 
@@ -19,7 +20,7 @@ def iterate_directory(directory, mask_directory=None):
     for img_name in os.listdir(directory):
         match = re.match(regex, img_name)
         if match is not None:
-            img_path = os.path.join(directory,img_name)
+            img_path = os.path.join(directory, img_name)
             check_is_image(img_path, ".png")
 
             msk_path = None
@@ -52,4 +53,4 @@ def check_is_image(img_path, ext):
 
     if not img_path.endswith(ext):
         raise ValueError("%s does not have the expected file extension"
-                          % img_path)
+                         % img_path)

@@ -121,7 +121,8 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
     :param output_file: name of the file to output the results to
     :param birads_file: name fof the file containing the class data from each
                         image
-    :param num_processes: number of processes to use in a multiprocess reduction
+    :param num_processes: number of processes to use in a multiprocess
+                          reduction
     """
     start_time = time.time()
 
@@ -173,7 +174,8 @@ def _create_feature_matrix(features, img_names, class_labels_file):
     #                       for prefix in ['avg', 'std', 'min', 'max']]
 
     column_names = ['blob_count', 'avg_radius', 'std_radius',
-                    'small_radius_count', 'med_radius_count', 'large_radius_count',
+                    'small_radius_count', 'med_radius_count',
+                    'large_radius_count',
                     'avg_avg_intensity', 'avg_std_intensity',
                     'avg_skew_intensity', 'avg_kurt_intensity',
                     'std_avg_intensity', 'std_std_intensity',

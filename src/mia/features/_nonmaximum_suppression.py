@@ -10,7 +10,9 @@ from scipy.ndimage import filters
 
 __all__ = ['nonmaximum_suppression']
 
-def nonmaximum_suppression(line_strength, line_orientation, nbins, kernel_size=3):
+
+def nonmaximum_suppression(line_strength, line_orientation, nbins,
+                           kernel_size=3):
     """Non-maximum suppression of the line strength images.
 
     :param line_strength: the line strength image to process
@@ -24,11 +26,12 @@ def nonmaximum_suppression(line_strength, line_orientation, nbins, kernel_size=3
 
     kernels = generate_kernels(kernel_size)
 
-    #Convert the line orientation image to the parallel orientation
+    # Convert the line orientation image to the parallel orientation
     parallel_orientation = (line_orientation + (nbins/2)) % nbins
     parallel_orientation = parallel_orientation % len(kernels)
 
-    return filter_for_maximum_direction(kernels, line_strength, parallel_orientation)
+    return filter_for_maximum_direction(kernels, line_strength,
+                                        parallel_orientation)
 
 
 def filter_for_maximum_direction(kernels, line_strength, parallel_orientation):
@@ -43,11 +46,13 @@ def filter_for_maximum_direction(kernels, line_strength, parallel_orientation):
     filtered_images = []
     for kernel in kernels:
         filtered_image = np.zeros(line_strength.shape)
-        filters.maximum_filter(line_strength, footprint=kernel, output=filtered_image)
+        filters.maximum_filter(line_strength, footprint=kernel,
+                               output=filtered_image)
         filtered_images.append(filtered_image)
 
     line_strength_suppressed = np.zeros(line_strength.shape)
-    np.choose(parallel_orientation, filtered_images, out=line_strength_suppressed)
+    np.choose(parallel_orientation, filtered_images,
+              out=line_strength_suppressed)
     return line_strength_suppressed
 
 
@@ -57,11 +62,11 @@ def generate_kernels(kernel_size):
     :param kernel_size: the size of the kernels to create.
     :returns: list -- the generated kernels
     """
-    horizontal = np.zeros(shape=(kernel_size,kernel_size), dtype='int64')
+    horizontal = np.zeros(shape=(kernel_size, kernel_size), dtype='int64')
     horizontal[1] = np.ones(kernel_size)
 
-    vertical = np.zeros(shape=(kernel_size,kernel_size), dtype='int64')
-    vertical[:,1] = np.ones(kernel_size, dtype='int64')
+    vertical = np.zeros(shape=(kernel_size, kernel_size), dtype='int64')
+    vertical[:, 1] = np.ones(kernel_size, dtype='int64')
 
     left_diagonal = np.eye(kernel_size, dtype='int64')
     right_diagonal = np.fliplr(left_diagonal)

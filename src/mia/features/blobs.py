@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
-                   sigma=8.0, overlap=0.01):
+                  sigma=8.0, overlap=0.01):
     """Performs multi-scale blob detection
 
     :param image: image to detect blobs in.
@@ -44,15 +44,16 @@ def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
 
 
 def blob_props(blobs):
+    hist, bins = np.histogram(blobs['radius'], bins=3)
     image_blobs = _split_data_frame_by_image_name(blobs)
-    return [_blob_statistics(blob_set['radius']) for blob_set in image_blobs]
+    return [_blob_statistics(blob_set, bins) for blob_set in image_blobs]
 
 
 def _split_data_frame_by_image_name(df):
     return [df[df['image_name'] == name] for name in df['image_name'].unique()]
 
 
-def _blob_statistics(blob_radii):
+def _blob_statistics(feature_set, bins):
     """Contstruct a feature matrix from a list of blobs
 
     This will compute the # of blobs, mean radius, std, min radius, and max
@@ -62,12 +63,23 @@ def _blob_statistics(blob_radii):
     :returns: DataFrame - the feature matrix of statistics.
     """
 
+    # blob statistics
+    blob_radii = feature_set['radius']
     num_blobs = blob_radii.size
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)
-    min_radius = np.amin(blob_radii)
-    max_radius = np.amax(blob_radii)
-    return np.array([num_blobs, mean, std, min_radius, max_radius])
+    (small, med, large), b = np.histogram(blob_radii, bins=bins)
+
+    # intensity statistics
+    intensity_stats = feature_set[['avg_intensity', 'std_intensity',
+                                   'skew_intensity', 'kurtosis_intensity']]
+
+    avg_intensity_stats = intensity_stats.mean(axis=0).as_matrix()
+    std_intensity_stats = intensity_stats.std(axis=0).as_matrix()
+
+    shape_stats = np.array([num_blobs, mean, std, small, med, large])
+    props = np.hstack([shape_stats, avg_intensity_stats, std_intensity_stats])
+    return props
 
 
 def _multiscale_pyramid_detection(image, *args):

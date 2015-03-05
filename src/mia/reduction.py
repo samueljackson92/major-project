@@ -16,7 +16,7 @@ from mia.utils import preprocess_image
 logger = logging.getLogger(__name__)
 
 
-def process_image(image_path, mask_path, scale_to_mask=False):
+def process_image(*args, **kwargs):
     """Process a single image.
 
     :param image_path: the absolute file path to the image
@@ -24,34 +24,35 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     :param scale_to_mask: whether to downscale the image to the mask
     :returns: statistics of the blobs in the image
     """
-    img_name = os.path.basename(image_path)
-
-    # orientations = np.arange(0, np.pi, np.pi/8)
-    # distances = [1, 3, 5]
+    img_name = os.path.basename(args[0])
 
     logger.info("Processing image %s" % img_name)
     start = time.time()
 
+    props = _find_features(*args, **kwargs)
+
+    end = time.time()
+    logger.info("%d blobs found in image %s" % (props.shape[0], img_name))
+    logger.debug("%.2f seconds to process" % (end-start))
+
+    return _make_image_data_frame(img_name, props)
+
+
+def _find_features(image_path, mask_path, scale_to_mask=False):
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
     blobs = blob_features(img, msk)
     intensity_props = np.array([blob_intensity_props(blob, img)
                                for blob in blobs])
-    props = np.hstack([blobs, intensity_props])
-    # tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
-    #                                distances, orientations)
-    # props = np.hstack([shape_props, tex_props])
+    return np.hstack([blobs, intensity_props])
 
-    end = time.time()
-    logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
-    logger.debug("%.2f seconds to process" % (end-start))
 
+def _make_image_data_frame(img_name, props):
     column_names = ['x', 'y', 'radius', 'avg_intensity', 'std_intensity',
                     'skew_intensity', 'kurtosis_intensity']
     blob_df = pd.DataFrame(props, columns=column_names)
-    blob_df['image_name'] = pd.Series(np.repeat(img_name, len(blobs)),
+    blob_df['image_name'] = pd.Series(np.repeat(img_name, len(props)),
                                       index=blob_df.index)
-
     return blob_df
 
 

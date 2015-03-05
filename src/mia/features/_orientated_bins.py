@@ -204,9 +204,8 @@ def in_sector_bounding_box(polar_point, radius, start_theta, end_theta):
     point_radius, point_theta = polar_point
 
     if start_theta > end_theta:
-        return (point_radius < radius
-                and (point_theta >= start_theta or point_theta < end_theta))
+        return (point_radius < radius and (point_theta >= start_theta or
+                                           point_theta < end_theta))
     else:
-        return (point_radius < radius
-                and point_theta >= start_theta
-                and point_theta < end_theta)
+        return (point_radius < radius and point_theta >= start_theta and
+                point_theta < end_theta)

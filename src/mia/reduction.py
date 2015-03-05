@@ -53,6 +53,18 @@ def _make_image_data_frame(img_name, props):
     blob_df = pd.DataFrame(props, columns=column_names)
     blob_df['image_name'] = pd.Series(np.repeat(img_name, len(props)),
                                       index=blob_df.index)
+
+    name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png')
+
+    def find_image_info(name):
+        m = re.match(name_regex, name)
+        patient_id = m.group(1).replace('-', '')
+        view, side = list(m.group(2))
+        return [patient_id, view, side]
+
+    image_info = [find_image_info(name) for name in blob_df['image_name']]
+    info_df = pd.DataFrame(image_info, columns=['patient_id', 'view', 'side'])
+    blob_df = pd.concat([blob_df, info_df], axis=1)
     return blob_df
 
 
@@ -68,17 +80,11 @@ def add_BIRADS_class(feature_matrix, class_labels_file):
     class_labels = pd.DataFrame().from_csv(class_labels_file)
     class_labels = class_labels['BI-RADS']
 
-    name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-[a-z]{2}.png')
-
     class_hash = {}
     for img, c in class_labels.iteritems():
         class_hash[img] = c
 
-    def transform_name_to_index(name):
-        return int(re.match(name_regex, name).group(1).replace('-', ''))
-
-    img_names = feature_matrix['image_name']
-    img_classes = [class_hash[transform_name_to_index(v)] for v in img_names]
+    img_classes = [class_hash[int(name)] for name in feature_matrix['patient_id']]
     feature_matrix['class'] = pd.Series(img_classes,
                                         index=feature_matrix.index)
     return feature_matrix

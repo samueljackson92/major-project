@@ -12,7 +12,8 @@ from skimage import measure
 
 from mia.features._orientated_bins import orientated_bins
 from mia.features._nonmaximum_suppression import nonmaximum_suppression
-from mia.utils import *
+from mia.utils import binary_image, skeletonize_image
+
 
 def linear_features(img, radius, nbins, threshold):
     """Compute linear features from an image
@@ -25,16 +26,18 @@ def linear_features(img, radius, nbins, threshold):
     :returns: tuple -- containing (line_image, regions)
     """
     line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
-    line_strength_suppressed = nonmaximum_suppression(line_strength, line_orientation, nbins)
+    line_strength_suppressed = nonmaximum_suppression(line_strength,
+                                                      line_orientation, nbins)
 
     line_image = binary_image(line_strength_suppressed, threshold)
     line_image = skeletonize_image(line_image, 50, dilation_size=1)
 
-    #find image regions
+    # find image regions
     line_image = measure.label(line_image)
     regions = measure.regionprops(line_image)
 
     return line_strength_suppressed, regions
+
 
 def extract_feature(props, image):
     """ Extract the area of an image belonging to a feature given a bounding box
@@ -44,5 +47,5 @@ def extract_feature(props, image):
     :returns: ndarray -- section of the image within the bounding box
     """
     hs, ws, he, we = props.bbox
-    image_section = image[hs:he,ws:we]
+    image_section = image[hs:he, ws:we]
     return image_section

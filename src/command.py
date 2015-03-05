@@ -17,17 +17,8 @@ LOG_LEVELS = {
 }
 
 
-def print_version(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-    click.echo('Version 0.5.0')
-    ctx.exit()
-
-
 @click.group()
-@click.option('--version', is_flag=True, callback=print_version,
-              expose_value=False, is_eager=True,
-              help="Version of the application.")
+@click.version_option(version='0.5.0')
 @click.option('--log-level', default='info',
               type=click.Choice(['debug', 'info', 'warning']),
               help="Level of logging to report")

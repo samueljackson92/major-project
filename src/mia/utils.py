@@ -3,26 +3,27 @@ import numpy as np
 from skimage import io, transform, morphology, measure
 
 
-def preprocess_image(image_path, mask_path=None, scale_to_mask=False, normalise=True):
+def preprocess_image(image_path, mask_path=None, scale_to_mask=False,
+                     normalise=True):
     """Preprocess an image, optionally using a mask.
 
     :param image_path: path to the image.
     :param mask_path: path to the mask to use (optional).
     :param scale_to_mask: image to the mask rather than the other way around.
-                          This provides quicker processing but often worsens results.
-                          Useful for debugging.
+                          This provides quicker processing but often worsens
+                          results. Useful for debugging.
     """
     img = io.imread(image_path, as_grey=True)
 
     if scale_to_mask:
         img = transform.pyramid_reduce(img, downscale=4)
 
-    #mask image
+    # mask image
     if mask_path is not None:
         msk = io.imread(mask_path, as_grey=True)
         msk = erode_mask(msk, kernel_size=35)
         if not scale_to_mask:
-            msk = transform.rescale(msk,4)
+            msk = transform.rescale(msk, 4)
         img = img * msk
     else:
         msk = None
@@ -53,10 +54,11 @@ def binary_image(img, threshold):
 
     :param img: the image to threshold
     :param threshold: the value to threshold the image with
-    :returns: ndarray -- int64 array representing the binary version of the image
+    :returns: ndarray -- int64 array representing the binary version of the
+              image
     """
     binary_image = np.zeros(img.shape, dtype='uint8')
-    binary_image[img>threshold] = 1
+    binary_image[img > threshold] = 1
     return binary_image
 
 
@@ -74,11 +76,11 @@ def skeletonize_image(img, min_object_size, dilation_size=3):
     img = measure.label(img)
     img = morphology.remove_small_objects(img, min_object_size, connectivity=4)
 
-    #dilate to connect bigger structures
+    # dilate to connect bigger structures
     dilation_kernel = morphology.disk(dilation_size)
     img = morphology.binary_closing(img, dilation_kernel)
 
-    img[img>0] = 1
+    img[img > 0] = 1
 
     return img
 
@@ -89,7 +91,8 @@ def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     Uses binary_erosion to erode the edge of a mask.
 
     :param mask: the mask to erode
-    :param kernel_func: the function used to generate the kernel (default: disk)
+    :param kernel_func: the function used to generate the kernel
+                        (default: disk)
     :param kernel_size: the size of the kernel to use (default: 30)
     """
     eroded_mask = np.zeros(mask.shape)

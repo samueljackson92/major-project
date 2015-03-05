@@ -46,7 +46,8 @@ def plot_multiple_images(images):
 def plot_region_props(image, regions):
     """Plot the output of skimage.regionprops along with the image.
 
-    Original code from http://scikit-image.org/docs/dev/auto_examples/plot_regionprops.html
+    Original code from
+    http://scikit-image.org/docs/dev/auto_examples/plot_regionprops.html
 
     :param image: image to plot
     :param regions: the regions output from the regionprops function
@@ -123,7 +124,8 @@ def plot_scatter_2d(data_frame, label_name=None):
                        image
     """
     label_name = 1 if label_name is None else label_name
-    data_frame.plot(kind='scatter', x=0, y=1, c=label_name, cmap=plt.cm.Spectral)
+    data_frame.plot(kind='scatter', x=0, y=1, c=label_name,
+                    cmap=plt.cm.Spectral)
     plt.show()
 
 
@@ -151,8 +153,8 @@ def plot_median_image_matrix(data_frame, img_path, label_name=None,
 
     :param data_frame: data frame defining the lower dimensional mapping
     :param img_path: path to find the images in
-    :param label_name: name of the column in the data frame containing the class
-                       labels
+    :param label_name: name of the column in the data frame containing the
+                       class labels
     :param output_file: file name to output the resulting image to
     """
     def filter_func(x, path):

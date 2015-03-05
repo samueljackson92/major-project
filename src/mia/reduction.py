@@ -173,7 +173,11 @@ def _create_feature_matrix(features, img_names, class_labels_file):
     #                       for prefix in ['avg', 'std', 'min', 'max']]
 
     column_names = ['blob_count', 'avg_radius', 'std_radius',
-                    'min_radius', 'max_radius']
+                    'small_radius_count', 'med_radius_count', 'large_radius_count',
+                    'avg_avg_intensity', 'avg_std_intensity',
+                    'avg_skew_intensity', 'avg_kurt_intensity',
+                    'std_avg_intensity', 'std_std_intensity',
+                    'std_skew_intensity', 'std_kurt_intensity']
     # column_names += texture_prop_names
 
     feature_matrix = pd.DataFrame(features,

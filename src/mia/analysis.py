@@ -71,6 +71,7 @@ def measure_closeness(csv_file, column_name):
     ds = [_cluster_measure(frame) for index, frame in df.groupby(column_name)]
     ds = pd.Series(ds, index=df[column_name].unique())
 
+    print ds.to_string()
     print ds.describe()
 
     ds.plot('hist')

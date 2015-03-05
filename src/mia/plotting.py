@@ -83,7 +83,6 @@ def plot_blobs(img, blobs):
     """
 
     fig, ax = plt.subplots(1, 1)
-    # ax.set_title(title)
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
     for blob in blobs:
         y, x, r = blob
@@ -124,8 +123,15 @@ def plot_scatter_2d(data_frame, label_name=None):
                        image
     """
     label_name = 1 if label_name is None else label_name
-    data_frame.plot(kind='scatter', x=0, y=1, c=label_name,
-                    cmap=plt.cm.Spectral)
+
+    fig, ax = plt.subplots()
+    ax = data_frame.plot(kind='scatter', x=0, y=1, c=label_name,
+                         cmap=plt.cm.Spectral, ax=ax, s=50)
+
+    def annotate_df(row):
+        ax.text(row.values[0], row.values[1], row.name, fontsize=10)
+
+    data_frame.apply(annotate_df, axis=1)
     plt.show()
 
 

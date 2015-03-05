@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from mia.reduction import run_reduction, blob_feature_statistics
-from mia.analysis import run_analysis
+from mia.analysis import run_analysis, measure_closeness
 from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
                           plot_median_image_matrix)
 
@@ -54,6 +54,13 @@ def blob_features(csv_file, output_file):
               help="Name of output file to store results of analysis in")
 def analysis(csv_file, output_file):
     run_analysis(csv_file, output_file)
+
+
+@cli.command()
+@click.argument('csv-file')
+@click.argument('label')
+def patient_closeness(csv_file, label):
+    measure_closeness(csv_file, label)
 
 
 @cli.group()

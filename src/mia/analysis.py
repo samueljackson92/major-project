@@ -4,7 +4,9 @@ a dataset of images.
 
 import functools
 import logging
+import numpy as np
 import pandas as pd
+import re
 
 from sklearn import manifold, preprocessing
 
@@ -14,13 +16,15 @@ logger = logging.getLogger(__name__)
 def _handle_data_frame(func):
     @functools.wraps(func)
     def inner(data_frame):
-        df = data_frame.drop('class', axis=1)
+        info_columns = ['image_name', 'patient_id', 'view', 'side', 'class']
 
+        df = data_frame.drop(info_columns, axis=1)
         fit_output = func(df.as_matrix())
 
         fit_output.index = data_frame.index
-        fit_output['class'] = pd.Series(data_frame['class'],
-                                        index=fit_output.index)
+        image_info = data_frame[info_columns]
+        fit_output = pd.concat([fit_output, image_info], axis=1)
+
         return fit_output
     return inner
 
@@ -59,3 +63,24 @@ def run_analysis(csv_file, output_file=None):
         fit_output.to_csv(output_file)
     else:
         logger.info(fit_output)
+
+
+def measure_closeness(csv_file, column_name):
+    import matplotlib.pyplot as plt
+    df = pd.DataFrame.from_csv(csv_file)
+
+    ds = [_cluster_measure(frame) for index, frame in df.groupby(column_name)]
+    ds = pd.Series(ds, index=df[column_name].unique())
+
+    print ds.describe()
+
+    ds.plot('hist')
+    plt.show()
+
+
+def _cluster_measure(group):
+    points = group[['0', '1']]
+    centroid = points.sum() / group.size
+    distances = ((centroid - points)**2).sum(axis=1)
+    distances = distances.apply(np.sqrt)
+    return distances.mean()

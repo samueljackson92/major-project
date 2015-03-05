@@ -13,7 +13,6 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 import math
 import logging
 import numpy as np
-import pandas as pd
 
 from mia.features._adjacency_graph import Graph
 from mia.utils import normalise_image

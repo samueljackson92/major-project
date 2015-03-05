@@ -10,12 +10,12 @@ import itertools
 import math
 import numpy as np
 
-from skimage import io
 from scipy.ndimage import filters
 
 from mia import utils
 
 __all__ = ["orientated_bins"]
+
 
 def orientated_bins(img, radius, nbins=8):
     """Filter an image using orientated bins
@@ -68,14 +68,15 @@ def create_sectors(nbins, radius):
         end_theta = end_theta % (2*math.pi)
 
         sector = create_sector(window_coordinates, centre_point,
-                                    radius, start_theta, end_theta)
+                               radius, start_theta, end_theta)
 
         sectors.append(sector)
 
     return sectors
 
+
 def create_sector(window_coordinates, centre_point, radius,
-                     start_theta, end_theta):
+                  start_theta, end_theta):
     """Compute a sector bins using the centre point and a start and end radius
 
     :param window_coordinates: the coordinates for each pixel in the window
@@ -92,7 +93,7 @@ def create_sector(window_coordinates, centre_point, radius,
         if point == centre_point:
             continue
 
-        x,y = point
+        x, y = point
         centre_x, centre_y = centre_point
 
         offset_x = x - centre_x
@@ -100,10 +101,11 @@ def create_sector(window_coordinates, centre_point, radius,
 
         polar_point = utils.to_polar_coordinates(offset_x, offset_y)
         if in_sector_bounding_box(polar_point, radius,
-                                    start_theta, end_theta):
-            sector[x,y] = 1
+                                  start_theta, end_theta):
+            sector[x, y] = 1
 
     return sector
+
 
 def create_orientated_bins(sectors, radius):
     """ Create the orientated bins from circle sectors
@@ -143,16 +145,17 @@ def filter_image(img, orientated_bins, neighbourhood):
     """Compute the line strength and line orientation images
 
     This filters the image with each of the orientated bins to find the average
-    intensity in each direction. The maximum value over all directions indicates
-    the orientation. Line strength is computed by subtracting the average of the
-    neighbourhood from the maximum orientation.
+    intensity in each direction. The maximum value over all directions
+    indicates the orientation. Line strength is computed by subtracting the
+    average of the neighbourhood from the maximum orientation.
 
     :param img: the image to filter
     :param orientated_bins: list of the pre-computed sector filters
     :param neighbourhood: the pre-computed neighbourhood fitler
     :returns: tuple -- containing the strength and orientation images
     """
-    average_images = np.array([apply_filter(img, kernel) for kernel in orientated_bins])
+    average_images = np.array([apply_filter(img, kernel)
+                              for kernel in orientated_bins])
     neighbourhood_image = apply_filter(img, neighbourhood)
 
     orientation_image = np.argmax(average_images, axis=0)
@@ -168,21 +171,23 @@ def apply_filter(img, kernel):
     the bins defined by the kernel parameter.
 
     :param img: image to apply the filter to.
-    :param kernel: filter to apply to use as the footprint argument to generic_filter
+    :param kernel: filter to apply to use as the footprint argument to
+                   generic_filter
     :returns: ndarray -- copy of the img with the filter applied
     """
     def filter_func(x):
         """Function calculate the sum of the region filtered by the kernel"""
-        #ignore any kernel that sums to zero. This has no structure of interest
-        if (np.count_nonzero(x)==0):
+        # ignore any kernel that sums to zero.
+        if (np.count_nonzero(x) == 0):
             return 0
         else:
-            #vanilla python sum is a bit faster than numpy here
+            # vanilla python sum is a bit faster than numpy here
             return sum(x)
 
     result_image = np.zeros(shape=img.shape)
     total_pixels = np.count_nonzero(kernel)
-    filters.generic_filter(img, filter_func, footprint=kernel, output=result_image)
+    filters.generic_filter(img, filter_func, footprint=kernel,
+                           output=result_image)
     result_image /= total_pixels
     return result_image
 
@@ -200,8 +205,7 @@ def in_sector_bounding_box(polar_point, radius, start_theta, end_theta):
 
     if start_theta > end_theta:
         return (point_radius < radius
-                and (point_theta >= start_theta
-                or point_theta < end_theta))
+                and (point_theta >= start_theta or point_theta < end_theta))
     else:
         return (point_radius < radius
                 and point_theta >= start_theta

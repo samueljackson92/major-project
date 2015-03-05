@@ -8,6 +8,7 @@ import pandas as pd
 import multiprocessing
 
 from mia.features.blobs import blob_features, blob_props
+from mia.features.intensity import blob_intensity_props
 # from mia.features.texture import blob_texture_props, GLCM_FEATURES
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
@@ -34,6 +35,9 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
     blobs = blob_features(img, msk)
+    intensity_props = np.array([blob_intensity_props(blob, img)
+                               for blob in blobs])
+    props = np.hstack([blobs, intensity_props])
     # tex_props = blob_texture_props(img, blobs, GLCM_FEATURES,
     #                                distances, orientations)
     # props = np.hstack([shape_props, tex_props])
@@ -42,7 +46,9 @@ def process_image(image_path, mask_path, scale_to_mask=False):
     logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
-    blob_df = pd.DataFrame(blobs, columns=['x', 'y', 'radius'])
+    column_names = ['x', 'y', 'radius', 'avg_intensity', 'std_intensity',
+                    'skew_intensity', 'kurtosis_intensity']
+    blob_df = pd.DataFrame(props, columns=column_names)
     blob_df['image_name'] = pd.Series(np.repeat(img_name, len(blobs)),
                                       index=blob_df.index)
 

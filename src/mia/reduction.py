@@ -9,7 +9,6 @@ import multiprocessing
 
 from mia.features.blobs import blob_features, blob_props
 from mia.features.intensity import blob_intensity_props
-# from mia.features.texture import blob_texture_props, GLCM_FEATURES
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
 
@@ -48,12 +47,21 @@ def _find_features(image_path, mask_path, scale_to_mask=False):
 
 
 def _make_image_data_frame(img_name, props):
+    feature_df = _make_feature_props_data_frame(img_name, props)
+    info_df = _make_image_info_data_frame(feature_df['image_name'])
+    return pd.concat([feature_df, info_df], axis=1)
+
+
+def _make_feature_props_data_frame(img_name, props):
     column_names = ['x', 'y', 'radius', 'avg_intensity', 'std_intensity',
                     'skew_intensity', 'kurtosis_intensity']
-    blob_df = pd.DataFrame(props, columns=column_names)
-    blob_df['image_name'] = pd.Series(np.repeat(img_name, len(props)),
-                                      index=blob_df.index)
+    feature_df = pd.DataFrame(props, columns=column_names)
+    feature_df['image_name'] = pd.Series(np.repeat(img_name, len(props)),
+                                         index=feature_df.index)
+    return feature_df
 
+
+def _make_image_info_data_frame(img_names):
     name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png')
 
     def find_image_info(name):
@@ -62,10 +70,8 @@ def _make_image_data_frame(img_name, props):
         view, side = list(m.group(2))
         return [patient_id, view, side]
 
-    image_info = [find_image_info(name) for name in blob_df['image_name']]
-    info_df = pd.DataFrame(image_info, columns=['patient_id', 'view', 'side'])
-    blob_df = pd.concat([blob_df, info_df], axis=1)
-    return blob_df
+    image_info = [find_image_info(name) for name in img_names]
+    return pd.DataFrame(image_info, columns=['patient_id', 'view', 'side'])
 
 
 def add_BIRADS_class(feature_matrix, class_labels_file):
@@ -84,7 +90,8 @@ def add_BIRADS_class(feature_matrix, class_labels_file):
     for img, c in class_labels.iteritems():
         class_hash[img] = c
 
-    img_classes = [class_hash[int(name)] for name in feature_matrix['patient_id']]
+    img_classes = [class_hash[int(name)]
+                   for name in feature_matrix['patient_id']]
     feature_matrix['class'] = pd.Series(img_classes,
                                         index=feature_matrix.index)
     return feature_matrix
@@ -165,8 +172,13 @@ def reduction_feature_statistics(csv_file, output_file):
     blobs = pd.DataFrame.from_csv(csv_file)
     image_names = blobs['image_name'].unique()
 
+    info_columns = ['patient_id', 'view', 'side', 'class']
+    info_df = blobs[info_columns].drop_duplicates()
+    info_df.index = image_names
+
     shape_props = blob_props(blobs)
     feature_matrix = _create_feature_matrix(shape_props, image_names, None)
+    feature_matrix = pd.concat([info_df, feature_matrix], axis=1)
     feature_matrix.to_csv(output_file)
 
 
@@ -177,9 +189,6 @@ def _create_feature_matrix(features, img_names, class_labels_file):
     :param img_names: list of image names to use as the index
     :returns: DataFrame representing the features
     """
-    # texture_prop_names = ["%s_%s" % (prefix, name) for name in GLCM_FEATURES
-    #                       for prefix in ['avg', 'std', 'min', 'max']]
-
     column_names = ['blob_count', 'avg_radius', 'std_radius',
                     'small_radius_count', 'med_radius_count',
                     'large_radius_count',
@@ -187,14 +196,9 @@ def _create_feature_matrix(features, img_names, class_labels_file):
                     'avg_skew_intensity', 'avg_kurt_intensity',
                     'std_avg_intensity', 'std_std_intensity',
                     'std_skew_intensity', 'std_kurt_intensity']
-    # column_names += texture_prop_names
 
     feature_matrix = pd.DataFrame(features,
                                   index=img_names,
                                   columns=column_names)
     feature_matrix.index.name = 'image_name'
-
-    if class_labels_file is not None:
-        feature_matrix = add_BIRADS_class(feature_matrix, class_labels_file)
-
     return feature_matrix

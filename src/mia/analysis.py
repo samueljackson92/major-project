@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def _handle_data_frame(func):
     @functools.wraps(func)
     def inner(data_frame):
-        info_columns = ['image_name', 'patient_id', 'view', 'side', 'class']
+        info_columns = ['patient_id', 'view', 'side', 'class']
 
         df = data_frame.drop(info_columns, axis=1)
         fit_output = func(df.as_matrix())

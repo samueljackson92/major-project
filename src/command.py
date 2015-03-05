@@ -48,18 +48,23 @@ def feature_statistics(csv_file, output_file):
     reduction_feature_statistics(csv_file, output_file)
 
 
-@cli.command()
+@cli.group()
+def analysis():
+    pass
+
+
+@analysis.command()
 @click.argument('csv-file')
 @click.option('--output-file', '-o', default=None,
               help="Name of output file to store results of analysis in")
-def analysis(csv_file, output_file):
+def tSNE(csv_file, output_file):
     run_analysis(csv_file, output_file)
 
 
-@cli.command()
+@analysis.command()
 @click.argument('csv-file')
 @click.argument('label')
-def patient_closeness(csv_file, label):
+def closeness(csv_file, label):
     measure_closeness(csv_file, label)
 
 

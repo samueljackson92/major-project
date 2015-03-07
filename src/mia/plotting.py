@@ -209,8 +209,7 @@ def _load_image(path, scale_factor):
 
 def _add_image_to_axis(img, ax, img_name):
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
-    ax.text(20, 0, img_name, style='italic', fontsize=3, color='white',
-            transform=ax.transData)
+    ax.text(20, 0, img_name, style='italic', fontsize=3, color='white')
 
 
 def _add_blank_image_to_axis(ax, scale_factor):

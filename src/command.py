@@ -1,11 +1,13 @@
 import click
 import logging
 import pandas as pd
+import skimage.io as io
 
-from mia.reduction import run_reduction, reduction_feature_statistics
+from mia.reduction import (run_reduction, reduction_feature_statistics,
+                           process_image)
 from mia.analysis import run_analysis, measure_closeness
 from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
-                          plot_median_image_matrix)
+                          plot_median_image_matrix, plot_blobs)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mia")
@@ -46,6 +48,15 @@ def reduction(image_directory, masks_directory, output_file, birads_file,
 @click.argument('output-file', type=click.Path())
 def feature_statistics(csv_file, output_file):
     reduction_feature_statistics(csv_file, output_file)
+
+
+@cli.command()
+@click.argument('image-file', type=click.Path())
+@click.argument('mask-file', type=click.Path())
+def detect_blobs(image_file, mask_file):
+    data_frame = process_image(image_file, mask_file)
+    img = io.imread(image_file, as_grey=True)
+    plot_blobs(img, data_frame[['x', 'y', 'radius']].as_matrix())
 
 
 @cli.group()
@@ -100,14 +111,17 @@ def scatter_matrix(csv_file, label_column):
 @plotting.command()
 @click.argument('csv-file', type=click.Path())
 @click.argument('img_path', type=click.Path())
+@click.argument('output_file', type=click.Path())
 @click.option('--label-column', '-l', default=None,
               help="Name of column to use as the class labels")
-@click.option('--output_file', '-o', default=None,
-              help="Name of the file to save the image to")
-def median_image_matrix(csv_file, img_path, label_column, output_file):
+@click.option('--features-csv', '-f', default=None,
+              help="Name of the file containg features")
+def median_image_matrix(csv_file, img_path, output_file, label_column,
+                        features_csv):
     df = pd.DataFrame.from_csv(csv_file)
     plot_median_image_matrix(df, img_path, label_column,
-                             output_file=output_file)
+                             output_file=output_file,
+                             raw_features_csv=features_csv)
 
 
 if __name__ == '__main__':

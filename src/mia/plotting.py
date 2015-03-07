@@ -5,27 +5,13 @@ import functools
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from skimage import io, transform
 
 from mia.utils import transform_2d
 
 logger = logging.getLogger(__name__)
-
-
-def _handle_plot_output(func):
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        image = func(*args, **kwargs)
-
-        output_file = kwargs['output_file']
-        if output_file is None:
-            io.imshow(image)
-            io.show()
-        else:
-            io.imsave(output_file, image)
-
-    return inner
 
 
 def plot_multiple_images(images):
@@ -84,6 +70,8 @@ def plot_blobs(img, blobs):
 
     fig, ax = plt.subplots(1, 1)
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.set_axis_off()
+
     for blob in blobs:
         y, x, r = blob
         c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
@@ -142,14 +130,13 @@ def plot_scattermatrix(data_frame, label_name=None):
     :param label_name: name of the column containing the class label for the
                        image
     """
-    column_names = filter(lambda x: x != 'class', data_frame.columns.values)
+    column_names = filter(lambda x: x != label_name, data_frame.columns.values)
     sns.pairplot(data_frame, hue=label_name, size=1.5, vars=column_names)
     plt.show()
 
 
-@_handle_plot_output
 def plot_median_image_matrix(data_frame, img_path, label_name=None,
-                             output_file=None):
+                             raw_features_csv=None, output_file=None):
     """Plot images from a dataset according to their position defined by the
     lower dimensional mapping
 
@@ -163,21 +150,78 @@ def plot_median_image_matrix(data_frame, img_path, label_name=None,
                        class labels
     :param output_file: file name to output the resulting image to
     """
-    def filter_func(x, path):
-        """ Filter function to load an image if one is present in the square"""
-        if x == '':
-            img = np.zeros((3328/8, 2560/8))
-        else:
-            logger.info("Loading image %s" % x)
-            img = io.imread(os.path.join(path, x), as_grey=True)
-            img = transform.resize(img, (3328/8, 2560/8))
-        return img
+    blobs = _load_blobs(raw_features_csv) if raw_features_csv else None
 
     grid = _bin_data_frame_2d(data_frame)
-    images = transform_2d(filter_func, grid, img_path)
+    axes_iter = _prepare_figure(len(grid))
+    transform_2d(_prepare_median_image, grid, img_path, blobs, axes_iter)
 
-    logger.info("Stacking images")
-    return _stack_images_in_grid(images)
+    logger.info("Saving image")
+    plt.savefig(output_file, bbox_inches='tight', dpi=3000)
+
+
+def _load_blobs(raw_features_csv):
+    features = pd.DataFrame.from_csv(raw_features_csv)
+    return features[['x', 'y', 'radius', 'image_name']]
+
+
+def _prepare_figure(size):
+    fig, axs = plt.subplots(size, size,
+                            gridspec_kw={"wspace": 0, "hspace": 0})
+    axs = np.array(axs).flatten()
+    return iter(axs)
+
+
+def _prepare_median_image(img_name, path, blobs_df, axs_iter):
+    """ Function to load an image if one is present in the square"""
+    scale_factor = 16
+
+    ax = axs_iter.next()
+    ax.set_axis_off()
+    ax.set_aspect('auto')
+
+    blobs = _select_blobs(blobs_df, img_name, scale_factor)
+
+    if img_name == '':
+        _add_blank_image_to_axis(ax, scale_factor)
+    else:
+        logger.info("Loading image %s" % img_name)
+
+        path = os.path.join(path, img_name)
+        img = _load_image(path, scale_factor)
+        _add_image_to_axis(img, ax, img_name)
+        _add_blobs_to_axis(ax, blobs)
+
+
+def _select_blobs(blobs_df, img_name, scale_factor):
+    b = blobs_df[blobs_df['image_name'] == img_name]
+    b = b[['x', 'y', 'radius']].as_matrix()
+    b /= scale_factor
+    return b
+
+
+def _load_image(path, scale_factor):
+    img = io.imread(path, as_grey=True)
+    img = transform.resize(img, (img.shape[0]/scale_factor,
+                                 img.shape[1]/scale_factor))
+    return img
+
+
+def _add_image_to_axis(img, ax, img_name):
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.text(20, 0, img_name, style='italic', fontsize=3, color='white')
+
+
+def _add_blank_image_to_axis(ax, scale_factor):
+    img = np.ones((3328/scale_factor, 2560/scale_factor))
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+
+
+def _add_blobs_to_axis(ax, blobs):
+    for blob in blobs:
+        y, x, r = blob
+        c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+        ax.add_patch(c)
 
 
 def _bin_data_frame_2d(data_frame):
@@ -191,7 +235,7 @@ def _bin_data_frame_2d(data_frame):
             row.append(name)
         grid.append(row)
 
-    return np.array(grid)
+    return np.rot90(np.array(grid))
 
 
 def _find_median_image_name(data_frame):
@@ -212,11 +256,3 @@ def _find_points_in_bounds(data_frame, x_bounds, y_bounds):
     xbounds = (data_frame['0'] >= xlower) & (data_frame['0'] < xupper)
     ybounds = (data_frame['1'] >= ylower) & (data_frame['1'] < yupper)
     return data_frame[xbounds & ybounds]
-
-
-def _stack_images_in_grid(images):
-    rows = []
-    for row in images:
-        rows.append(np.hstack(row))
-    big_image = np.vstack(rows)
-    return transform.rotate(big_image, 90)

@@ -191,7 +191,7 @@ def _create_feature_matrix(features, img_names, class_labels_file):
     """
     column_names = ['blob_count', 'avg_radius', 'std_radius',
                     'small_radius_count', 'med_radius_count',
-                    'large_radius_count',
+                    'large_radius_count', 'density',
                     'avg_avg_intensity', 'avg_std_intensity',
                     'avg_skew_intensity', 'avg_kurt_intensity',
                     'std_avg_intensity', 'std_std_intensity',

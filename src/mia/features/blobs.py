@@ -13,12 +13,13 @@ Images and Patterns. Springer Berlin Heidelberg, 2013.
 import math
 import logging
 import numpy as np
+import pandas as pd
 
 from mia.features._adjacency_graph import Graph
 from mia.utils import normalise_image
 
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
-from sklearn import cluster
+from sklearn import cluster, neighbors
 from skimage import feature, transform, morphology
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,14 @@ def blob_props(blobs):
     return [_blob_statistics(blob_set, bins) for blob_set in image_blobs]
 
 
+def blob_density(blobs, k):
+    knn = neighbors.NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
+    nbrs = knn.fit(blobs)
+    distances, indicies = nbrs.kneighbors(blobs)
+    density = distances.sum(axis=1) / k-1
+    return density
+
+
 def _split_data_frame_by_image_name(df):
     return [df[df['image_name'] == name] for name in df['image_name'].unique()]
 
@@ -69,6 +78,8 @@ def _blob_statistics(feature_set, bins):
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)
     (small, med, large), b = np.histogram(blob_radii, bins=bins)
+    density = blob_density(feature_set[['x', 'y']].as_matrix(), 4)
+    avg_density = np.mean(density)
 
     # intensity statistics
     intensity_stats = feature_set[['avg_intensity', 'std_intensity',
@@ -77,7 +88,8 @@ def _blob_statistics(feature_set, bins):
     avg_intensity_stats = intensity_stats.mean(axis=0).as_matrix()
     std_intensity_stats = intensity_stats.std(axis=0).as_matrix()
 
-    shape_stats = np.array([num_blobs, mean, std, small, med, large])
+    shape_stats = np.array([num_blobs, mean, std, small, med, large,
+                            avg_density])
     props = np.hstack([shape_stats, avg_intensity_stats, std_intensity_stats])
     return props
 

@@ -14,10 +14,14 @@ logger = logging.getLogger(__name__)
 
 def _handle_data_frame(func):
     @functools.wraps(func)
-    def inner(data_frame):
+    def inner(data_frame, columns):
         info_columns = ['patient_id', 'view', 'side', 'class']
+        filter_columns = info_columns
 
-        df = data_frame.drop(info_columns, axis=1)
+        if columns is not None:
+            filter_columns += columns
+
+        df = data_frame.drop(filter_columns, axis=1)
         fit_output = func(df.as_matrix())
 
         fit_output.index = data_frame.index
@@ -46,7 +50,8 @@ def fit_tSNE(feature_matrix):
     return fit_output
 
 
-def run_analysis(csv_file, output_file=None):
+def run_analysis(csv_file, filter_column=None, filter_value=None,
+                 columns=None, output_file=None):
     """Run an analysis algorithm on the results of feature detection
 
     :param csv_file: file to load the dataset from
@@ -54,9 +59,11 @@ def run_analysis(csv_file, output_file=None):
                         mapping to
     """
     feature_matrix = pd.DataFrame.from_csv(csv_file)
-    # feature_matrix = feature_matrix[['avg_radius', 'std_radius', 'class',
-    #                                'min_radius', 'max_radius', 'blob_count']]
-    fit_output = fit_tSNE(feature_matrix)
+    if filter_column is not None and filter_value is not None:
+        condition = feature_matrix[filter_column] == filter_value
+        feature_matrix = feature_matrix[condition]
+
+    fit_output = fit_tSNE(feature_matrix, columns)
 
     if output_file is not None:
         fit_output.to_csv(output_file)

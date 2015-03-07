@@ -27,8 +27,8 @@ def cli(log_level):
 
 
 @cli.command()
-@click.argument('image-directory')
-@click.argument('masks-directory')
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
 @click.option('--output-file', '-o', default=None,
               help="Name of csv file to write the results of the reduction to")
 @click.option('--BIRADS-file', '-b', default=None,
@@ -42,8 +42,8 @@ def reduction(image_directory, masks_directory, output_file, birads_file,
 
 
 @cli.command()
-@click.argument('csv-file')
-@click.argument('output-file')
+@click.argument('csv-file', type=click.Path())
+@click.argument('output-file', type=click.Path())
 def feature_statistics(csv_file, output_file):
     reduction_feature_statistics(csv_file, output_file)
 
@@ -54,15 +54,19 @@ def analysis():
 
 
 @analysis.command()
-@click.argument('csv-file')
+@click.argument('csv-file', type=click.Path())
+@click.argument('columns', required=False, nargs=-1)
+@click.option('--filter-column', '-c', default=None)
+@click.option('--filter-value', '-v', default=None)
 @click.option('--output-file', '-o', default=None,
               help="Name of output file to store results of analysis in")
-def tSNE(csv_file, output_file):
-    run_analysis(csv_file, output_file)
+def tSNE(csv_file, columns, filter_column, filter_value, output_file):
+    run_analysis(csv_file, filter_column, filter_value,
+                 list(columns), output_file)
 
 
 @analysis.command()
-@click.argument('csv-file')
+@click.argument('csv-file', type=click.Path())
 @click.argument('label')
 def closeness(csv_file, label):
     measure_closeness(csv_file, label)
@@ -74,28 +78,28 @@ def plotting():
 
 
 @plotting.command()
-@click.argument('csv-file')
-@click.option('--label-column', '-l', default=None,
-              help="Name of column to use as the class labels")
-def scatter_plot(csv_file, label_column):
-    df = pd.DataFrame.from_csv(csv_file)
-    plot_scatter_2d(df, label_column)
-
-
-@plotting.command()
-@click.argument('csv-file')
+@click.argument('csv-file', type=click.Path())
 @click.option('--label-column', '-l', default=None,
               help="Name of column to use as the class labels")
 @click.option('--annotate', is_flag=True,
               help="Annotate the images with image names")
-def scatter_matrix(csv_file, label_column, annotate):
+def scatter_plot(csv_file, label_column, annotate):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_scattermatrix(df, label_column, annotate)
+    plot_scatter_2d(df, label_column, annotate)
 
 
 @plotting.command()
-@click.argument('csv-file')
-@click.argument('img_path')
+@click.argument('csv-file', type=click.Path())
+@click.option('--label-column', '-l', default=None,
+              help="Name of column to use as the class labels")
+def scatter_matrix(csv_file, label_column):
+    df = pd.DataFrame.from_csv(csv_file)
+    plot_scattermatrix(df, label_column)
+
+
+@plotting.command()
+@click.argument('csv-file', type=click.Path())
+@click.argument('img_path', type=click.Path())
 @click.option('--label-column', '-l', default=None,
               help="Name of column to use as the class labels")
 @click.option('--output_file', '-o', default=None,

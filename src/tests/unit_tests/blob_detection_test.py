@@ -2,22 +2,22 @@ import nose.tools
 import numpy as np
 import pandas as pd
 import unittest
-import os.path
 
-from mia.features.blobs import blob_features, blob_props
-from mia.plotting import plot_blobs
-from skimage import io, transform
+from mia.features.blobs import blob_density
 from ..test_utils import *
 from mia import utils
 
 class BlobDetectionTests(unittest.TestCase):
 
-    def test_detect_blob(self):
-        pass
+    @classmethod
+    def setupClass(cls):
+        # load a single patient's blobs
+        csv_file = get_file_path("2015-03-05-results.csv")
+        patient_id = 21401060001
+        cls._blobs = pd.DataFrame.from_csv(csv_file)
+        cls._blobs = cls._blobs[cls._blobs['patient_id'] == patient_id]
+        cls._blobs = cls._blobs[['x', 'y', 'radius']]
 
-    # def test_blob_props(self):
-    #     blobs = np.array([[1.0, 1.0, 1.0], [1.0, 3.0, 2.0], [1.0, 3.0, 1.0]])
-    #     blobs = pd.DataFrame(blobs, columns=['x', 'y', 'radius'])
-    #     expected_result = np.array([ 3., 1.33333333, 0.47140452, 1., 2.])
-    #     props = blob_props(blobs)
-    #     np.testing.assert_allclose(props, expected_result)
+    def test_blob_density_measure(self):
+        density = blob_density(self._blobs[['x', 'y']], 4)
+        nose.tools.assert_equal(density.shape, (self._blobs.shape[0],))

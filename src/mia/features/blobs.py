@@ -44,30 +44,7 @@ def detect_blobs(image, mask=None, max_layer=10, downscale=np.sqrt(2),
     return _make_data_frame(blobs)
 
 
-def blob_props(blobs):
-    column_names = ['blob_count', 'avg_radius', 'std_radius',
-                    'small_radius_count', 'med_radius_count',
-                    'large_radius_count', 'density']
-
-    hist, bins = np.histogram(blobs['radius'], bins=3)
-    image_blobs = _split_data_frame_by_image_name(blobs)
-    stats = [_blob_statistics(blob_set, bins) for blob_set in image_blobs]
-    return pd.DataFrame(stats, columns=column_names)
-
-
-def blob_density(blobs, k):
-    knn = neighbors.NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
-    nbrs = knn.fit(blobs)
-    distances, indicies = nbrs.kneighbors(blobs)
-    density = distances.sum(axis=1) / k-1
-    return density
-
-
-def _split_data_frame_by_image_name(df):
-    return [df[df['image_name'] == name] for name in df['image_name'].unique()]
-
-
-def _blob_statistics(feature_set, bins):
+def blob_props(feature_set):
     """Contstruct a feature matrix from a list of blobs
 
     This will compute the # of blobs, mean radius, std, min radius, and max
@@ -77,27 +54,33 @@ def _blob_statistics(feature_set, bins):
     :returns: DataFrame - the feature matrix of statistics.
     """
 
+    column_names = ['blob_count', 'avg_radius', 'std_radius',
+                    'min_radius', 'max_radius',
+                    'small_radius_count', 'med_radius_count',
+                    'large_radius_count', 'density']
+
     # blob statistics
     blob_radii = feature_set['radius']
     num_blobs = blob_radii.size
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)
     min_radius, max_radius = np.min(blob_radii), np.max(blob_radii)
-    (small, med, large), b = np.histogram(blob_radii, bins=bins)
-    density = blob_density(feature_set[['x', 'y']].as_matrix(), 4)
+    (small, med, large), b = np.histogram(blob_radii, bins=3)
+    density = _blob_density(feature_set[['x', 'y']].as_matrix(), 4)
     avg_density = np.mean(density)
 
-    # intensity statistics
-    intensity_stats = feature_set[['avg_intensity', 'std_intensity',
-                                   'skew_intensity', 'kurtosis_intensity']]
+    props = np.array([num_blobs, mean, std, min_radius, max_radius,
+                      small, med, large, avg_density])
 
-    avg_intensity_stats = intensity_stats.mean(axis=0).as_matrix()
-    std_intensity_stats = intensity_stats.std(axis=0).as_matrix()
+    return pd.DataFrame([props], columns=column_names)
 
-    shape_stats = np.array([num_blobs, mean, std, min_radius, max_radius,
-                            small, med, large, avg_density])
-    props = np.hstack([shape_stats, avg_intensity_stats, std_intensity_stats])
-    return props
+
+def _blob_density(blobs, k):
+    knn = neighbors.NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
+    nbrs = knn.fit(blobs)
+    distances, indicies = nbrs.kneighbors(blobs)
+    density = distances.sum(axis=1) / k-1
+    return density
 
 
 def _multiscale_pyramid_detection(image, *args):

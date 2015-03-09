@@ -28,10 +28,18 @@ def _find_intensity_props(blob, img):
     return _intensity_stats(img_section)
 
 
-def intensity_features(blobs, img):
+def intensity_props(feature_set):
     column_names = ['avg_avg_intensity', 'avg_std_intensity',
                     'avg_skew_intensity', 'avg_kurt_intensity',
                     'std_avg_intensity', 'std_std_intensity',
                     'std_skew_intensity', 'std_kurt_intensity']
 
-    return
+    # intensity statistics
+    intensity_stats = feature_set[['avg_intensity', 'std_intensity',
+                                   'skew_intensity', 'kurtosis_intensity']]
+
+    avg_intensity_stats = intensity_stats.mean(axis=0).as_matrix()
+    std_intensity_stats = intensity_stats.std(axis=0).as_matrix()
+
+    props = np.concatenate([avg_intensity_stats, std_intensity_stats])
+    return pd.DataFrame([props], columns=column_names)

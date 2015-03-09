@@ -3,12 +3,11 @@ import logging
 import datetime
 import time
 import re
-import numpy as np
 import pandas as pd
 import multiprocessing
 
 from mia.features.blobs import detect_blobs, blob_props
-from mia.features.intensity import detect_intensity
+from mia.features.intensity import detect_intensity, intensity_props
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
 
@@ -161,36 +160,30 @@ def reduction_feature_statistics(csv_file, output_file):
     :param csv_file: file containing the detected blobs
     :param output_file: name to output the resulting features to.
     """
-    blobs = pd.DataFrame.from_csv(csv_file)
-    image_names = blobs['image_name'].unique()
+    raw_detections = pd.DataFrame.from_csv(csv_file)
+    image_names = raw_detections['image_name'].unique()
 
-    info_columns = ['patient_id', 'view', 'side', 'class']
-    info_df = blobs[info_columns].drop_duplicates()
-    info_df.index = image_names
+    info_df = _create_info_data_frame(raw_detections, image_names)
+    feature_matrix = _create_feature_matrix(raw_detections, image_names)
 
-    shape_props = blob_props(blobs)
-    feature_matrix = _create_feature_matrix(shape_props, image_names, None)
-    feature_matrix = pd.concat([info_df, feature_matrix], axis=1)
+    feature_matrix = pd.concat([feature_matrix, info_df], axis=1)
     feature_matrix.to_csv(output_file)
 
 
-def _create_feature_matrix(features, img_names, class_labels_file):
-    """Create a pandas DataFrame for the features
+def _create_info_data_frame(raw_detections, index_names):
+    info_columns = ['patient_id', 'view', 'side', 'class']
+    info_df = raw_detections[info_columns].drop_duplicates()
+    info_df.index = index_names
+    return info_df
 
-    :param features: numpy array for features
-    :param img_names: list of image names to use as the index
-    :returns: DataFrame representing the features
-    """
-    column_names = ['blob_count', 'avg_radius', 'std_radius',
-                    'small_radius_count', 'med_radius_count',
-                    'large_radius_count', 'density',
-                    'avg_avg_intensity', 'avg_std_intensity',
-                    'avg_skew_intensity', 'avg_kurt_intensity',
-                    'std_avg_intensity', 'std_std_intensity',
-                    'std_skew_intensity', 'std_kurt_intensity']
 
-    feature_matrix = pd.DataFrame(features,
-                                  index=img_names,
-                                  columns=column_names)
-    feature_matrix.index.name = 'image_name'
+def _create_feature_matrix(raw_detections, index_names):
+    feature_matrix = pd.DataFrame()
+    for index, frame in raw_detections.groupby('image_name'):
+        shape_props = blob_props(frame)
+        int_props = intensity_props(frame)
+        row = pd.concat([shape_props, int_props], axis=1)
+        feature_matrix = pd.concat([feature_matrix, row], ignore_index=True)
+
+    feature_matrix.index = index_names
     return feature_matrix

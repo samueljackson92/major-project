@@ -78,6 +78,15 @@ def run_analysis(csv_file, filter_column=None, filter_value=None,
         logger.info(fit_output)
 
 
+def normalize_data_frame(data_frame, meta_data=[]):
+    columns = [c for c in data_frame.columns if c not in meta_data]
+    normed_data = preprocessing.normalize(data_frame[columns].as_matrix())
+    normed_df = pd.DataFrame(normed_data)
+    normed_df.index = data_frame.index
+    normed_df[meta_data] = data_frame[meta_data]
+    return normed_df
+
+
 def measure_closeness(csv_file, column_name):
     import matplotlib.pyplot as plt
     df = pd.DataFrame.from_csv(csv_file)

@@ -12,7 +12,7 @@ config = {
     'url': 'http://github.com/samueljackson92/major-project',
     'download_url': 'http://github.com/samueljackson92/major-project',
     'author_email': 'samueljackson@outlook.com',
-    'version': '0.5.0',
+    'version': '0.6.0',
     'install_requires': requirements,
     'entry_points': '''
         [console_scripts]

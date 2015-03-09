@@ -15,21 +15,29 @@ logger = logging.getLogger(__name__)
 def _handle_data_frame(func):
     @functools.wraps(func)
     def inner(data_frame, columns):
-        info_columns = ['patient_id', 'view', 'side', 'class']
-        filter_columns = info_columns
+        meta_columns = ['patient_id', 'view', 'side', 'class']
+        df = _remove_meta_data(data_frame, meta_columns)
+        df = df[columns]
 
-        if columns is not None:
-            filter_columns += columns
-
-        df = data_frame.drop(filter_columns, axis=1)
+        logger.info("Using columns: %s" % ', '.join(df.columns))
         fit_output = func(df.as_matrix())
+        fit_output = pd.DataFrame(fit_output)
 
-        fit_output.index = data_frame.index
-        image_info = data_frame[info_columns]
-        fit_output = pd.concat([fit_output, image_info], axis=1)
-
+        fit_output = _copy_meta_data(fit_output, data_frame, meta_columns)
         return fit_output
     return inner
+
+
+def _remove_meta_data(data_frame, meta_columns):
+    meta_columns = filter(lambda x: x in data_frame.columns, meta_columns)
+    return data_frame.drop(meta_columns, axis=1)
+
+
+def _copy_meta_data(new_df, data_frame, meta_columns):
+    meta_columns = filter(lambda x: x in data_frame.columns, meta_columns)
+    new_df.index = data_frame.index
+    image_info = data_frame[meta_columns]
+    return pd.concat([new_df, image_info], axis=1)
 
 
 @_handle_data_frame
@@ -39,14 +47,13 @@ def fit_tSNE(feature_matrix):
     :param feature_matrix: matrix of features use with the t-SNE
     :returns: 2darray -- lower dimensional mapping of the t-SNE algorithm
     """
+    # feature_matrix = preprocessing.normalize(feature_matrix)
     scalar = preprocessing.StandardScaler()
     feature_matrix = scalar.fit_transform(feature_matrix)
 
     tSNE = manifold.TSNE(learning_rate=400, perplexity=45,
                          early_exaggeration=2.0, verbose=2)
     fit_output = tSNE.fit_transform(feature_matrix)
-    fit_output = pd.DataFrame(fit_output)
-
     return fit_output
 
 
@@ -78,10 +85,9 @@ def measure_closeness(csv_file, column_name):
     ds = [_cluster_measure(frame) for index, frame in df.groupby(column_name)]
     ds = pd.Series(ds, index=df[column_name].unique())
 
-    print ds.to_string()
     print ds.describe()
 
-    ds.plot('hist')
+    ds.plot('bar')
     plt.show()
 
 

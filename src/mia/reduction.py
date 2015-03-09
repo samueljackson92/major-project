@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
-from mia.features.blobs import blob_features, blob_props
-from mia.features.intensity import blob_intensity_props
+from mia.features.blobs import detect_blobs, blob_props
+from mia.features.intensity import detect_intensity
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
 
@@ -31,7 +31,7 @@ def process_image(*args, **kwargs):
     props = _find_features(*args, **kwargs)
 
     end = time.time()
-    logger.info("%d blobs found in image %s" % (props.shape[0], img_name))
+    logger.info("%d blobs found in image %s" % (props[0].shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
     return _make_image_data_frame(img_name, props)
@@ -40,38 +40,30 @@ def process_image(*args, **kwargs):
 def _find_features(image_path, mask_path, scale_to_mask=False):
     img, msk = preprocess_image(image_path, mask_path,
                                 scale_to_mask=scale_to_mask)
-    blobs = blob_features(img, msk)
-    intensity_props = np.array([blob_intensity_props(blob, img)
-                               for blob in blobs])
-    return np.hstack([blobs, intensity_props])
+    blobs_df = detect_blobs(img, msk)
+    intensity_df = detect_intensity(blobs_df, img)
+    return [blobs_df, intensity_df]
 
 
-def _make_image_data_frame(img_name, props):
-    feature_df = _make_feature_props_data_frame(img_name, props)
-    info_df = _make_image_info_data_frame(feature_df['image_name'])
-    return pd.concat([feature_df, info_df], axis=1)
+def _make_image_data_frame(img_name, data_frames):
+    img_df = pd.concat(data_frames, axis=1)
+    info_df = _make_image_info_data_frame(img_name)
+    info_df = pd.concat([info_df]*img_df.shape[0], ignore_index=True)
+    return pd.concat([img_df, info_df], axis=1)
 
 
-def _make_feature_props_data_frame(img_name, props):
-    column_names = ['x', 'y', 'radius', 'avg_intensity', 'std_intensity',
-                    'skew_intensity', 'kurtosis_intensity']
-    feature_df = pd.DataFrame(props, columns=column_names)
-    feature_df['image_name'] = pd.Series(np.repeat(img_name, len(props)),
-                                         index=feature_df.index)
-    return feature_df
-
-
-def _make_image_info_data_frame(img_names):
+def _make_image_info_data_frame(img_name):
     name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png')
 
     def find_image_info(name):
         m = re.match(name_regex, name)
         patient_id = m.group(1).replace('-', '')
         view, side = list(m.group(2))
-        return [patient_id, view, side]
+        return [img_name, patient_id, view, side]
 
-    image_info = [find_image_info(name) for name in img_names]
-    return pd.DataFrame(image_info, columns=['patient_id', 'view', 'side'])
+    image_info = find_image_info(img_name)
+    return pd.DataFrame([image_info], columns=['image_name', 'patient_id',
+                                               'view', 'side'])
 
 
 def add_BIRADS_class(feature_matrix, class_labels_file):

@@ -25,8 +25,8 @@ from skimage import feature, transform, morphology
 logger = logging.getLogger(__name__)
 
 
-def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
-                  sigma=8.0, overlap=0.01):
+def detect_blobs(image, mask=None, max_layer=10, downscale=np.sqrt(2),
+                 sigma=8.0, overlap=0.01):
     """Performs multi-scale blob detection
 
     :param image: image to detect blobs in.
@@ -41,13 +41,18 @@ def blob_features(image, mask=None, max_layer=10, downscale=np.sqrt(2),
     blobs = _remove_edge_blobs(blobs, image.shape)
     blobs = _remove_false_positives(blobs, image, mask)
     blobs = _merge_blobs(blobs, image, overlap)
-    return blobs
+    return _make_data_frame(blobs)
 
 
 def blob_props(blobs):
+    column_names = ['blob_count', 'avg_radius', 'std_radius',
+                    'small_radius_count', 'med_radius_count',
+                    'large_radius_count', 'density']
+
     hist, bins = np.histogram(blobs['radius'], bins=3)
     image_blobs = _split_data_frame_by_image_name(blobs)
-    return [_blob_statistics(blob_set, bins) for blob_set in image_blobs]
+    stats = [_blob_statistics(blob_set, bins) for blob_set in image_blobs]
+    return pd.DataFrame(stats, columns=column_names)
 
 
 def blob_density(blobs, k):
@@ -77,6 +82,7 @@ def _blob_statistics(feature_set, bins):
     num_blobs = blob_radii.size
     mean = np.mean(blob_radii)
     std = np.std(blob_radii)
+    min_radius, max_radius = np.min(blob_radii), np.max(blob_radii)
     (small, med, large), b = np.histogram(blob_radii, bins=bins)
     density = blob_density(feature_set[['x', 'y']].as_matrix(), 4)
     avg_density = np.mean(density)
@@ -88,8 +94,8 @@ def _blob_statistics(feature_set, bins):
     avg_intensity_stats = intensity_stats.mean(axis=0).as_matrix()
     std_intensity_stats = intensity_stats.std(axis=0).as_matrix()
 
-    shape_stats = np.array([num_blobs, mean, std, small, med, large,
-                            avg_density])
+    shape_stats = np.array([num_blobs, mean, std, min_radius, max_radius,
+                            small, med, large, avg_density])
     props = np.hstack([shape_stats, avg_intensity_stats, std_intensity_stats])
     return props
 
@@ -434,3 +440,8 @@ def _remove_blobs(blobs, remove_list):
     blobs = blobs[mask]
     blobs = blobs.reshape(blobs.size/3, 3)
     return blobs
+
+
+def _make_data_frame(blobs):
+    column_names = ['x', 'y', 'radius']
+    return pd.DataFrame(blobs, columns=column_names)

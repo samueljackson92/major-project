@@ -1,11 +1,10 @@
 import nose.tools
-import numpy as np
 import pandas as pd
 import unittest
 
-from mia.features.blobs import blob_density
+from mia.features.blobs import _blob_density
 from ..test_utils import *
-from mia import utils
+
 
 class BlobDetectionTests(unittest.TestCase):
 
@@ -19,5 +18,5 @@ class BlobDetectionTests(unittest.TestCase):
         cls._blobs = cls._blobs[['x', 'y', 'radius']]
 
     def test_blob_density_measure(self):
-        density = blob_density(self._blobs[['x', 'y']], 4)
+        density = _blob_density(self._blobs[['x', 'y']], 4)
         nose.tools.assert_equal(density.shape, (self._blobs.shape[0],))

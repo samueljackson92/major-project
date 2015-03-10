@@ -1,12 +1,13 @@
 import math
 import logging
 import os.path
-import functools
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+from mpl_toolkits.mplot3d import Axes3D
 from skimage import io, transform
 
 from mia.utils import transform_2d
@@ -103,17 +104,60 @@ def plot_image_orthotope(image_orthotope, titles=None):
     plt.show()
 
 
-def plot_scatter_2d(data_frame, label_name=None, annotate=False):
+def plot_risk_classes(data_frame, column_name):
+    """ Plot a histogram of the selected column for each risk class
+
+    :param data_frame: the data frame containing the features
+    :param column_name: the column to use
+    """
+    groups = data_frame.groupby('class')
+
+    fig, axs = plt.subplots(2, 2)
+
+    axs = axs.flatten()
+    for i, (index, frame) in enumerate(groups):
+        frame.hist(column=column_name, ax=axs[i])
+
+        axs[i].set_title("Risk %d" % (index))
+        axs[i].set_xlabel(column_name)
+        axs[i].set_ylabel('count')
+
+    plt.subplots_adjust(wspace=0.75, hspace=0.75)
+
+
+def plot_risk_classes_single(data_frame, column_name):
+    """ Plot a histogram of the selected column for each risk class as a single
+    histogram
+
+    This is essentially the same as the plot_risk_classes function except that
+    the all risk classes are plotted in the same subplot.
+
+    :param data_frame: the data frame containing the features
+    :param column_name: the column to use
+    """
+    blobs = data_frame.groupby('class')
+    for index, b in blobs:
+        b['upper_radius_qt'].hist(label=str(index))
+
+    plt.legend(loc='upper right')
+
+
+def plot_scatter_2d(data_frame, columns, label_name=None, annotate=False):
     """ Create a scatter plot from a pandas data frame
 
-    :param data_frame: data frame containing the lower dimensional mapping
+    :param data_frame: data frame containing the data to plot
+    :param columns: the columns to use for each axis. Must be exactly 2
     :param label_name: name of the column containing the class label for the
                        image
+    :param annotate: whether to annotate the plot with the index
     """
+    if len(columns) != 2:
+        raise ValueError("Number of columns must be exactly 2")
+
     label_name = 1 if label_name is None else label_name
 
-    ax = data_frame.plot(kind='scatter', x=0, y=1, c=label_name,
-                         cmap=plt.cm.Spectral, s=50)
+    ax = data_frame.plot(kind='scatter', x=columns[0], y=columns[1],
+                         c=label_name, cmap=plt.cm.Spectral_r, s=50)
 
     if annotate:
         def annotate_df(row):
@@ -121,6 +165,26 @@ def plot_scatter_2d(data_frame, label_name=None, annotate=False):
         data_frame.apply(annotate_df, axis=1)
 
     plt.show()
+
+
+def plot_scatter_3d(data_frame, columns, label_name=None):
+    """ Create a 3D scatter plot from a pandas data frame
+
+    :param data_frame: data frame containing the data to plot
+    :param columns: the columns to use for each axis. Must be exactly 3
+    """
+    if len(columns) != 3:
+        raise ValueError("Number of columns must be exactly 3")
+
+    df = data_frame[columns]
+    data = df.as_matrix().T
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(*data, c=data_frame[label_name], cmap=cm.Spectral_r)
+    ax.set_xlabel(columns[0])
+    ax.set_ylabel(columns[1])
+    ax.set_zlabel(columns[2])
 
 
 def plot_scattermatrix(data_frame, label_name=None):
@@ -150,7 +214,9 @@ def plot_median_image_matrix(data_frame, img_path, label_name=None,
                        class labels
     :param output_file: file name to output the resulting image to
     """
-    blobs = _load_blobs(raw_features_csv) if raw_features_csv else None
+    blobs = None
+    if raw_features_csv is not None:
+        blobs = _load_blobs(raw_features_csv) if raw_features_csv else None
 
     grid = _bin_data_frame_2d(data_frame)
     axes_iter = _prepare_figure(len(grid))
@@ -180,8 +246,6 @@ def _prepare_median_image(img_name, path, blobs_df, axs_iter):
     ax.set_axis_off()
     ax.set_aspect('auto')
 
-    blobs = _select_blobs(blobs_df, img_name, scale_factor)
-
     if img_name == '':
         _add_blank_image_to_axis(ax, scale_factor)
     else:
@@ -190,7 +254,10 @@ def _prepare_median_image(img_name, path, blobs_df, axs_iter):
         path = os.path.join(path, img_name)
         img = _load_image(path, scale_factor)
         _add_image_to_axis(img, ax, img_name)
-        _add_blobs_to_axis(ax, blobs)
+
+        if blobs_df is not None:
+            blobs = _select_blobs(blobs_df, img_name, scale_factor)
+            _add_blobs_to_axis(ax, blobs)
 
 
 def _select_blobs(blobs_df, img_name, scale_factor):

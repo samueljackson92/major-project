@@ -72,7 +72,11 @@ def blob_props(feature_set):
     props = np.array([num_blobs, mean, std, min_radius, max_radius,
                       small, med, large, avg_density])
 
-    return pd.DataFrame([props], columns=column_names)
+    df = pd.DataFrame([props], columns=column_names)
+    df['lower_radius_qt'] = feature_set['radius'].quantile(.25)
+    df['upper_radius_qt'] = feature_set['radius'].quantile(.75)
+
+    return df
 
 
 def _blob_density(blobs, k):

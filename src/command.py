@@ -3,11 +3,7 @@ import logging
 import pandas as pd
 import skimage.io as io
 
-from mia.reduction import (run_reduction, reduction_feature_statistics,
-                           process_image)
-from mia.analysis import run_analysis, measure_closeness
-from mia.plotting import (plot_scatter_2d, plot_scattermatrix,
-                          plot_median_image_matrix, plot_blobs)
+import mia
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mia")
@@ -28,6 +24,11 @@ def cli(log_level):
     logger.setLevel(LOG_LEVELS[log_level])
 
 
+###############################################################################
+# MIA Reduction
+###############################################################################
+
+
 @cli.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
@@ -39,24 +40,29 @@ def cli(log_level):
               help="Num of processes to use for the reduction.")
 def reduction(image_directory, masks_directory, output_file, birads_file,
               num_processes):
-    run_reduction(image_directory, masks_directory, output_file, birads_file,
-                  num_processes)
+    mia.reduction.run_reduction(image_directory, masks_directory, output_file,
+                                birads_file, num_processes)
 
 
 @cli.command()
 @click.argument('csv-file', type=click.Path())
 @click.argument('output-file', type=click.Path())
 def feature_statistics(csv_file, output_file):
-    reduction_feature_statistics(csv_file, output_file)
+    mia.reduction.feature_statistics(csv_file, output_file)
 
 
 @cli.command()
 @click.argument('image-file', type=click.Path())
 @click.argument('mask-file', type=click.Path())
 def detect_blobs(image_file, mask_file):
-    data_frame = process_image(image_file, mask_file)
+    data_frame = mia.reduction.process_image(image_file, mask_file)
     img = io.imread(image_file, as_grey=True)
-    plot_blobs(img, data_frame[['x', 'y', 'radius']].as_matrix())
+    mia.plotting.plot_blobs(img, data_frame[['x', 'y', 'radius']].as_matrix())
+
+
+###############################################################################
+# MIA Analysis
+###############################################################################
 
 
 @cli.group()
@@ -66,21 +72,19 @@ def analysis():
 
 @analysis.command()
 @click.argument('csv-file', type=click.Path())
-@click.argument('columns', required=False, nargs=-1)
-@click.option('--filter-column', '-c', default=None)
-@click.option('--filter-value', '-v', default=None)
+@click.argument('columns', nargs=-1)
 @click.option('--output-file', '-o', default=None,
               help="Name of output file to store results of analysis in")
-def tSNE(csv_file, columns, filter_column, filter_value, output_file):
-    run_analysis(csv_file, filter_column, filter_value,
-                 list(columns), output_file)
+def tSNE(csv_file, columns, output_file):
+    data_frame = pd.DataFrame.from_csv(csv_file)
+    data_frame = data_frame[list(columns)]
+    fit_output = mia.analysis.tSNE(data_frame)
+    fit_output.to_csv(output_file)
 
 
-@analysis.command()
-@click.argument('csv-file', type=click.Path())
-@click.argument('label')
-def closeness(csv_file, label):
-    measure_closeness(csv_file, label)
+###############################################################################
+# MIA Plotting
+###############################################################################
 
 
 @cli.group()
@@ -96,7 +100,7 @@ def plotting():
               help="Annotate the images with image names")
 def scatter_plot(csv_file, label_column, annotate):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_scatter_2d(df, label_column, annotate)
+    mia.plotting.plot_scatter_2d(df, label_column, annotate)
 
 
 @plotting.command()
@@ -105,7 +109,7 @@ def scatter_plot(csv_file, label_column, annotate):
               help="Name of column to use as the class labels")
 def scatter_matrix(csv_file, label_column):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_scattermatrix(df, label_column)
+    mia.plotting.plot_scattermatrix(df, label_column)
 
 
 @plotting.command()
@@ -119,9 +123,9 @@ def scatter_matrix(csv_file, label_column):
 def median_image_matrix(csv_file, img_path, output_file, label_column,
                         features_csv):
     df = pd.DataFrame.from_csv(csv_file)
-    plot_median_image_matrix(df, img_path, label_column,
-                             output_file=output_file,
-                             raw_features_csv=features_csv)
+    mia.plotting.plot_median_image_matrix(df, img_path, label_column,
+                                          output_file=output_file,
+                                          raw_features_csv=features_csv)
 
 
 if __name__ == '__main__':

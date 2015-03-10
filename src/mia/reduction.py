@@ -154,20 +154,21 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
     logger.info("TOTAL REDUCTION TIME: %s" % total_time)
 
 
-def reduction_feature_statistics(csv_file, output_file):
+def feature_statistics(raw_detections):
     """Create blob features from a file of blob detections
 
     :param csv_file: file containing the detected blobs
     :param output_file: name to output the resulting features to.
     """
-    raw_detections = pd.DataFrame.from_csv(csv_file)
+    # raw_detections = pd.DataFrame.from_csv(csv_file)
     image_names = raw_detections['image_name'].unique()
 
     info_df = _create_info_data_frame(raw_detections, image_names)
     feature_matrix = _create_feature_matrix(raw_detections, image_names)
 
     feature_matrix = pd.concat([feature_matrix, info_df], axis=1)
-    feature_matrix.to_csv(output_file)
+    # feature_matrix.to_csv(output_file)
+    return feature_matrix
 
 
 def _create_info_data_frame(raw_detections, index_names):

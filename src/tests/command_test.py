@@ -16,7 +16,8 @@ def test_prints_version():
 def test_analysis():
     runner = CliRunner()
     path = get_file_path("blob_detection.csv")
-    result = runner.invoke(command.tSNE, [path])
+    columns = ['avg_radius', 'std_radius', 'blob_count']
+    result = runner.invoke(command.tSNE, [path] + columns)
 
     nose.tools.assert_equal(result.exit_code, 0)
     nose.tools.assert_true('[t-SNE] Computing pairwise distances...' in

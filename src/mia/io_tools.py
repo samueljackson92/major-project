@@ -6,6 +6,7 @@ import os
 import re
 import json
 
+
 def iterate_directory(directory, mask_directory=None):
     """ Iterate of a directory of images
 

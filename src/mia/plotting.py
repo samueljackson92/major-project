@@ -137,12 +137,12 @@ def plot_risk_classes_single(data_frame, column_name):
     """
     blobs = data_frame.groupby('class')
     for index, b in blobs:
-        b['upper_radius_qt'].hist(label=str(index))
+        b[column_name].hist(label=str(index))
 
     plt.legend(loc='upper right')
 
 
-def plot_scatter_2d(data_frame, columns, label_name=None, annotate=False):
+def plot_scatter_2d(data_frame, columns, labels=None, annotate=False):
     """ Create a scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot
@@ -154,10 +154,8 @@ def plot_scatter_2d(data_frame, columns, label_name=None, annotate=False):
     if len(columns) != 2:
         raise ValueError("Number of columns must be exactly 2")
 
-    label_name = 1 if label_name is None else label_name
-
     ax = data_frame.plot(kind='scatter', x=columns[0], y=columns[1],
-                         c=label_name, cmap=plt.cm.Spectral_r, s=50)
+                         c=labels, cmap=plt.cm.Spectral_r, s=50)
 
     if annotate:
         def annotate_df(row):
@@ -167,11 +165,12 @@ def plot_scatter_2d(data_frame, columns, label_name=None, annotate=False):
     plt.show()
 
 
-def plot_scatter_3d(data_frame, columns, label_name=None):
+def plot_scatter_3d(data_frame, columns, labels=None):
     """ Create a 3D scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot
     :param columns: the columns to use for each axis. Must be exactly 3
+    :param labels: the labels used to colour the dataset by class.
     """
     if len(columns) != 3:
         raise ValueError("Number of columns must be exactly 3")
@@ -181,7 +180,7 @@ def plot_scatter_3d(data_frame, columns, label_name=None):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(*data, c=data_frame[label_name], cmap=cm.Spectral_r)
+    ax.scatter(*data, c=labels, cmap=cm.Spectral_r)
     ax.set_xlabel(columns[0])
     ax.set_ylabel(columns[1])
     ax.set_zlabel(columns[2])

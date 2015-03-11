@@ -4,6 +4,7 @@ Various IO utility functions.
 
 import os
 import re
+import json
 
 
 def iterate_directory(directory, mask_directory=None):
@@ -54,3 +55,28 @@ def check_is_image(img_path, ext):
     if not img_path.endswith(ext):
         raise ValueError("%s does not have the expected file extension"
                          % img_path)
+
+
+def dump_mapping_to_json(mapping, columns, output_file):
+    """Dump a mapping to JSON data.
+
+    :param mapping: the data frame to store
+    :param columns: the columns to use
+    :param output_file: the output file to store it in
+    """
+    groups = mapping.groupby('class')
+    json_data = []
+    for index, group in groups:
+        points = group[columns].as_matrix().tolist()
+        img_names = group.index.values.tolist()
+        point_data = zip(points, img_names)
+        data = [{'x': x, 'y': y, 'name': name} for (x, y), name in point_data]
+
+        g = {
+            'name': "BI-RADS Class %d" % index,
+            'data': data,
+        }
+        json_data.append(g)
+
+    with open(output_file, 'wb') as fp:
+        json.dump(json_data, fp)

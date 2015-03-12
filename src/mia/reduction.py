@@ -19,7 +19,6 @@ def process_image(*args, **kwargs):
 
     :param image_path: the absolute file path to the image
     :param mask_path: the absolute file path to the mask
-    :param scale_to_mask: whether to downscale the image to the mask
     :returns: statistics of the blobs in the image
     """
     img_name = os.path.basename(args[0])
@@ -36,9 +35,8 @@ def process_image(*args, **kwargs):
     return _make_image_data_frame(img_name, props)
 
 
-def _find_features(image_path, mask_path, scale_to_mask=False):
-    img, msk = preprocess_image(image_path, mask_path,
-                                scale_to_mask=scale_to_mask)
+def _find_features(image_path, mask_path):
+    img, msk = preprocess_image(image_path, mask_path)
     blobs_df = detect_blobs(img, msk)
     intensity_df = detect_intensity(blobs_df, img)
     return [blobs_df, intensity_df]

@@ -130,11 +130,8 @@ def _log_pyramid(image, max_layer, downscale, sigma):
     :param sigma: sigma of the gaussian used as part of the filter
     :yields: ndarry - filtered images at each scale in the pyramid.
     """
-    image = normalise_image(image)
-
     layer = 0
     while layer != max_layer:
-
         log_filtered = -gaussian_laplace(image, sigma, mode='reflect')
 
         # upscale to original image size

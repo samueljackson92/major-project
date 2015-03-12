@@ -11,7 +11,7 @@ class IntensityTests(unittest.TestCase):
     @classmethod
     def setupClass(cls):
         img_path = get_file_path("texture_patches/texture1.png")
-        cls._img, msk = preprocess_image(img_path, normalise=False)
+        cls._img, msk = preprocess_image(img_path)
 
     def test_intensity_stats(self):
         expected_output = np.array([222.22222222, 286.25310392,

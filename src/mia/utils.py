@@ -1,37 +1,55 @@
 import math
+import os.path
 import numpy as np
+from medpy.io import load
+import skimage
 from skimage import io, transform, morphology, measure
 
 
-def preprocess_image(image_path, mask_path=None, scale_to_mask=False,
-                     normalise=True):
+def preprocess_image(image_path, mask_path=None):
     """Preprocess an image, optionally using a mask.
 
     :param image_path: path to the image.
     :param mask_path: path to the mask to use (optional).
-    :param scale_to_mask: image to the mask rather than the other way around.
-                          This provides quicker processing but often worsens
-                          results. Useful for debugging.
     """
-    img = io.imread(image_path, as_grey=True)
 
-    if scale_to_mask:
-        img = transform.pyramid_reduce(img, downscale=4)
-
-    # mask image
-    if mask_path is not None:
-        msk = io.imread(mask_path, as_grey=True)
-        msk = erode_mask(msk, kernel_size=35)
-        if not scale_to_mask:
-            msk = transform.rescale(msk, 4)
-        img = img * msk
-    else:
+    name, ext = os.path.splitext(image_path)
+    if ext == ".dcm":
+        img = _load_synthetic_mammogram(image_path)
         msk = None
-
-    if normalise:
-        img = normalise_image(img)
+    else:
+        img, msk = _load_real_mammogram(image_path, mask_path)
 
     return img, msk
+
+
+def _load_synthetic_mammogram(image_path):
+    image_data, image_header = load(image_path)
+    img = np.invert(image_data)
+    img = skimage.img_as_float(img)
+    return img
+
+
+def _load_real_mammogram(image_path, mask_path=None):
+    img = io.imread(image_path, as_grey=True)
+    img = skimage.img_as_float(img)
+    msk = _load_mask(mask_path)
+
+    if msk is not None:
+        img = img * msk
+
+    return img, msk
+
+
+def _load_mask(mask_path):
+    if mask_path is not None:
+        msk = io.imread(mask_path, as_grey=True)
+        msk = skimage.img_as_float(msk)
+        msk = erode_mask(msk, kernel_size=35)
+        msk = transform.rescale(msk, 4)
+        return msk
+    else:
+        return None
 
 
 def normalise_image(img, new_min=0, new_max=1):
@@ -41,7 +59,8 @@ def normalise_image(img, new_min=0, new_max=1):
     :param new_min: upper bound to normalise to. Default 1
     :returns: ndarry --  the normalise image
     """
-    old_max, old_min = np.amax(img), np.amin(img)
+
+    old_max, old_min = img.max(), img.min()
     img = (img - old_min) * (new_max - new_min) / (old_max - old_min) + new_min
     return img
 

@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 
 from mia.features._adjacency_graph import Graph
-from mia.utils import normalise_image
 
 from scipy.ndimage.filters import gaussian_laplace, gaussian_filter
 from sklearn import cluster, neighbors

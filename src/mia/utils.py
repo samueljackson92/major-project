@@ -3,6 +3,7 @@ import os.path
 import numpy as np
 from medpy.io import load
 import skimage
+from scipy.ndimage import filters
 from skimage import io, transform, morphology, measure
 
 
@@ -15,41 +16,38 @@ def preprocess_image(image_path, mask_path=None):
 
     name, ext = os.path.splitext(image_path)
     if ext == ".dcm":
-        img = _load_synthetic_mammogram(image_path)
-        msk = None
+        img = load_synthetic_mammogram(image_path)
     else:
-        img, msk = _load_real_mammogram(image_path, mask_path)
+        img = load_real_mammogram(image_path, mask_path)
+
+    msk = None
+    if mask_path is not None:
+        msk = load_mask(mask_path)
+        msk = transform.resize(msk, img.shape)
+        img = img * msk
 
     return img, msk
 
 
-def _load_synthetic_mammogram(image_path):
+def load_synthetic_mammogram(image_path):
     image_data, image_header = load(image_path)
     img = np.invert(image_data)
     img = skimage.img_as_float(img)
     return img
 
 
-def _load_real_mammogram(image_path, mask_path=None):
+def load_real_mammogram(image_path, mask_path=None):
     img = io.imread(image_path, as_grey=True)
     img = skimage.img_as_float(img)
-    msk = _load_mask(mask_path)
-
-    if msk is not None:
-        img = img * msk
-
-    return img, msk
+    return img
 
 
-def _load_mask(mask_path):
-    if mask_path is not None:
-        msk = io.imread(mask_path, as_grey=True)
-        msk = skimage.img_as_float(msk)
-        msk = erode_mask(msk, kernel_size=35)
-        msk = transform.rescale(msk, 4)
-        return msk
-    else:
-        return None
+def load_mask(mask_path):
+    msk = io.imread(mask_path, as_grey=True)
+    msk = skimage.img_as_uint(msk)
+    msk = erode_mask(msk, kernel_size=35)
+    msk = filters.gaussian_filter(msk, 4.0)
+    return msk
 
 
 def normalise_image(img, new_min=0, new_max=1):

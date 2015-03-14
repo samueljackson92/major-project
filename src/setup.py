@@ -6,6 +6,14 @@ except ImportError:
 with open('./requirements.txt', 'r') as file_handle:
     requirements = map(lambda s: s.strip(), file_handle.readlines())
 
+from distutils.core import Extension
+import numpy as np
+
+# define the extension module
+convolve_tools = Extension('convolve_tools',
+                           sources=['convolve_tools/convolve_tools.c'],
+                           include_dirs=[np.get_include()])
+
 config = {
     'description': 'Mammogram Image Analysis package',
     'author': 'Samuel Jackson',
@@ -18,6 +26,7 @@ config = {
         [console_scripts]
         mia=command:cli
     ''',
+    'ext_modules': [convolve_tools],
     'packages': ['mia'],
     'scripts': ['command.py'],
     'name': 'mia'

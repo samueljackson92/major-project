@@ -24,7 +24,9 @@ def preprocess_image(image_path, mask_path=None):
     if mask_path is not None:
         msk = load_mask(mask_path)
         msk = transform.resize(msk, img.shape)
-        img = img * msk
+        msk[msk > 0] = 1
+        msk[msk == 0] = 0
+        # img = img * msk
 
     return img, msk
 
@@ -46,7 +48,7 @@ def load_mask(mask_path):
     msk = io.imread(mask_path, as_grey=True)
     msk = skimage.img_as_uint(msk)
     msk = erode_mask(msk, kernel_size=35)
-    msk = filters.gaussian_filter(msk, 4.0)
+    # msk = filters.gaussian_filter(msk, 35.0)
     return msk
 
 
@@ -113,7 +115,8 @@ def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     :param kernel_size: the size of the kernel to use (default: 30)
     """
     eroded_mask = np.zeros(mask.shape)
-    morphology.binary_erosion(mask, kernel_func(kernel_size), out=eroded_mask)
+    kernel = kernel_func(kernel_size)
+    morphology.binary_erosion(mask, kernel, out=eroded_mask)
     return eroded_mask
 
 

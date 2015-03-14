@@ -27,13 +27,15 @@ def process_image(*args, **kwargs):
     logger.info("Processing image %s" % img_name)
     start = time.time()
 
-    props = _find_features(*args, **kwargs)
+    blobs, intensity = _find_features(*args, **kwargs)
 
     end = time.time()
-    logger.info("%d blobs found in image %s" % (props[0].shape[0], img_name))
+    logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
-    return _make_image_data_frame(img_name, props)
+    blobs = _make_image_data_frame(img_name, blobs)
+    intensity = _make_image_data_frame(img_name, intensity)
+    return [blobs, intensity]
 
 
 def _find_features(image_path, mask_path, scale_to_mask=False):
@@ -44,11 +46,11 @@ def _find_features(image_path, mask_path, scale_to_mask=False):
     return [blobs_df, intensity_df]
 
 
-def _make_image_data_frame(img_name, data_frames):
-    img_df = pd.concat(data_frames, axis=1)
+def _make_image_data_frame(img_name, df):
     info_df = _make_image_info_data_frame(img_name)
-    info_df = pd.concat([info_df]*img_df.shape[0], ignore_index=True)
-    return pd.concat([img_df, info_df], axis=1)
+    info_df = pd.concat([info_df]*df.shape[0], ignore_index=True)
+    frame = pd.concat([df, info_df], axis=1)
+    return frame
 
 
 def _make_image_info_data_frame(img_name):
@@ -112,9 +114,11 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
     multiprocessing.freeze_support()
     pool = multiprocessing.Pool(num_processes)
     features = pool.map(multiprocess_images, paths)
-    features = pd.concat(features, ignore_index=True)
+    features = list(zip(*features))
 
-    return features
+    blobs = pd.concat(features[0], ignore_index=True)
+    intensity = pd.concat(features[1], ignore_index=True)
+    return blobs, intensity
 
 
 def run_reduction(image_directory, masks_directory, output_file, birads_file,
@@ -138,15 +142,18 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
         logger.warning("No output file supplied. Data will not be saved "
                        "to file.")
 
-    feature_matrix = run_multi_process(image_directory, masks_directory,
-                                       num_processes, birads_file)
+    blobs, intensity = run_multi_process(image_directory, masks_directory,
+                                         num_processes, birads_file)
 
-    feature_matrix = add_BIRADS_class(feature_matrix, birads_file)
+    blobs = add_BIRADS_class(blobs, birads_file)
+    intensity = add_BIRADS_class(intensity, birads_file)
 
     if output_file is not None:
-        feature_matrix.to_csv(output_file, Header=False)
+        blobs.to_csv(output_file + '_blobs.csv')
+        intensity.to_csv(output_file + '_intenstiy.csv')
     else:
-        print feature_matrix
+        print blobs
+        print intensity
 
     end_time = time.time()
     total_time = end_time - start_time

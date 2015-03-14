@@ -140,10 +140,6 @@ def _log_pyramid(image, mask, max_layer, downscale, sigma):
         if layer > 0:
             log_filtered = transform.rescale(log_filtered,
                                              downscale**layer)
-        from skimage import io
-        io.imshow(log_filtered)
-        io.show()
-
         yield log_filtered
 
         # downscale image, but keep sigma the same.

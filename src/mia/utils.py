@@ -1,9 +1,9 @@
 import math
 import os.path
+import warnings
 import numpy as np
 from medpy.io import load
 import skimage
-from scipy.ndimage import filters
 from skimage import io, transform, morphology, measure
 
 
@@ -23,10 +23,8 @@ def preprocess_image(image_path, mask_path=None):
     msk = None
     if mask_path is not None:
         msk = load_mask(mask_path)
-        msk = transform.resize(msk, img.shape)
-        msk[msk > 0] = 1
-        msk[msk == 0] = 0
-        # img = img * msk
+        msk = resize_mask_to_image(msk, img.shape)
+        img = img * msk
 
     return img, msk
 
@@ -46,9 +44,22 @@ def load_real_mammogram(image_path, mask_path=None):
 
 def load_mask(mask_path):
     msk = io.imread(mask_path, as_grey=True)
-    msk = skimage.img_as_uint(msk)
+    with warnings.catch_warnings():
+        warnings.filterwarnings('error')
+        try:
+            msk = skimage.img_as_uint(msk)   # cast from uint32 to unit16
+            msk = skimage.img_as_float(msk)  # cast from uint16 to float
+        except Warning:
+            # Warning precision loss is ok. We only need binary info for mask
+            pass
     msk = erode_mask(msk, kernel_size=35)
-    # msk = filters.gaussian_filter(msk, 35.0)
+    return msk
+
+
+def resize_mask_to_image(msk, img_shape):
+    msk = transform.resize(msk, img_shape)
+    msk[msk > 0] = 1
+    msk[msk == 0] = 0
     return msk
 
 

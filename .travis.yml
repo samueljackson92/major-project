@@ -15,6 +15,9 @@ before_install:
   - pip install six==1.3
 # command to install dependencies
 install:
+  - "cd src"
+  - "python setup.py build_ext --inplace"
+  - "cd .."
   - "pip install -r travis_requirements.txt"
   - "pip install ./src"
 

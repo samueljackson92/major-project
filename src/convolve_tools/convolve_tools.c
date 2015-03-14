@@ -1,4 +1,11 @@
-/*  Example of wrapping the cos function from math.h using the Numpy-C-API. */
+/*
+Deformable convolution Python module.
+
+The original code for the convolution is largely based on that of Song Ho An.
+http://www.songho.ca/dsp/convolution/convolution.html
+Accessed: 14/03/2015
+
+*/
 
 #include <Python.h>
 #include <numpy/arrayobject.h>
@@ -14,12 +21,12 @@
 
 void convolve(PyArrayObject* image, PyArrayObject* mask, PyArrayObject* kernel, PyObject* out)
 {
-    int rows = PyArray_DIM(image, 0);
-    int cols = PyArray_DIM(image, 1);
+    int rows = (int) PyArray_DIM(image, 0);
+    int cols = (int) PyArray_DIM(image, 1);
     npy_intp kernelSize = PyArray_DIM(kernel, 0);
 
-    int kRows = kernelSize;
-    int kCols = kernelSize;
+    int kRows = (int) kernelSize;
+    int kCols = (int) kernelSize;
 
     // find center position of kernel (half of kernel size)
     int kCenterX = kCols / 2;
@@ -110,7 +117,7 @@ static PyObject* deformable_covolution(PyObject* self, PyObject* args)
     PyObject      *out_array;
 
     /*  parse the image, mask and kernel */
-    if (!PyArg_ParseTuple(args, "OOO", &image, &mask, &kernel))
+    if (!PyArg_ParseTuple(args, "O!O!O!", &PyArray_Type, &image, &PyArray_Type, &mask, &PyArray_Type, &kernel))
         return NULL;
 
     /*  construct the output array, like the input image array */

@@ -138,8 +138,8 @@ def _log_pyramid(image, mask, max_layer, downscale, sigma):
 
         # upscale to original image size
         if layer > 0:
-            log_filtered = transform.rescale(log_filtered,
-                                             downscale**layer)
+            log_filtered = transform.pyramid_expand(log_filtered,
+                                                    downscale**layer)
         yield log_filtered
 
         # downscale image, but keep sigma the same.

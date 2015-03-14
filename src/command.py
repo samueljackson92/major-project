@@ -1,7 +1,6 @@
 import click
 import logging
 import pandas as pd
-import skimage.io as io
 
 import mia
 
@@ -56,7 +55,7 @@ def feature_statistics(csv_file, output_file):
 @click.argument('mask-file', required=False, type=click.Path())
 def detect_blobs(image_file, mask_file):
     data_frame = mia.reduction.process_image(image_file, mask_file)
-    img = io.imread(image_file, as_grey=True)
+    img = mia.utils.load_image(image_file)
     mia.plotting.plot_blobs(img, data_frame[['x', 'y', 'radius']].as_matrix())
 
 

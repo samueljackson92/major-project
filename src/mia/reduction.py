@@ -50,6 +50,19 @@ def _make_image_data_frame(img_name, data_frames):
 
 
 def _make_image_info_data_frame(img_name):
+    _, ext = os.path.splitext(img_name)
+
+    if ext == '.dcm':
+        return _make_synthetic_info_data_frame(img_name)
+    else:
+        return _make_mammogram_info_data_frame(img_name)
+
+
+def _make_synthetic_info_data_frame(img_name):
+    return pd.DataFrame([img_name], columns=['img_name'])
+
+
+def _make_mammogram_info_data_frame(img_name):
     name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png')
 
     def find_image_info(name):

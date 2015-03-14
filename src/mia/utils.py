@@ -13,12 +13,7 @@ def preprocess_image(image_path, mask_path=None):
     :param image_path: path to the image.
     :param mask_path: path to the mask to use (optional).
     """
-
-    name, ext = os.path.splitext(image_path)
-    if ext == ".dcm":
-        img = load_synthetic_mammogram(image_path)
-    else:
-        img = load_real_mammogram(image_path, mask_path)
+    img = load_image(image_path)
 
     msk = None
     if mask_path is not None:
@@ -29,6 +24,15 @@ def preprocess_image(image_path, mask_path=None):
     return img, msk
 
 
+def load_image(image_path):
+    name, ext = os.path.splitext(image_path)
+    if ext == ".dcm":
+        img = load_synthetic_mammogram(image_path)
+    else:
+        img = load_real_mammogram(image_path)
+    return img
+
+
 def load_synthetic_mammogram(image_path):
     image_data, image_header = load(image_path)
     img = np.invert(image_data)
@@ -36,7 +40,7 @@ def load_synthetic_mammogram(image_path):
     return img
 
 
-def load_real_mammogram(image_path, mask_path=None):
+def load_real_mammogram(image_path):
     img = io.imread(image_path, as_grey=True)
     img = skimage.img_as_float(img)
     return img

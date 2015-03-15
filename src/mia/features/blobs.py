@@ -37,7 +37,8 @@ def detect_blobs(image, mask=None, max_layer=10, downscale=np.sqrt(2),
     :param overlap: amount of tolerated overlap between two blobs
     :yields: ndarry - filtered images at each scale in the pyramid.
     """
-    blobs = _multiscale_pyramid_detection(image, mask, max_layer, downscale, sigma)
+    blobs = _multiscale_pyramid_detection(image, mask, max_layer,
+                                          downscale, sigma)
     blobs = _remove_edge_blobs(blobs, image.shape)
     blobs = _remove_false_positives(blobs, image, mask)
     blobs = _merge_blobs(blobs, image, overlap)

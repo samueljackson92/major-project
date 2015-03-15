@@ -7,11 +7,16 @@ from mia.features.blobs import extract_blob
 
 
 def detect_intensity(blobs, img):
-    column_names = ['avg_intensity', 'std_intensity',
-                    'skew_intensity', 'kurtosis_intensity']
-    props = np.array([_find_intensity_props(blob, img)
-                      for blob in blobs[['x', 'y', 'radius']].as_matrix()])
-    return pd.DataFrame(props, columns=column_names)
+
+    intensity_features = []
+    for scale, (index, frame) in enumerate(blobs.groupby('radius')):
+        rois = [extract_blob(blob, img).flatten()
+                for blob in frame[['x', 'y', 'radius']].as_matrix()]
+        rois = np.concatenate(rois)
+        features = pd.Series(rois).describe()
+        intensity_features.append(features)
+
+    return pd.DataFrame(intensity_features)
 
 
 def _intensity_stats(img):

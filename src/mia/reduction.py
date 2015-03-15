@@ -152,8 +152,6 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
     feature_matrix = run_multi_process(image_directory, masks_directory,
                                        num_processes, birads_file)
 
-    feature_matrix = add_BIRADS_class(feature_matrix, birads_file)
-
     if output_file is not None:
         feature_matrix.to_csv(output_file, Header=False)
     else:

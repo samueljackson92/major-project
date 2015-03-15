@@ -15,27 +15,32 @@ def iterate_directory(directory, mask_directory=None):
                            image mask.
     :returns: iterator to the image paths in the directory
     """
-    _, ext = os.path.splitext(directory)
-    if ext == ".png":
-        regex = re.compile("p(\d{3}-\d{3}-\d{5}-[a-z]{2})\.png")
-    else:
-        regex = re.compile("test_Mix_DPerc(\d_c_\d)\.dcm")
     check_is_directory(directory)
 
     for img_name in os.listdir(directory):
+        _, ext = os.path.splitext(img_name)
+        if ext == ".png":
+            regex = re.compile("p(\d{3}-\d{3}-\d{5}-[a-z]{2})\.png")
+        else:
+            regex = re.compile("([a-zA-Z_]+\d+_c_\d)\.dcm")
+
         match = re.match(regex, img_name)
         if match is not None:
-            print img_name
             img_path = os.path.join(directory, img_name)
             check_is_image(img_path, ext)
 
             msk_path = None
             if mask_directory is not None:
-                msk_name = "f%s_mask.png" % match.group(1)
+                if ext == ".png":
+                    msk_name = "f%s_mask.png" % match.group(1)
+                else:
+                    msk_name = "%s_mask.png" % match.group(1)
                 msk_path = os.path.join(mask_directory, msk_name)
-                check_is_image(msk_path, ext)
+                check_is_image(msk_path, '.png')
 
-            yield img_path, msk_path
+                yield img_path, msk_path
+            else:
+                yield img_path
 
 
 def check_is_directory(directory):

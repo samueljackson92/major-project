@@ -16,7 +16,7 @@ before_install:
 # command to install dependencies
 install:
   - "cd src"
-  - "% CFLAGS=\"-std=c99\" python setup.py build_ext --inplace"
+  - "python setup.py build_ext --inplace"
   - "cd .."
   - "pip install -r travis_requirements.txt"
   - "pip install ./src"

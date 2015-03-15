@@ -12,7 +12,8 @@ import numpy as np
 # define the extension module
 convolve_tools = Extension('convolve_tools',
                            sources=['convolve_tools/convolve_tools.c'],
-                           include_dirs=[np.get_include()])
+                           include_dirs=[np.get_include()],
+			   extra_compile_args=['-std=c99'])
 
 config = {
     'description': 'Mammogram Image Analysis package',

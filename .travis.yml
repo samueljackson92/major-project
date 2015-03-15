@@ -1,7 +1,10 @@
 language: python
 python:
   - "2.7"
-  
+
+compiler:
+  - clang  
+
 cache:
   directories:
     - ~/virtualenv/python2.7_with_system_site_packages

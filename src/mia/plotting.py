@@ -43,22 +43,24 @@ def plot_region_props(image, regions):
     ax.imshow(image, cmap=plt.cm.gray)
 
     for props in regions:
-        y0, x0 = props.centroid
-        orientation = props.orientation
-        x1 = x0 + math.cos(orientation) * 0.5 * props.major_axis_length
-        y1 = y0 - math.sin(orientation) * 0.5 * props.major_axis_length
-        x2 = x0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-        y2 = y0 - math.cos(orientation) * 0.5 * props.minor_axis_length
-
-        ax.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-        ax.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-        ax.plot(x0, y0, '.g', markersize=15)
-
-        minr, minc, maxr, maxc = props.bbox
+        minr, minc, maxr, maxc = props
         bx = (minc, maxc, maxc, minc, minc)
         by = (minr, minr, maxr, maxr, minr)
         ax.plot(bx, by, '-b', linewidth=2.5)
 
+    plt.show()
+
+
+def plot_linear_structure(img, line_image):
+    """Plot the line image generated from linear structure detection
+
+    :param img: the image that structure was detected in
+    :param line_image: the line image generated from img
+    """
+    line_image = np.ma.masked_where(line_image == 0, line_image)
+    fig, ax = plt.subplots()
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.imshow(line_image, cmap=plt.cm.autumn)
     plt.show()
 
 

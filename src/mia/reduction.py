@@ -7,6 +7,7 @@ import pandas as pd
 import multiprocessing
 
 from mia.features.blobs import detect_blobs, blob_props
+from mia.features.linear_structure import detect_linear
 from mia.features.intensity import detect_intensity, intensity_props
 from mia.io_tools import iterate_directory
 from mia.utils import preprocess_image
@@ -26,20 +27,21 @@ def process_image(*args, **kwargs):
     logger.info("Processing image %s" % img_name)
     start = time.time()
 
-    blobs, intensity = _find_features(*args, **kwargs)
+    props = _find_features(*args, **kwargs)
 
     end = time.time()
-    logger.info("%d blobs found in image %s" % (blobs.shape[0], img_name))
+    logger.info("%d blobs found in image %s" % (props[0].shape[0], img_name))
+    logger.info("%d lines found in image %s" % (props[1].shape[0], img_name))
     logger.debug("%.2f seconds to process" % (end-start))
 
-    blobs = _make_image_data_frame(img_name, blobs)
-    intensity = _make_image_data_frame(img_name, intensity)
-    return [blobs, intensity]
+    props = [_make_image_data_frame(img_name, prop) for prop in props]
+    return props
 
 
 def _find_features(image_path, mask_path):
     img, msk = preprocess_image(image_path, mask_path)
     blobs_df = detect_blobs(img, msk)
+    # linear_df, _ = detect_linear(img, msk)
     intensity_df = detect_intensity(blobs_df, img)
     return [blobs_df, intensity_df]
 
@@ -112,8 +114,7 @@ def multiprocess_images(args):
     return process_image(*args)
 
 
-def run_multi_process(image_dir, mask_dir, num_processes=4,
-                      class_labels_file=None):
+def run_multi_process(image_dir, mask_dir, num_processes=4):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
@@ -124,12 +125,11 @@ def run_multi_process(image_dir, mask_dir, num_processes=4,
 
     multiprocessing.freeze_support()
     pool = multiprocessing.Pool(num_processes)
-    features = pool.map(multiprocess_images, paths)
-    features = list(zip(*features))
+    feature_frames = pool.map(multiprocess_images, paths)
+    feature_frames = list(zip(*feature_frames))
 
-    blobs = pd.concat(features[0], ignore_index=True)
-    intensity = pd.concat(features[1], ignore_index=True)
-    return blobs, intensity
+    props = [pd.concat(frames, ignore_index=True) for frames in feature_frames]
+    return props
 
 
 def run_reduction(image_directory, masks_directory, output_file, birads_file,
@@ -153,11 +153,13 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
         logger.warning("No output file supplied. Data will not be saved "
                        "to file.")
 
-    blobs, intensity = run_multi_process(image_directory, masks_directory,
-                                         num_processes, birads_file)
+    blobs, intensity = run_multi_process(image_directory,
+                                                 masks_directory,
+                                                 num_processes)
 
     if output_file is not None:
         blobs.to_csv(output_file + '_blobs.csv')
+        # linear.to_csv(output_file + '_linear.csv')
         intensity.to_csv(output_file + '_intenstiy.csv')
     else:
         print blobs

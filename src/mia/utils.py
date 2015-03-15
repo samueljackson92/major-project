@@ -1,37 +1,70 @@
 import math
+import os.path
+import warnings
 import numpy as np
+from medpy.io import load
+import skimage
 from skimage import io, transform, morphology, measure
 
 
-def preprocess_image(image_path, mask_path=None, scale_to_mask=False,
-                     normalise=True):
+def preprocess_image(image_path, mask_path=None):
     """Preprocess an image, optionally using a mask.
 
     :param image_path: path to the image.
     :param mask_path: path to the mask to use (optional).
-    :param scale_to_mask: image to the mask rather than the other way around.
-                          This provides quicker processing but often worsens
-                          results. Useful for debugging.
     """
-    img = io.imread(image_path, as_grey=True)
+    img = load_image(image_path)
 
-    if scale_to_mask:
-        img = transform.pyramid_reduce(img, downscale=4)
-
-    # mask image
+    msk = None
     if mask_path is not None:
-        msk = io.imread(mask_path, as_grey=True)
-        msk = erode_mask(msk, kernel_size=35)
-        if not scale_to_mask:
-            msk = transform.rescale(msk, 4)
+        msk = load_mask(mask_path)
+        msk = resize_mask_to_image(msk, img.shape)
         img = img * msk
-    else:
-        msk = None
-
-    if normalise:
-        img = normalise_image(img)
 
     return img, msk
+
+
+def load_image(image_path):
+    name, ext = os.path.splitext(image_path)
+    if ext == ".dcm":
+        img = load_synthetic_mammogram(image_path)
+    else:
+        img = load_real_mammogram(image_path)
+    return img
+
+
+def load_synthetic_mammogram(image_path):
+    image_data, image_header = load(image_path)
+    img = np.invert(image_data)
+    img = skimage.img_as_float(img)
+    return img
+
+
+def load_real_mammogram(image_path):
+    img = io.imread(image_path, as_grey=True)
+    img = skimage.img_as_float(img)
+    return img
+
+
+def load_mask(mask_path):
+    msk = io.imread(mask_path, as_grey=True)
+    with warnings.catch_warnings():
+        warnings.filterwarnings('error')
+        try:
+            msk = skimage.img_as_uint(msk)   # cast from uint32 to unit16
+            msk = skimage.img_as_float(msk)  # cast from uint16 to float
+        except Warning:
+            # Warning precision loss is ok. We only need binary info for mask
+            pass
+    msk = erode_mask(msk, kernel_size=35)
+    return msk
+
+
+def resize_mask_to_image(msk, img_shape):
+    msk = transform.resize(msk, img_shape)
+    msk[msk > 0] = 1
+    msk[msk == 0] = 0
+    return msk
 
 
 def normalise_image(img, new_min=0, new_max=1):
@@ -41,7 +74,8 @@ def normalise_image(img, new_min=0, new_max=1):
     :param new_min: upper bound to normalise to. Default 1
     :returns: ndarry --  the normalise image
     """
-    old_max, old_min = np.amax(img), np.amin(img)
+
+    old_max, old_min = img.max(), img.min()
     img = (img - old_min) * (new_max - new_min) / (old_max - old_min) + new_min
     return img
 
@@ -96,7 +130,8 @@ def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     :param kernel_size: the size of the kernel to use (default: 30)
     """
     eroded_mask = np.zeros(mask.shape)
-    morphology.binary_erosion(mask, kernel_func(kernel_size), out=eroded_mask)
+    kernel = kernel_func(kernel_size)
+    morphology.binary_erosion(mask, kernel, out=eroded_mask)
     return eroded_mask
 
 

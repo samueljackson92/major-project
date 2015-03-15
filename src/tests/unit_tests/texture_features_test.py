@@ -5,12 +5,13 @@ from mia.features.texture import *
 from mia.utils import *
 from ..test_utils import get_file_path
 
+
 class TextureTests(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
         img_path = get_file_path("texture_patches/texture1.png")
-        cls._img, msk = preprocess_image(img_path, normalise=False)
+        cls._img, msk = preprocess_image(img_path)
 
     def test_gabor_bank_features(self):
         orientations = np.arange(0, np.pi, np.pi/8)

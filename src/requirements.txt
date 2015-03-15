@@ -1,4 +1,7 @@
 seaborn
+nibabel
+pydicom
+medpy
 click
 six>=1.3
 networkx>=1.8

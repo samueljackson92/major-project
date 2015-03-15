@@ -19,7 +19,6 @@ def process_image(*args, **kwargs):
 
     :param image_path: the absolute file path to the image
     :param mask_path: the absolute file path to the mask
-    :param scale_to_mask: whether to downscale the image to the mask
     :returns: statistics of the blobs in the image
     """
     img_name = os.path.basename(args[0])
@@ -38,9 +37,8 @@ def process_image(*args, **kwargs):
     return [blobs, intensity]
 
 
-def _find_features(image_path, mask_path, scale_to_mask=False):
-    img, msk = preprocess_image(image_path, mask_path,
-                                scale_to_mask=scale_to_mask)
+def _find_features(image_path, mask_path):
+    img, msk = preprocess_image(image_path, mask_path)
     blobs_df = detect_blobs(img, msk)
     intensity_df = detect_intensity(blobs_df, img)
     return [blobs_df, intensity_df]
@@ -54,6 +52,19 @@ def _make_image_data_frame(img_name, df):
 
 
 def _make_image_info_data_frame(img_name):
+    _, ext = os.path.splitext(img_name)
+
+    if ext == '.dcm':
+        return _make_synthetic_info_data_frame(img_name)
+    else:
+        return _make_mammogram_info_data_frame(img_name)
+
+
+def _make_synthetic_info_data_frame(img_name):
+    return pd.DataFrame([img_name], columns=['img_name'])
+
+
+def _make_mammogram_info_data_frame(img_name):
     name_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png')
 
     def find_image_info(name):
@@ -144,9 +155,6 @@ def run_reduction(image_directory, masks_directory, output_file, birads_file,
 
     blobs, intensity = run_multi_process(image_directory, masks_directory,
                                          num_processes, birads_file)
-
-    blobs = add_BIRADS_class(blobs, birads_file)
-    intensity = add_BIRADS_class(intensity, birads_file)
 
     if output_file is not None:
         blobs.to_csv(output_file + '_blobs.csv')

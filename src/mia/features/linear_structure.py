@@ -8,14 +8,15 @@ Reference: Reyer Zwiggelaar, Tim C. Parr, and Christopher J. Taylor.
 "Finding Orientated Line Patterns in Digital Mammographic Images." BMVC. 1996.
 """
 
+import pandas as pd
 from skimage import measure
 
 from mia.features._orientated_bins import orientated_bins
 from mia.features._nonmaximum_suppression import nonmaximum_suppression
-from mia.utils import binary_image, skeletonize_image
+from mia.utils import binary_image, skeletonize_image, erode_mask
 
 
-def linear_features(img, radius, nbins, threshold):
+def detect_linear(img, msk, radius=10, nbins=12, threshold=4e-2):
     """Compute linear features from an image
 
     Uses orientated bins with nonmaximum suppression and binary thinning.
@@ -26,17 +27,23 @@ def linear_features(img, radius, nbins, threshold):
     :returns: tuple -- containing (line_image, regions)
     """
     line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
+
+    msk = erode_mask(msk, kernel_size=10)
+    line_strength = line_strength * msk
+
     line_strength_suppressed = nonmaximum_suppression(line_strength,
                                                       line_orientation, nbins)
 
     line_image = binary_image(line_strength_suppressed, threshold)
-    line_image = skeletonize_image(line_image, 50, dilation_size=1)
+    line_image = skeletonize_image(line_image, 50, dilation_size=10)
 
     # find image regions
-    line_image = measure.label(line_image)
-    regions = measure.regionprops(line_image)
+    line_image_labelled = measure.label(line_image)
+    regions = measure.regionprops(line_image_labelled)
 
-    return line_strength_suppressed, regions
+    features = [[props.area] + list(props.bbox) for props in regions]
+    return pd.DataFrame(features, columns=['area', 'min_row', 'min_col',
+                                           'max_row', 'max_col']), line_image
 
 
 def extract_feature(props, image):

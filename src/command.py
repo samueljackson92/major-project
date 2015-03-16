@@ -54,9 +54,18 @@ def feature_statistics(csv_file, output_file):
 @click.argument('image-file', type=click.Path())
 @click.argument('mask-file', required=False, type=click.Path())
 def detect_blobs(image_file, mask_file):
-    data_frame = mia.reduction.process_image(image_file, mask_file)
-    img = mia.utils.load_image(image_file)
-    mia.plotting.plot_blobs(img, data_frame[['x', 'y', 'radius']].as_matrix())
+    img, msk = mia.utils.preprocess_image(image_file, mask_file)
+    blob_df = mia.features.blobs.detect_blobs(img, msk)
+    mia.plotting.plot_blobs(img, blob_df[['x', 'y', 'radius']].as_matrix())
+
+
+@cli.command()
+@click.argument('image-file', type=click.Path())
+@click.argument('mask-file', required=False, type=click.Path())
+def detect_linear(image_file, mask_file):
+    img, msk = mia.utils.preprocess_image(image_file, mask_file)
+    _, line_image = mia.features.linear_structure.detect_linear(img, msk)
+    mia.plotting.plot_linear_structure(img, line_image)
 
 
 ###############################################################################

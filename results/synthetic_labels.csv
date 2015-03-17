@@ -1,0 +1,7 @@
+LABEL,VBD (w/Skin),VBD (w/o Skin),BIRADS
+Output-test_Mix_DPerc0_c-02_26_2015-19_52_33, 24, 21, 1
+Output-test_Mix_DPerc5_c-02_26_2015-20_05_10, 35, 27, 2
+Output-test_Mix_DPerc10_c-02_26_2015-05_29_40, 41, 34, 2
+Output-test_Mix_DPerc20_c-02_26_2015-04_41_39, 46, 38, 2
+Output-test_Mix_DPerc35_c-02_26_2015-20_29_51, 55, 47, 3
+Output-test_Mix_DPerc75_c-02_26_2015-20_46_04, 67, 59, 4

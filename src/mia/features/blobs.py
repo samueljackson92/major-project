@@ -70,13 +70,15 @@ def blob_props(feature_set):
     density = _blob_density(feature_set[['x', 'y']].as_matrix(), 4)
     avg_density = np.mean(density)
 
+    upper_dist_count = blob_radii[blob_radii > mean].shape[0]
+
     props = np.array([num_blobs, mean, std, min_radius, max_radius,
                       small, med, large, avg_density])
 
     df = pd.DataFrame([props], columns=column_names)
     df['lower_radius_qt'] = feature_set['radius'].quantile(.25)
     df['upper_radius_qt'] = feature_set['radius'].quantile(.75)
-
+    df['upper_dist_count'] = upper_dist_count
     return df
 
 

@@ -177,15 +177,38 @@ def feature_statistics(raw_detections):
     :param csv_file: file containing the detected blobs
     :param output_file: name to output the resulting features to.
     """
-    # raw_detections = pd.DataFrame.from_csv(csv_file)
     image_names = raw_detections['image_name'].unique()
 
     info_df = _create_info_data_frame(raw_detections, image_names)
     feature_matrix = _create_feature_matrix(raw_detections, image_names)
 
     feature_matrix = pd.concat([feature_matrix, info_df], axis=1)
-    # feature_matrix.to_csv(output_file)
     return feature_matrix
+
+
+def load_synthetic_meta_data(file_name):
+    labels = pd.DataFrame.from_csv(file_name)
+
+    regex_string = r"Output-test_Mix_DPerc(\d+)_c-02_26_2015-\d+_\d+_\d+"
+    name_regex = re.compile(regex_string)
+    group_names = [l for l in labels.index]
+    group_ids = [int(re.match(name_regex, name).group(1))
+                 for name in group_names]
+    labels.index = group_ids
+    return labels
+
+
+def create_meta_data_for_synthetic_mammogram(data_frame, labels):
+    ids = [[group_id for name in data_frame.img_name
+            if "DPerc%d" % group_id in name]
+           for group_id in labels.index]
+
+    ids_by_group = pd.Series([i for row in ids for i in row],
+                             index=data_frame.img_name)
+    cls_by_group = pd.Series([labels.BIRADS[i] for row in ids for i in row],
+                             index=data_frame.img_name)
+
+    return pd.DataFrame({'group_id': ids_by_group, 'class': cls_by_group})
 
 
 def _create_info_data_frame(raw_detections, index_names):
@@ -199,8 +222,9 @@ def _create_feature_matrix(raw_detections, index_names):
     feature_matrix = pd.DataFrame()
     for index, frame in raw_detections.groupby('image_name'):
         shape_props = blob_props(frame)
-        int_props = intensity_props(frame)
-        row = pd.concat([shape_props, int_props], axis=1)
+        # int_props = intensity_props(frame)
+        row = shape_props
+        # row = pd.concat([shape_props, int_props], axis=1)
         feature_matrix = pd.concat([feature_matrix, row], ignore_index=True)
 
     feature_matrix.index = index_names

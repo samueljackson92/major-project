@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 def _handle_data_frame(func):
     @functools.wraps(func)
-    def inner(feature_matrix):
+    def inner(feature_matrix, **kwargs):
         if isinstance(feature_matrix, pd.DataFrame):
-            fit_output = func(feature_matrix.as_matrix())
+            fit_output = func(feature_matrix.as_matrix(), **kwargs)
             return pd.DataFrame(fit_output, index=feature_matrix.index)
         else:
             return func(feature_matrix)
@@ -24,15 +24,14 @@ def _handle_data_frame(func):
 
 
 @_handle_data_frame
-def tSNE(feature_matrix):
+def tSNE(feature_matrix, **kwargs):
     """Run the t-SNE algorithm on the feature space of a collection of images
 
     :param feature_matrix: matrix of features use with the t-SNE
     :returns: 2darray -- lower dimensional mapping of the t-SNE algorithm
     """
     feature_matrix = standard_scaler(feature_matrix)
-    tSNE = manifold.TSNE(learning_rate=400, perplexity=45,
-                         early_exaggeration=2.0, verbose=1)
+    tSNE = manifold.TSNE(**kwargs)
     fit_output = tSNE.fit_transform(feature_matrix)
     return fit_output
 

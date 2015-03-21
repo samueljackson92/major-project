@@ -7,40 +7,50 @@ import re
 import json
 
 
-def iterate_directory(directory, mask_directory=None):
+def _image_name_filter(img_name):
+    _, ext = os.path.splitext(img_name)
+    if ext == ".png":
+        regex = re.compile("p(\d{3}-\d{3}-\d{5}-[a-z]{2})\.png")
+    else:
+        regex = re.compile("([a-zA-Z_]+\d+_c_\d)\.dcm")
+
+    return re.match(regex, img_name) is not None
+
+
+def _mask_name_filter(img_name):
+    _, ext = os.path.splitext(img_name)
+    if ext == ".png":
+        regex = re.compile("f(\d{3}-\d{3}-\d{5}-[a-z]{2})_mask\.png")
+    else:
+        regex = re.compile("([a-zA-Z_]+\d+_c_\d)_mask\.dcm")
+
+    return re.match(regex, img_name) is not None
+
+
+def iterate_directories(image_directory, mask_directory,
+                        image_filter=_image_name_filter,
+                        mask_filter=_mask_name_filter):
     """ Iterate of a directory of images
 
-    :param directory: the directory to iterate over.
+    :param image_directory: the directory to iterate over.
     :param mask_directory: the directory in which to find the corresponding
                            image mask.
     :returns: iterator to the image paths in the directory
     """
+
+    img_iterator = iterate_directory(image_directory, image_filter)
+    msk_iterator = iterate_directory(mask_directory, mask_filter)
+    for values in zip(img_iterator, msk_iterator):
+        yield values
+
+
+def iterate_directory(directory, filter_func=None):
     check_is_directory(directory)
 
     for img_name in os.listdir(directory):
-        _, ext = os.path.splitext(img_name)
-        if ext == ".png":
-            regex = re.compile("p(\d{3}-\d{3}-\d{5}-[a-z]{2})\.png")
-        else:
-            regex = re.compile("([a-zA-Z_]+\d+_c_\d)\.dcm")
-
-        match = re.match(regex, img_name)
-        if match is not None:
+        if filter_func is None or filter_func(img_name):
             img_path = os.path.join(directory, img_name)
-            check_is_image(img_path, ext)
-
-            msk_path = None
-            if mask_directory is not None:
-                if ext == ".png":
-                    msk_name = "f%s_mask.png" % match.group(1)
-                else:
-                    msk_name = "%s_mask.png" % match.group(1)
-                msk_path = os.path.join(mask_directory, msk_name)
-                check_is_image(msk_path, '.png')
-
-                yield img_path, msk_path
-            else:
-                yield img_path
+            yield img_path
 
 
 def check_is_directory(directory):

@@ -12,7 +12,7 @@ from skimage import transform
 from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs, blob_props
 from mia.features.intensity import detect_intensity
-from mia.io_tools import iterate_directory
+from mia.io_tools import iterate_directories
 from mia.utils import preprocess_image, log_kernel
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
     :param mask_dir: mask directory where the data set is stored
     :returns: pandas DataFrame with the features for each image
     """
-    paths = [p for p in iterate_directory(image_dir, mask_dir)]
+    paths = [p for p in iterate_directories(image_dir, mask_dir)]
 
     multiprocessing.freeze_support()
     pool = multiprocessing.Pool(num_processes)
@@ -180,7 +180,7 @@ def run_raw_reduction(image_directory, masks_directory, output_file):
     kernel = log_kernel(8.0)
 
     feature_matrix = []
-    image_dirs = iterate_directory(image_directory, masks_directory)
+    image_dirs = iterate_directories(image_directory, masks_directory)
     for img_path, msk_path in image_dirs:
         name = os.path.basename(img_path)
         logger.info(name)

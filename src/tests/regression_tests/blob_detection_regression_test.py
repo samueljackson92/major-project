@@ -1,18 +1,15 @@
 import unittest
 import nose.tools
-import os.path
 
 from mia.features.blobs import detect_blobs
 from mia.utils import preprocess_image
-
+from ..test_utils import get_file_path
 
 class BlobsRegressionTests(unittest.TestCase):
 
     def test_detect_blobs(self):
-        img_path = os.path.abspath(os.path.join('data',
-                                   'p214-010-60001-cl.png'))
-        msk_path = os.path.abspath(os.path.join('data/masks',
-                                   'f214-010-60001-cl_mask.png'))
+        img_path = get_file_path("mias/mdb154.png")
+        msk_path = get_file_path("mias/masks/mdb154_mask.png")
         img, msk = preprocess_image(img_path, msk_path)
 
         blobs = detect_blobs(img, msk)

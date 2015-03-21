@@ -20,8 +20,6 @@ def test_analysis():
     result = runner.invoke(command.tSNE, [path] + columns)
 
     nose.tools.assert_equal(result.exit_code, 0)
-    nose.tools.assert_true('[t-SNE] Computing pairwise distances...' in
-                           result.output)
 
 
 def test_analysis_saves_to_file():
@@ -37,6 +35,4 @@ def test_analysis_saves_to_file():
         args = ['blob_detection.csv', '--output-file=output.csv']
         result = runner.invoke(command.tSNE, args)
         nose.tools.assert_equal(result.exit_code, 0)
-        nose.tools.assert_true('[t-SNE] Computing pairwise distances...' in
-                               result.output)
         nose.tools.assert_true(os.path.isfile('output.csv'))

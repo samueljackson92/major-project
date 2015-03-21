@@ -54,7 +54,7 @@ class AnalysisTests(unittest.TestCase):
     def test_measure_closeness(self):
         feature_names = ['avg_radius', 'std_radius', 'blob_count']
         df = self._features[feature_names]
-        mapping = tSNE(df)
+        mapping = tSNE(df, learning_rate=400, perplexity=45)
 
         distances = measure_closeness(mapping, self._features['patient_id'])
 

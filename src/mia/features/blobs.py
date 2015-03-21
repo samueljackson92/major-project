@@ -15,11 +15,12 @@ import logging
 import numpy as np
 import pandas as pd
 
-from convolve_tools import deformable_covolution
+from scipy.ndimage.filters import gaussian_filter
 from sklearn import cluster, neighbors
 from skimage import feature, transform, morphology
 
 
+from convolve_tools import deformable_covolution
 from mia.features._adjacency_graph import Graph
 from mia.utils import log_kernel
 

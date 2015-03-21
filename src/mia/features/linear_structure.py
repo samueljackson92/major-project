@@ -53,6 +53,7 @@ def extract_feature(props, image):
     :param image: image to extract the region from
     :returns: ndarray -- section of the image within the bounding box
     """
-    hs, ws, he, we = props.bbox
+    hs, ws = props['min_row'], props['min_col']
+    he, we = props['max_row'], props['max_col']
     image_section = image[hs:he, ws:we]
     return image_section

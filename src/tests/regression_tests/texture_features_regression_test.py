@@ -2,10 +2,11 @@ import unittest
 import nose.tools
 import os.path
 
-from mia.features.linear_structure import *
-from mia.features.blobs import *
+from mia.features.linear_structure import detect_linear, extract_feature
+from mia.features.blobs import detect_blobs
 from mia.features.texture import *
 from mia.utils import *
+
 
 class TextureRegressionTest(unittest.TestCase):
 
@@ -32,12 +33,13 @@ class TextureRegressionTest(unittest.TestCase):
 
     def test_linear_and_gabor(self):
         nbins, size, threshold = 12, 5, 4.0e-2
-        line_strength, regions = linear_features(self._img, size, nbins, threshold)
+        regions, line_strength = detect_linear(self._img, self._msk,
+                                               size, nbins, threshold)
 
         orientations = np.arange(0, np.pi, np.pi/8)
         frequencies = np.arange(0.1,5.0)
 
-        for props in regions:
+        for i, props in regions.iterrows():
             image_section = extract_feature(props, self._img)
             gabor_magnitudes = gabor_features(image_section, frequencies, orientations)
             stats = image_orthotope_statistics(gabor_magnitudes)
@@ -60,13 +62,14 @@ class TextureRegressionTest(unittest.TestCase):
 
     def test_linear_and_glcm(self):
         nbins, size, threshold = 12, 5, 4.0e-2
-        line_strength, regions = linear_features(self._img, size, nbins, threshold)
+        regions, line_strength = detect_linear(self._img, self._msk,
+                                               size, nbins, threshold)
 
         properties = ['contrast', 'dissimilarity']
         orientations = np.arange(0, np.pi, np.pi/8)
         distances = [1,2,4,8]
 
-        for props in regions:
+        for i, props in regions.iterrows():
             image_section = extract_feature(props, self._img)
             features = glcm_features(image_section, distances, orientations, properties)
             nose.tools.assert_equals(features.shape, (2,4,8))

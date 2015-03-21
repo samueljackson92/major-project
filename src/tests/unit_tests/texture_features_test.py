@@ -25,7 +25,7 @@ class TextureTests(unittest.TestCase):
 
         results_path = get_file_path('reference_results/tex1_gabor_features.npy')
         expected_stats = np.load(results_path)
-        np.testing.assert_array_equal(stats, expected_stats)
+        np.testing.assert_allclose(stats, expected_stats)
 
     def test_glcm_features(self):
         properties = ['contrast', 'dissimilarity']

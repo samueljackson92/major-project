@@ -2,7 +2,7 @@ import nose.tools
 import pandas as pd
 import unittest
 from mia.features.blobs import _blob_density, blob_props
-from ..test_utils import *
+from ..test_utils import get_file_path, load_data_frame
 
 
 class BlobDetectionTests(unittest.TestCase):
@@ -26,7 +26,7 @@ class BlobDetectionTests(unittest.TestCase):
         nose.tools.assert_true(isinstance(props, pd.DataFrame))
         nose.tools.assert_equal(props.shape, (1, 12))
 
-        ref_result_path = "reference_results/2015-03-05-results-blobs.csv"
-        ref_result = pd.DataFrame.from_csv(get_file_path(ref_result_path))
+        ref_result = load_data_frame("reference_results/"
+                                     "2015-03-05-results-blobs.csv")
 
         pd.util.testing.assert_frame_equal(props, ref_result)

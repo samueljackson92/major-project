@@ -1,8 +1,10 @@
 import numpy as np
 import os.path
 import tests
+import pandas as pd
 
 from skimage import filters, io
+
 
 def assert_lists_equal(a,b):
     """Check if two lists are equal"""
@@ -20,10 +22,15 @@ def get_file_path(file_name):
     return os.path.abspath(os.path.join(tests.TEST_DATA_FOLDER, file_name))
 
 
+def load_data_frame(path):
+    """Get a reference result as a pandas data frame"""
+    return pd.DataFrame.from_csv(get_file_path(path))
+
+
 def generate_linear_structure(size, with_noise=False):
     """Generate a basic linear structure, optionally with noise"""
-    linear_structure = np.zeros(shape=(size,size))
-    linear_structure[:,size/2] = np.ones(size)
+    linear_structure = np.zeros(shape=(size, size))
+    linear_structure[:, size/2] = np.ones(size)
 
     if with_noise:
         linear_structure = np.identity(size)
@@ -38,8 +45,8 @@ def generate_blob():
     """ Generate a blob by drawing from the normal distribution across two axes
     and binning it to the required size
     """
-    mean = [0,0]
-    cov = [[1,0],[0,1]] # diagonal covariance, points lie on x or y-axis
-    x,y = np.random.multivariate_normal(mean,cov,50000).T
-    h, xedges, yedges = np.histogram2d(x,y, bins=100)
+    mean = [0, 0]
+    cov = [[1, 0], [0, 1]]  # diagonal covariance, points lie on x or y-axis
+    x, y = np.random.multivariate_normal(mean,cov, 50000).T
+    h, xedges, yedges = np.histogram2d(x, y, bins=100)
     return h

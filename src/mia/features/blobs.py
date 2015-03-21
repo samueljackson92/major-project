@@ -15,12 +15,13 @@ import logging
 import numpy as np
 import pandas as pd
 
-from mia.features._adjacency_graph import Graph
 from convolve_tools import deformable_covolution
-
-from scipy.ndimage.filters import laplace, gaussian_filter
 from sklearn import cluster, neighbors
 from skimage import feature, transform, morphology
+
+
+from mia.features._adjacency_graph import Graph
+from mia.utils import log_kernel
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,7 @@ def _log_pyramid(image, mask, max_layer, downscale, sigma):
     layer = 0
     log_filtered = None
     while layer != max_layer:
-        kernel = _log_kernel(sigma)
+        kernel = log_kernel(sigma)
         log_filtered = -deformable_covolution(image, mask, kernel)
 
         # upscale to original image size
@@ -442,29 +443,3 @@ def _remove_blobs(blobs, remove_list):
 def _make_data_frame(blobs):
     column_names = ['x', 'y', 'radius']
     return pd.DataFrame(blobs, columns=column_names)
-
-
-def _gaussian_kernel(size, fwhm=3):
-    """ Make gaussian kernel.
-
-    Code based on implementation by Andrew Giessel
-    https://gist.github.com/andrewgiessel/4635563
-    Accessed: 14/03/2015
-    """
-
-    fwhm = 2.355*fwhm
-
-    x = np.arange(0, size, 1, float)
-    y = x[:, np.newaxis]
-
-    x0 = y0 = size // 2
-    return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
-
-
-def _log_kernel(sigma):
-    size = sigma * 6.0 / 2
-    g = _gaussian_kernel(size+1, sigma)
-    log = laplace(g, mode='wrap')
-    # remove the rubbish around the edge
-    log = log[1:-1, 1:-1]
-    return log

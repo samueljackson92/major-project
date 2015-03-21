@@ -3,16 +3,32 @@ import logging
 import datetime
 import time
 import re
+import functools
+import numpy as np
 import pandas as pd
 import multiprocessing
+from skimage import transform
 
+from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs, blob_props
-from mia.features.linear_structure import detect_linear
-from mia.features.intensity import detect_intensity, intensity_props
+from mia.features.intensity import detect_intensity
 from mia.io_tools import iterate_directory
-from mia.utils import preprocess_image
+from mia.utils import preprocess_image, log_kernel
 
 logger = logging.getLogger(__name__)
+
+
+def _time_reduction(func):
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        start_time = time.time()
+        func(*args, **kwargs)
+        end_time = time.time()
+
+        total_time = end_time - start_time
+        total_time = str(datetime.timedelta(seconds=total_time))
+        logger.info("TOTAL REDUCTION TIME: %s" % total_time)
+    return inner
 
 
 def process_image(*args, **kwargs):
@@ -132,43 +148,66 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
     return props
 
 
-def run_reduction(image_directory, masks_directory, output_file, birads_file,
+@_time_reduction
+def run_reduction(image_directory, masks_directory, output_file,
                   num_processes):
-    """Run a redcution on an image dataset
+    """Run a reduction on an image dataset
 
     :param image_directory: directory containing the images to process
     :param masks_directory: directory containing the masks for the images
     :param output_file: name of the file to output the results to
-    :param birads_file: name fof the file containing the class data from each
-                        image
     :param num_processes: number of processes to use in a multiprocess
                           reduction
     """
-    start_time = time.time()
+    blobs, intensity = run_multi_process(image_directory, masks_directory,
+                                         num_processes)
 
-    if birads_file is None:
-        logger.warning("No BIRADS file supplied. Output will not contain "
-                       "risk class labels")
-    if output_file is None:
-        logger.warning("No output file supplied. Data will not be saved "
-                       "to file.")
+    blobs.to_csv(output_file + '_blobs.csv')
+    intensity.to_csv(output_file + '_intenstiy.csv')
+    # linear.to_csv(output_file + '_linear.csv')
 
-    blobs, intensity = run_multi_process(image_directory,
-                                                 masks_directory,
-                                                 num_processes)
 
-    if output_file is not None:
-        blobs.to_csv(output_file + '_blobs.csv')
-        # linear.to_csv(output_file + '_linear.csv')
-        intensity.to_csv(output_file + '_intenstiy.csv')
-    else:
-        print blobs
-        print intensity
+@_time_reduction
+def run_raw_reduction(image_directory, masks_directory, output_file):
+    """Run a raw reduction on an image dataset.
 
-    end_time = time.time()
-    total_time = end_time - start_time
-    total_time = str(datetime.timedelta(seconds=total_time))
-    logger.info("TOTAL REDUCTION TIME: %s" % total_time)
+    :param image_directory: directory containing the images to process
+    :param masks_directory: directory containing the masks for the images
+    :param output_file: name of the file to output the results to
+    """
+    IMG_SHAPE = (3328, 2560)
+    rname = re.compile(r"p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png")
+    kernel = log_kernel(8.0)
+
+    feature_matrix = []
+    image_dirs = iterate_directory(image_directory, masks_directory)
+    for img_path, msk_path in image_dirs:
+        name = os.path.basename(img_path)
+        logger.info(name)
+
+        img, msk = preprocess_image(img_path, msk_path)
+        # flip images so they follow the same orientation
+        if 'r' in re.match(rname, name).group(2):
+            img = np.fliplr(img)
+            msk = np.fliplr(msk)
+
+        img = transform.resize(img, IMG_SHAPE)
+        img = transform.pyramid_reduce(img, np.sqrt(2)*7)
+
+        msk = transform.resize(msk, IMG_SHAPE)
+        msk = transform.pyramid_reduce(msk, np.sqrt(2)*7)
+
+        msk[msk < 1] = 0
+        msk[msk == 1] = 1
+        img = img * msk
+
+        img = -deformable_covolution(img, msk, kernel)
+        img = img.flatten()
+
+        feature_matrix.append(img)
+
+    feature_matrix = np.vstack(feature_matrix)
+    np.save(output_file, feature_matrix)
 
 
 def feature_statistics(raw_detections):

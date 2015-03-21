@@ -31,16 +31,21 @@ def cli(log_level):
 @cli.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
-@click.option('--output-file', '-o', default=None,
-              help="Name of csv file to write the results of the reduction to")
-@click.option('--BIRADS-file', '-b', default=None,
-              help="Name of csv file containing BI-RADS classes from dataset")
+@click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
 def reduction(image_directory, masks_directory, output_file, birads_file,
               num_processes):
     mia.reduction.run_reduction(image_directory, masks_directory, output_file,
-                                birads_file, num_processes)
+                                num_processes)
+
+
+@cli.command()
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
+@click.argument('output-file', type=click.Path())
+def raw_reduction(image_directory, masks_directory, output_file):
+    mia.reduction.raw_reduction(image_directory, masks_directory, output_file)
 
 
 @cli.command()
@@ -72,50 +77,9 @@ def detect_linear(image_file, mask_file):
 # MIA Analysis
 ###############################################################################
 
-
 @cli.group()
 def analysis():
     pass
-
-
-@analysis.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-def raw_reduction(image_directory, masks_directory):
-    import numpy as np
-    from skimage import transform
-    import re
-    import os.path
-    from convolve_tools import deformable_covolution
-    rname = re.compile(r"p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png")
-    feature_matrix = []
-
-    kernel = mia.features.blobs._log_kernel(8.0)
-    for img_path, msk_path in mia.io_tools.iterate_directory(image_directory,
-                                                             masks_directory):
-        print img_path
-        name = os.path.basename(img_path)
-        img, msk = mia.utils.preprocess_image(img_path, msk_path)
-        # flip images so they follow the same orientation
-        if 'r' in re.match(rname, name).group(2):
-            img = np.fliplr(img)
-            msk = np.fliplr(msk)
-        img = transform.resize(img, (3328, 2560))
-        msk = transform.resize(msk, (3328, 2560))
-        # img = transform.pyramid_reduce(img, 4)
-        img = transform.pyramid_reduce(img, np.sqrt(2)*7)
-        msk = transform.pyramid_reduce(msk, np.sqrt(2)*7)
-        msk[msk < 1] = 0
-        msk[msk == 1] = 1
-        img = img * msk
-
-        img = -deformable_covolution(img, msk, kernel)
-        img = img.flatten()
-
-        feature_matrix.append(img)
-
-    feature_matrix = np.vstack(feature_matrix)
-    np.save('log_images.npy', feature_matrix)
 
 
 @analysis.command()

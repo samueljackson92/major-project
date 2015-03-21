@@ -1,12 +1,12 @@
 import math
 import os.path
 import warnings
+import scipy
 import numpy as np
 from medpy.io import load
-import skimage
 
-from scipy.ndimage import filters
-from skimage import io, transform, morphology, measure
+import skimage
+from skimage import io, transform, morphology, measure, filters
 
 
 def preprocess_image(image_path, mask_path=None):
@@ -204,7 +204,23 @@ def log_kernel(sigma):
     """
     size = sigma * 6.0 / 2
     g = gaussian_kernel(size+1, sigma)
-    log = filters.laplace(g, mode='wrap')
+    log = scipy.ndimage.filters.laplace(g, mode='wrap')
     # remove the rubbish around the edge
     log = log[1:-1, 1:-1]
     return log
+
+
+def make_mask(img):
+    """Make a mask file from an image
+
+    Uses Otsu's thresholding technique. No correction is currently made for the
+    pectoral muscle.
+
+    :param img: the image to make a mask for
+    :returns: a binary ndarray the same size as the original image
+    """
+    thresh = filters.threshold_otsu(img)
+    msk = np.zeros(img.shape)
+    msk[img > thresh] = 1
+    msk = skimage.img_as_uint(msk)
+    return msk

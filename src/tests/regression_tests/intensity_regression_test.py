@@ -12,7 +12,6 @@ class IntensityTests(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
-        # load a single patient's blobs
         img_path = get_file_path("mias/mdb154.png")
         msk_path = get_file_path("mias/masks/mdb154_mask.png")
         cls._img, cls._msk = preprocess_image(img_path, msk_path)

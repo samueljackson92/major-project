@@ -1,12 +1,12 @@
 import math
 import os.path
 import warnings
+import scipy
 import numpy as np
 from medpy.io import load
-import skimage
 
-from scipy.ndimage import filters
-from skimage import io, transform, morphology, measure
+import skimage
+from skimage import io, transform, morphology, measure, filters
 
 
 def preprocess_image(image_path, mask_path=None):
@@ -98,29 +98,6 @@ def binary_image(img, threshold):
     return binary_image
 
 
-def skeletonize_image(img, min_object_size, dilation_size=3):
-    """Convert a binary image to skeleton representation.
-
-    This will remove any small artifacts below min_object_size. Then the
-    remaining artifacts will be dilated to produce better connectivity. The
-    result is skeletonized to produce the final image.
-
-    :param min_object_size: minimum size of artifact to keep
-    :param dilation_size: radius of the disk kernel to use for dilation.
-    :returns: ndarray -- skeletonized image.
-    """
-    img = measure.label(img)
-    img = morphology.remove_small_objects(img, min_object_size, connectivity=4)
-
-    # dilate to connect bigger structures
-    dilation_kernel = morphology.disk(dilation_size)
-    img = morphology.binary_closing(img, dilation_kernel)
-
-    img[img > 0] = 1
-
-    return img
-
-
 def erode_mask(mask, kernel_func=morphology.disk, kernel_size=30):
     """Erode a mask using a kernel
 
@@ -164,8 +141,9 @@ def transform_2d(f, grid, *args):
         for value in row:
             out_value = f(value, *args)
             out_row.append(out_value)
+        out_row = np.vstack(out_row)
         out_grid.append(out_row)
-    return np.array(out_grid)
+    return np.hstack(out_grid)
 
 
 def vectorize_array(f, array, *args):
@@ -179,7 +157,7 @@ def vectorize_array(f, array, *args):
     return np.array([f(row, *args) for row in array])
 
 
-def gaussian_kernel(size, fwhm=3):
+def gaussian_kernel(size, sigma=3):
     """ Make gaussian kernel.
 
     Code based on implementation by Andrew Giessel
@@ -187,7 +165,7 @@ def gaussian_kernel(size, fwhm=3):
     Accessed: 14/03/2015
     """
 
-    fwhm = 2.355*fwhm
+    fwhm = 2.355*sigma
 
     x = np.arange(0, size, 1, float)
     y = x[:, np.newaxis]
@@ -204,7 +182,23 @@ def log_kernel(sigma):
     """
     size = sigma * 6.0 / 2
     g = gaussian_kernel(size+1, sigma)
-    log = filters.laplace(g, mode='wrap')
+    log = scipy.ndimage.filters.laplace(g, mode='wrap')
     # remove the rubbish around the edge
     log = log[1:-1, 1:-1]
     return log
+
+
+def make_mask(img):
+    """Make a mask file from an image
+
+    Uses Otsu's thresholding technique. No correction is currently made for the
+    pectoral muscle.
+
+    :param img: the image to make a mask for
+    :returns: a binary ndarray the same size as the original image
+    """
+    thresh = filters.threshold_otsu(img)
+    msk = np.zeros(img.shape)
+    msk[img > thresh] = 1
+    msk = skimage.img_as_uint(msk)
+    return msk

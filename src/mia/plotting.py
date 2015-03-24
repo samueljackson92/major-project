@@ -1,4 +1,3 @@
-import math
 import logging
 import os.path
 import matplotlib.pyplot as plt

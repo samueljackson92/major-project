@@ -1,8 +1,5 @@
 import numpy as np
 import pandas as pd
-import scipy.stats
-from skimage import exposure
-
 from mia.features.blobs import extract_blob
 
 
@@ -17,20 +14,6 @@ def detect_intensity(blobs, img):
         intensity_features.append(features)
 
     return pd.DataFrame(intensity_features)
-
-
-def _intensity_stats(img):
-    hist, bins = exposure.histogram(img)
-    hist = np.array(hist)
-    stats = np.array([hist.mean(), hist.std(),
-                      scipy.stats.skew(hist),
-                      scipy.stats.kurtosis(hist)])
-    return stats
-
-
-def _find_intensity_props(blob, img):
-    img_section = extract_blob(blob, img)
-    return _intensity_stats(img_section)
 
 
 def intensity_props(feature_set):

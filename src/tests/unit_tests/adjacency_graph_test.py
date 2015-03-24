@@ -20,5 +20,5 @@ class GraphTests(unittest.TestCase):
         assert_lists_equal(g.get_adjacents(7), [1, 7])
         assert_lists_equal(g.get_adjacents(8), [1, 2, 4, 8])
 
-        for i in range(1,10):
+        for i in range(1, 10):
             nose.tools.assert_equal(g.get_node(i), i)

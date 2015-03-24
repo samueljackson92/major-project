@@ -10,6 +10,8 @@ virtualenv:
   system_site_packages: true
 
 before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
   - bash <(wget -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas python-sklearn python-skimage
   - pip install six==1.3
@@ -23,5 +25,5 @@ install:
 
 # command to run tests
 script:
-  - nosetests -w src/tests/unit_tests --with-coverage --cover-package=mia
+  - nosetests -w src/tests --with-coverage --cover-package=mia --cover-min-percentage=90
   - pep8 src/mia --count

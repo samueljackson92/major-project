@@ -3,7 +3,7 @@ import nose.tools
 import os.path
 
 from click.testing import CliRunner
-from test_utils import get_file_path
+from ..test_utils import get_file_path
 
 
 def test_prints_version():

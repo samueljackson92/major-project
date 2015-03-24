@@ -1,6 +1,7 @@
 import click
 import logging
 import pandas as pd
+import numpy as np
 
 import mia
 
@@ -34,10 +35,12 @@ def cli(log_level):
 @click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
-def reduction(image_directory, masks_directory, output_file, birads_file,
-              num_processes):
-    mia.reduction.run_reduction(image_directory, masks_directory, output_file,
-                                num_processes)
+def reduction(image_directory, masks_directory, output_file, num_processes):
+    blobs, intensity = mia.reduction.run_multi_process(image_directory,
+                                                       masks_directory,
+                                                       num_processes)
+    blobs.to_csv(output_file + '_blobs.csv')
+    intensity.to_csv(output_file + '_intenstiy.csv')
 
 
 @cli.command()
@@ -45,7 +48,9 @@ def reduction(image_directory, masks_directory, output_file, birads_file,
 @click.argument('masks-directory', type=click.Path())
 @click.argument('output-file', type=click.Path())
 def raw_reduction(image_directory, masks_directory, output_file):
-    mia.reduction.raw_reduction(image_directory, masks_directory, output_file)
+    feature_matrix = mia.reduction.raw_reduction(image_directory,
+                                                 masks_directory)
+    np.save(output_file, feature_matrix)
 
 
 @cli.command()

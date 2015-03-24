@@ -1,12 +1,8 @@
 import unittest
 import nose.tools
 
-from scipy.ndimage import filters
-import skimage
-from skimage import io, transform
 from mia.utils import preprocess_image
 from ..test_utils import get_file_path
-import numpy as np
 
 
 class UtilsRegressionTest(unittest.TestCase):

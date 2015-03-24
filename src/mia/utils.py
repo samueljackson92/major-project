@@ -164,8 +164,9 @@ def transform_2d(f, grid, *args):
         for value in row:
             out_value = f(value, *args)
             out_row.append(out_value)
+        out_row = np.vstack(out_row)
         out_grid.append(out_row)
-    return np.array(out_grid)
+    return np.hstack(out_grid)
 
 
 def vectorize_array(f, array, *args):
@@ -179,7 +180,7 @@ def vectorize_array(f, array, *args):
     return np.array([f(row, *args) for row in array])
 
 
-def gaussian_kernel(size, fwhm=3):
+def gaussian_kernel(size, sigma=3):
     """ Make gaussian kernel.
 
     Code based on implementation by Andrew Giessel
@@ -187,7 +188,7 @@ def gaussian_kernel(size, fwhm=3):
     Accessed: 14/03/2015
     """
 
-    fwhm = 2.355*fwhm
+    fwhm = 2.355*sigma
 
     x = np.arange(0, size, 1, float)
     y = x[:, np.newaxis]

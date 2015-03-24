@@ -25,5 +25,5 @@ install:
 
 # command to run tests
 script:
-  - nosetests -w src/tests/unit_tests --with-coverage --cover-package=mia --cover-min-percentage=90
+  - nosetests -w src/tests --with-coverage --cover-package=mia --cover-min-percentage=90
   - pep8 src/mia --count

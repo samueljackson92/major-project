@@ -95,7 +95,8 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
 
 
 @_time_reduction
-def run_raw_reduction(image_directory, masks_directory, img_filter, msk_filter):
+def run_raw_reduction(image_directory, masks_directory, img_filter,
+                      msk_filter):
     """Run a raw reduction on an image dataset.
 
     :param image_directory: directory containing the images to process

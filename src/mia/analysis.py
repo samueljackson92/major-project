@@ -159,7 +159,8 @@ def _cluster_measure(group):
 #     """Add the BIRADS classes to the data frame given a file with the class
 #     labels
 #
-#     :param feature_matrix: DataFrame for features where the index is the image
+#     :param feature_matrix: DataFrame for features where the index is the imag
+#e
 #                            names
 #     :param class_labels_file: csv file containg the class labels
 #     :returns: DataFrame with the class labels added under the column 'class'

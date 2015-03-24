@@ -10,6 +10,8 @@ virtualenv:
   system_site_packages: true
 
 before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
   - bash <(wget -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas python-sklearn python-skimage
   - pip install six==1.3

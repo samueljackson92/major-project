@@ -1,14 +1,16 @@
 import numpy as np
 import os.path
+import nose.tools
 import tests
 import pandas as pd
 
 from skimage import filters, io
 
 
-def assert_lists_equal(a,b):
+def assert_lists_equal(a, b):
     """Check if two lists are equal"""
-    return len(a) == len(b) and sorted(a) == sorted(b)
+    nose.tools.assert_true(len(a) == len(b))
+    nose.tools.assert_true(sorted(a) == sorted(b))
 
 
 def load_file(file_name):

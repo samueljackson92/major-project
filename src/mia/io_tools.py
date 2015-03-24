@@ -47,9 +47,9 @@ def iterate_directories(image_directory, mask_directory,
 def iterate_directory(directory, filter_func=None):
     check_is_directory(directory)
 
-    for img_name in os.listdir(directory):
-        if filter_func is None or filter_func(img_name):
-            img_path = os.path.join(directory, img_name)
+    for img_name in sorted(os.listdir(directory)):
+        img_path = os.path.join(directory, img_name)
+        if filter_func is None or filter_func(img_path):
             yield img_path
 
 

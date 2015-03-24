@@ -9,11 +9,11 @@ Reference: Reyer Zwiggelaar, Tim C. Parr, and Christopher J. Taylor.
 """
 
 import pandas as pd
-from skimage import measure
+from skimage import measure, morphology
 
 from mia.features._orientated_bins import orientated_bins
 from mia.features._nonmaximum_suppression import nonmaximum_suppression
-from mia.utils import binary_image, skeletonize_image, erode_mask
+from mia.utils import binary_image, erode_mask
 
 
 def detect_linear(img, msk, radius=10, nbins=12, threshold=4e-2):
@@ -57,3 +57,26 @@ def extract_feature(props, image):
     he, we = props['max_row'], props['max_col']
     image_section = image[hs:he, ws:we]
     return image_section
+
+
+def skeletonize_image(img, min_object_size, dilation_size=3):
+    """Convert a binary image to skeleton representation.
+
+    This will remove any small artifacts below min_object_size. Then the
+    remaining artifacts will be dilated to produce better connectivity. The
+    result is skeletonized to produce the final image.
+
+    :param min_object_size: minimum size of artifact to keep
+    :param dilation_size: radius of the disk kernel to use for dilation.
+    :returns: ndarray -- skeletonized image.
+    """
+    img = measure.label(img)
+    img = morphology.remove_small_objects(img, min_object_size, connectivity=4)
+
+    # dilate to connect bigger structures
+    dilation_kernel = morphology.disk(dilation_size)
+    img = morphology.binary_closing(img, dilation_kernel)
+
+    img[img > 0] = 1
+
+    return img

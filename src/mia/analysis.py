@@ -160,7 +160,7 @@ def _cluster_measure(group):
 #     labels
 #
 #     :param feature_matrix: DataFrame for features where the index is the imag
-#e
+# e
 #                            names
 #     :param class_labels_file: csv file containg the class labels
 #     :returns: DataFrame with the class labels added under the column 'class'

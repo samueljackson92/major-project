@@ -16,7 +16,7 @@ LOG_LEVELS = {
 
 
 @click.group()
-@click.version_option(version='0.7.0', prog_name='mia')
+@click.version_option(version='0.8.0', prog_name='mia')
 @click.option('--log-level', default='info',
               type=click.Choice(['debug', 'info', 'warning']),
               help="Level of logging to report")

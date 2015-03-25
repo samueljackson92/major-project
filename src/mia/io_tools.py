@@ -3,33 +3,10 @@ Various IO utility functions.
 """
 
 import os
-import re
 import json
 
 
-def _image_name_filter(img_name):
-    _, ext = os.path.splitext(img_name)
-    if ext == ".png":
-        regex = re.compile("p(\d{3}-\d{3}-\d{5}-[a-z]{2})\.png")
-    else:
-        regex = re.compile("([a-zA-Z_]+\d+_c_\d)\.dcm")
-
-    return re.match(regex, img_name) is not None
-
-
-def _mask_name_filter(img_name):
-    _, ext = os.path.splitext(img_name)
-    if ext == ".png":
-        regex = re.compile("f(\d{3}-\d{3}-\d{5}-[a-z]{2})_mask\.png")
-    else:
-        regex = re.compile("([a-zA-Z_]+\d+_c_\d)_mask\.dcm")
-
-    return re.match(regex, img_name) is not None
-
-
-def iterate_directories(image_directory, mask_directory,
-                        image_filter=_image_name_filter,
-                        mask_filter=_mask_name_filter):
+def iterate_directories(image_directory, mask_directory):
     """ Iterate of a directory of images
 
     :param image_directory: the directory to iterate over.
@@ -38,8 +15,8 @@ def iterate_directories(image_directory, mask_directory,
     :returns: iterator to the image paths in the directory
     """
 
-    img_iterator = iterate_directory(image_directory, image_filter)
-    msk_iterator = iterate_directory(mask_directory, mask_filter)
+    img_iterator = iterate_directory(image_directory)
+    msk_iterator = iterate_directory(mask_directory)
     for values in zip(img_iterator, msk_iterator):
         yield values
 
@@ -49,7 +26,7 @@ def iterate_directory(directory, filter_func=None):
 
     for img_name in sorted(os.listdir(directory)):
         img_path = os.path.join(directory, img_name)
-        if filter_func is None or filter_func(img_path):
+        if check_is_file(img_path, '.png', '.dcm'):
             yield img_path
 
 
@@ -63,18 +40,14 @@ def check_is_directory(directory):
         raise ValueError("%s is not a directory" % directory)
 
 
-def check_is_image(img_path, ext):
-    """Check that the specified path is an image with the expected extension
+def check_is_file(img_path, *exts):
+    """Check that the specified path has the expected extension
 
-    :param directory: path to check if it is a image
-    :raises: ValueError
+    :param img_path: path to check if it is a image
+    :param exts: expected extensions of the file
     """
-    if not os.path.isfile(img_path):
-        raise ValueError("%s is not a file" % img_path)
-
-    if not img_path.endswith(ext):
-        raise ValueError("%s does not have the expected file extension"
-                         % img_path)
+    return os.path.isfile(img_path) and any([img_path.endswith(ext)
+                                             for ext in exts])
 
 
 def dump_mapping_to_json(mapping, columns, output_file):

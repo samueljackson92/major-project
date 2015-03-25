@@ -87,7 +87,7 @@ class AnalysisTests(unittest.TestCase):
         md_path = get_file_path("synthetic_meta_data_cleaned.csv")
         md = create_synthetic_meta_data(df, md_path)
 
-        nose.tools.assert_equal(md.shape, (df.shape[0], 17))
+        nose.tools.assert_equal(md.shape, (df.shape[0], 16))
         np.testing.assert_equal(md.index.values, df.index.values)
 
     def test_features_from_blobs(self):

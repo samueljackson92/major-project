@@ -81,7 +81,7 @@ def create_synthetic_meta_data(df, meta_data_file):
     indicies = [_split_sythentic_img_name(img_name)
                 for img_name in df.index.values]
     raw_md = pd.DataFrame.from_csv(meta_data_file)
-    md = raw_md.loc[indicies]
+    md = raw_md.loc[indicies].copy()
     md['phantom_name'] = md.index
     md.index = df.index
     return md

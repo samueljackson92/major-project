@@ -50,9 +50,6 @@ def detect_blobs(image, mask=None, max_layer=10, downscale=np.sqrt(2),
 def blob_props(feature_set):
     """Contstruct a feature matrix from a list of blobs
 
-    This will compute the # of blobs, mean radius, std, min radius, and max
-    radius for all blobs in an image.
-
     :param blobs: 3D list of blobs to compute statistics on.
     :returns: DataFrame - the feature matrix of statistics.
     """

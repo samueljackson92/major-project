@@ -1,6 +1,5 @@
 import unittest
 import nose.tools
-import os.path
 
 from mia.reduction import process_image, run_raw_reduction
 from ..test_utils import get_file_path, assert_lists_equal
@@ -29,8 +28,6 @@ class ReductionRegressionTest(unittest.TestCase):
     def test_run_raw_reduction(self):
         img_dir = get_file_path("mias/")
         msk_dir = get_file_path("mias/masks/")
-
-        filt = lambda x: os.path.isfile(x)
-        features = run_raw_reduction(img_dir, msk_dir, filt, filt)
+        features = run_raw_reduction(img_dir, msk_dir)
 
         nose.tools.assert_equal(features.shape, (2, 87283))

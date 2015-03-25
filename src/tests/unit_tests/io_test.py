@@ -22,36 +22,6 @@ class IOTests(unittest.TestCase):
             if os.path.isfile(f):
                 os.remove(f)
 
-    def test_image_name_filter_real_mammogram(self):
-        img_name = "p214-010-60001-cr.png"
-        value = mia.io_tools._image_name_filter(img_name)
-        nose.tools.assert_true(value)
-
-    def test_image_name_filter_synthetic_mammogram(self):
-        img_name = "test_Mix_DPerc0_c_0.dcm"
-        value = mia.io_tools._image_name_filter(img_name)
-        nose.tools.assert_true(value)
-
-    def test_image_name_filter_invalid_name(self):
-        img_name = "aname.png"
-        value = mia.io_tools._image_name_filter(img_name)
-        nose.tools.assert_false(value)
-
-    def test_mask_name_filter_real_mammogram(self):
-        img_name = "f214-010-60001-cr_mask.png"
-        value = mia.io_tools._mask_name_filter(img_name)
-        nose.tools.assert_true(value)
-
-    def test_mask_name_filter_synthetic_mammogram(self):
-        img_name = "test_Mix_DPerc0_c_0_mask.dcm"
-        value = mia.io_tools._mask_name_filter(img_name)
-        nose.tools.assert_true(value)
-
-    def test_mask_name_filter_invalid_name(self):
-        img_name = "aname.png"
-        value = mia.io_tools._mask_name_filter(img_name)
-        nose.tools.assert_false(value)
-
     def test_iterate_directory(self):
         img_directory = get_file_path("texture_patches")
         expected_files = ['texture1.png', 'texture2.png', 'texture3.png',
@@ -72,28 +42,28 @@ class IOTests(unittest.TestCase):
 
         expected_files = [os.path.join(img_directory, p) for p in expected_files]
 
-        dirs = list(iterate_directories(img_directory, img_directory,
-                                        None, None))
+        dirs = list(iterate_directories(img_directory, img_directory))
         nose.tools.assert_equal(len(dirs), len(expected_files))
 
         for (img_path, msk_path), expected in zip(dirs, expected_files):
             nose.tools.assert_equal(img_path, expected)
             nose.tools.assert_equal(msk_path, expected)
 
-    def test_check_is_image(self):
+    def test_check_is_file(self):
         img_path = get_file_path("texture_patches/texture1.png")
-        try:
-            check_is_image(img_path, ".png")
-        except:
-            self.fail("check_is_image raised when it shouldn't have.")
+        nose.tools.assert_true(check_is_file(img_path, ".png"))
 
-    def test_check_is_image_raises_on_wrong_extension(self):
-        img_path = get_file_path("texture_patches/texture1.png")
-        nose.tools.assert_raises(ValueError, check_is_image, img_path, ".jpg")
+    def test_check_is_file_multiple_images(self):
+        img_path = get_file_path("synthetic_patch.dcm")
+        nose.tools.assert_true(check_is_file(img_path, ".png", ".dcm"))
+
+    def test_check_is_file_wrong_extension(self):
+        img_path = get_file_path("blob_detection.csv")
+        nose.tools.assert_false(check_is_file(img_path, ".png", ".dcm"))
 
     def test_check_is_image_raises_on_not_a_file(self):
         img_path = get_file_path("texture_patches")
-        nose.tools.assert_raises(ValueError, check_is_image, img_path, ".png")
+        nose.tools.assert_false(check_is_file(img_path, ".png", ".dcm"))
 
     def test_check_is_directory(self):
         directory = get_file_path("texture_patches")

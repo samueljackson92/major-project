@@ -143,7 +143,7 @@ def plot_risk_classes_single(data_frame, column_name):
     plt.legend(loc='upper right')
 
 
-def plot_scatter_2d(data_frame, columns, labels=None, annotate=False):
+def plot_scatter_2d(data_frame, columns, labels=None, annotate=False, **kwargs):
     """ Create a scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot
@@ -156,14 +156,14 @@ def plot_scatter_2d(data_frame, columns, labels=None, annotate=False):
         raise ValueError("Number of columns must be exactly 2")
 
     ax = data_frame.plot(kind='scatter', x=columns[0], y=columns[1],
-                         c=labels, cmap=plt.cm.Spectral_r, s=50)
+                         c=labels, cmap=plt.cm.Spectral_r, **kwargs)
 
     if annotate:
         def annotate_df(row):
             ax.text(row.values[0], row.values[1], row.name, fontsize=10)
         data_frame.apply(annotate_df, axis=1)
 
-    plt.show()
+    return ax
 
 
 def plot_scatter_3d(data_frame, columns, labels=None):

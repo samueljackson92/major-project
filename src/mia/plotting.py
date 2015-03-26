@@ -143,7 +143,8 @@ def plot_risk_classes_single(data_frame, column_name):
     plt.legend(loc='upper right')
 
 
-def plot_scatter_2d(data_frame, columns, labels=None, annotate=False, **kwargs):
+def plot_scatter_2d(data_frame, columns, labels=None, annotate=False,
+                    **kwargs):
     """ Create a scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot

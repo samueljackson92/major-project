@@ -63,21 +63,32 @@ class AnalysisTests(unittest.TestCase):
         nose.tools.assert_almost_equal(distances.mean(), 5, delta=1.0)
 
     def test_create_hologic_meta_data(self):
-        md = create_hologic_meta_data(self._features)
+        BIRADS_file = get_file_path("BIRADS.csv")
+        md = create_hologic_meta_data(self._features, BIRADS_file)
 
-        nose.tools.assert_equal(md.shape, (self._features.shape[0], 3))
-        np.testing.assert_array_equal(md.columns.values, ['patient_id',
-                                                          'side', 'view'])
+        expected_columns = ['patient_id', 'side', 'view', 'img_name',
+                            'BIRADS', 'img_number'],
+        nose.tools.assert_equal(md.shape, (self._features.shape[0], 6))
+        nose.tools.assert_true(all([x == y for x, y in
+                                    zip(md.index, self._features.index)]))
+        for col in expected_columns:
+            nose.tools.assert_true(col in md.columns.values)
 
     def test_create_hologic_meta_data_raw(self):
         path = get_file_path("2015-03-05-results.csv")
+        BIRADS_file = get_file_path("BIRADS.csv")
+
         df = pd.DataFrame.from_csv(path)
         df.index = df.image_name
-        md = create_hologic_meta_data(df)
+        md = create_hologic_meta_data(df, BIRADS_file)
 
-        nose.tools.assert_equal(md.shape, (df.shape[0], 3))
-        np.testing.assert_array_equal(md.columns.values, ['patient_id',
-                                                          'side', 'view'])
+        expected_columns = ['patient_id', 'side', 'view', 'img_name',
+                            'BIRADS', 'img_number'],
+        nose.tools.assert_equal(md.shape, (df.shape[0], 6))
+        nose.tools.assert_true(all([x == y for x, y in
+                                    zip(md.index, df.index)]))
+        for col in expected_columns:
+            nose.tools.assert_true(col in md.columns.values)
 
     def test_create_synthetic_meta_data(self):
         blobs_path = get_file_path("synthetic_blobs.csv")

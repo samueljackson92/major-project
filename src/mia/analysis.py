@@ -65,16 +65,26 @@ def _cluster_measure(group):
     return distances.mean()
 
 
-def create_hologic_meta_data(df):
+def create_hologic_meta_data(df, meta_data_file):
     data = [_split_hologic_img_name(img_name) for img_name in df.index.values]
-    return pd.DataFrame(data, index=df.index, columns=['patient_id', 'side',
-                                                       'view'])
+    columns = ['patient_id', 'side', 'view']
+
+    name_meta_data = pd.DataFrame(data, columns=columns)
+    name_meta_data.index = name_meta_data.patient_id
+    name_meta_data['img_name'] = df.index.values
+
+    BIRADS_data = pd.DataFrame.from_csv(meta_data_file)
+    meta_data = name_meta_data.join(BIRADS_data, how='left', rsuffix='_r')
+    meta_data.drop('patient_id_r', axis=1, inplace=True)
+    meta_data.index = df.index
+
+    return meta_data
 
 
 def _split_hologic_img_name(name):
     img_regex = re.compile(r'p(\d{3}-\d{3}-\d{5})-([a-z])([a-z])\.png')
     m = re.match(img_regex, name)
-    return m.groups()
+    return int(m.group(1).replace('-', '')), m.group(2), m.group(3)
 
 
 def create_synthetic_meta_data(df, meta_data_file):

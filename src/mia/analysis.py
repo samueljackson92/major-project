@@ -117,3 +117,11 @@ def features_from_blobs(df):
 def features_from_intensity(df):
     features = df.groupby(df.index).apply(intensity_props)
     return features.reset_index(level=1, drop=True)
+
+
+def remove_duplicate_index(df):
+    index_name = df.index.name
+    md = df.reset_index()
+    md.drop_duplicates(index_name, inplace=True)
+    md.set_index(index_name, inplace=True)
+    return md

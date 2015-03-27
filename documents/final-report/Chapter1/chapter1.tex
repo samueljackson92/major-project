@@ -3,9 +3,64 @@
 \section{Mammography}
 Breast cancer is the leading cause of death among women and is the most common form of cancer found in women \cite{siegel2014cancer}. Early screening of breast cancer using mammography has been shown to reduce the mortality rate of women \cite{independent2012benefits, smith2014cancer}.
 Mammography is the analysis of female breast tissue through the use of X-ray radiology with the goal of producing high resolution images of the structure within the female breast. The com- position of the parenchymal patterns and tissue density revealed by in a mammographic evaluation can be used in the early detection of breast cancer.
-Qualitatively speaking the composition of breast tissue can be split into four distinct categories. These are Nodular densities (corresponding to Terminal Ductal Lobular Units (TDLUs), linear densities (corresponding to ducts, vessels, and fibrous strands), homogeneous, structureless densi- ties (corresponding to fibrous supporting tissue), and radiolucent areas (corresponding to adipose tissue). Typical markers used in the detection of cancer can are the presence of clusters of micro- calcifications, masses, architectural distortions, breast density and parenchymal patterns \cite{mccormack2006breast, sampat2005computer}.
+Qualitatively speaking the composition of breast tissue can be split into four distinct categories. These are Nodular densities (corresponding to Terminal Ductal Lobular Units (TDLUs), linear densities (corresponding to ducts, vessels, and fibrous strands), homogeneous, structureless densi- ties (corresponding to fibrous supporting tissue), and radiolucent areas (corresponding to adipose tissue)\cite{tabar2005breast}. Typical markers used in the detection of cancer can are the presence of clusters of micro- calcifications, masses, architectural distortions, breast density and parenchymal patterns \cite{mccormack2006breast, sampat2005computer}.
 
-\subsection{Risk Assessment}Mammograms provide a non-invasive means to assess the risk of a patient developing cancer given a set of mammographic images. There are multiple classification systems used in the classification of mammographic risk.The composition of breast tissue can be categorised using the Breast Imaging Reporting And Data System (BI-RADS) \cite{american1998breast}. BI-RADS classifies mammograms based on the density of tissue (and therefore risk) in the mammogram.
+\subsection{Risk Assessment}Mammograms provide a non-invasive means to assess the risk of a patient developing cancer given a set of mammographic images. Several different systems have been developed to aid the classification of mammographic risk based on the parenchymal patterns visible using X-ray mammography.
+
+\subsubsection{Wolfe}
+The earliest attempt to classify mammographic risk using parenchymal patterns was suggested the by Wolfe \cite{wolfe1976breast}. Wolfe proposed a classification system which split patients into four categories depending on the relative visible density of fat, ducts and connective tissue. The four categories are described, in order of lowest to highest risk, in ref. \cite{wolfe1976breast} as:
+
+\begin{itemize}
+	\item \textbf{N1} - Breast is mostly composed of fat with no visible ducts and very little amounts of dysplasia present. 
+	\item \textbf{P1} - The parenchyma is primarily composed of fat with up to one quarter of the breast density being composed of visible ducts in the anterior position which may extend into a quadrant.
+	\item \textbf{P2} - Breast indicates prominent duct pattern beyond one quarter of the breast that can occupy the entire parenchyma.
+	\item \textbf{DY} - Characterised by a severe increase in breast density and often appear as homogenous, missing the duct pattern present in P2 breasts.
+\end{itemize}
+
+\subsubsection{Boyd}
+Boyd et al. \cite{boyd1995quantitative} proposed a quantitive assessment of risk based on increasing classes of mammographic density, know as the six class categories (SCC). These classes are based on the proportion of dense tissue relative to the area of the breast. The six classes are:
+
+\begin{itemize}
+	\item \textless 10\% 
+	\item 10 to \textless 25\% 
+	\item 25 to \textless 50\%
+	\item 50 to \textless 75\%
+	\item $\geq$ 75\%
+\end{itemize}
+
+\subsubsection{Tab\'{a}r}
+Tab\'{a}r et al. \cite{gram1997tabar} proposed as classification scheme which classifies a breast based on the percentage presence of the four building blocks of breast composition \cite{gram1997tabar, tabar2005breast}. The description of each of the five patterns is given as:
+
+\begin{itemize}
+	\item \textbf{Pattern I} - Breast corresponding to pattern I exhibit scalloped contours and cooper's ligaments with evenly scattered TDLU's.
+	\item \textbf{Pattern II} - Complete fatty replacement of both
+	\item \textbf{Pattern III} - Prominent retroareolar duct pattern and fatty involution.
+	\item \textbf{Pattern IV} - Extensive linear and nodular densities present throughout the parenchyma.
+	\item \textbf{Pattern V} - Homogeneous, structureless fibrosis with a convex contour.
+\end{itemize}
+
+\subsubsection{BI-RADS}
+The Breast Imaging Report and Data System (BI-RADS) \cite{d1998illustrated, balleyguier2007birads} was developed by the American College of Radiology (ACR) in an attempt to standardise the lexicon used to describe mammography reports during standard screening. BI-RADS has classifies the breast based on density into four categories \cite{balleyguier2007birads}.
+
+\begin{enumerate}
+	\item Fatty Breast (\textless10\% of dense tissue)
+	\item Fibroglandular (\textless 0 - 48\% of dense tissue)
+	\item Heterogeneously dense (\textless49 - 90\% of dense tissue)
+	\item Homogeneously dense ($\geq$90\% of dense tissue)
+\end{enumerate}
+
+A radiologist will then classify the breast according to one of 7 categories after interpretation \cite{balleyguier2007birads}. These are one of:
+
+\begin{itemize}
+	\item Incomplete. Additional evaluation needed
+	\item Normal. 
+	\item Typically benign.
+	\item Probably benign. A shorter interval follow-up is recommended
+	\item Suspicious Abnormality. Biopsy considered
+	\item Highly suggestive of malignancy. Biopsy should be performed.
+	\item Histologically proven malignancy.
+\end{itemize}
+
 
 \section{Features}
 \subsection{Shape Features}

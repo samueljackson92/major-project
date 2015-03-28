@@ -21,18 +21,18 @@ def test_analysis():
 
     nose.tools.assert_equal(result.exit_code, 0)
 
-
-def test_analysis_saves_to_file():
-    runner = CliRunner()
-    path = get_file_path("blob_detection.csv")
-    with open(path, 'r') as f:
-        contents = f.read()
-
-    with runner.isolated_filesystem():
-        with open('blob_detection.csv', 'w') as f:
-            f.write(contents)
-
-        args = ['blob_detection.csv', '--output-file=output.csv']
-        result = runner.invoke(command.tSNE, args)
-        nose.tools.assert_equal(result.exit_code, 0)
-        nose.tools.assert_true(os.path.isfile('output.csv'))
+# 
+# def test_analysis_saves_to_file():
+#     runner = CliRunner()
+#     path = get_file_path("blob_detection.csv")
+#     with open(path, 'r') as f:
+#         contents = f.read()
+#
+#     with runner.isolated_filesystem():
+#         with open('blob_detection.csv', 'w') as f:
+#             f.write(contents)
+#
+#         args = ['blob_detection.csv', '--output-file=output.csv']
+#         result = runner.invoke(command.tSNE, args)
+#         nose.tools.assert_equal(result.exit_code, 0)
+#         nose.tools.assert_true(os.path.isfile('output.csv'))

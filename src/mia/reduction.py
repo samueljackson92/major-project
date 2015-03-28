@@ -12,8 +12,10 @@ from skimage import transform
 from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs
 from mia.features.intensity import detect_intensity
+from mia.features.texture import texture_from_clusters
 from mia.io_tools import iterate_directories
-from mia.utils import preprocess_image, log_kernel
+from mia.utils import (preprocess_image, log_kernel, cluster_image,
+                       clusters_from_labels, sort_clusters_by_density)
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +94,33 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
 
     props = [pd.concat(frames, ignore_index=True) for frames in feature_frames]
     return props
+
+
+@_time_reduction
+def run_texture_reduction(image_dir, mask_dir, num_processes=4):
+
+    image_dirs = iterate_directories(image_dir, mask_dir)
+    texture_features = []
+
+    for img_path, msk_path in image_dirs:
+        img, msk = preprocess_image(img_path, msk_path)
+        img_name = os.path.basename(img_path)
+
+        logger.info("Processing image %s" % img_name)
+        start = time.time()
+
+        labels = cluster_image(img)
+        clusters = clusters_from_labels(img, labels)
+        # discard the first cluster which is all zero
+        clusters = sort_clusters_by_density(clusters)[1:]
+        tex_features = texture_from_clusters(clusters)
+        tex_features.index = [img_name]
+        texture_features.append(tex_features)
+
+        end = time.time()
+        logger.info("%.2f seconds to process" % (end-start))
+
+    return pd.concat(texture_features)
 
 
 @_time_reduction

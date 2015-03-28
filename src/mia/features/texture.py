@@ -11,7 +11,7 @@ import skimage
 from skimage import feature, filters
 
 from mia.features.blobs import extract_blob
-from mia.utils import normalise_image, vectorize_array
+from mia.utils import vectorize_array
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
                  'correlation']
@@ -82,8 +82,6 @@ def compute_texture_features_from_blob(blob, image, properties,
               and distances
     """
     img_section = extract_blob(blob, image)
-    # GCLM only supports images that have values not in the 0-1 range
-    img_section = normalise_image(img_section, 0, 255)
     texture_props = glcm_features(img_section, distances, orientations,
                                   properties)
 

@@ -34,40 +34,41 @@ def _time_reduction(func):
     return inner
 
 
-def process_image(*args, **kwargs):
+def _time_image_processing(func):
+    @functools.wraps(func)
+    def inner(img_path, msk_path):
+        logger.info("Processing image %s" % os.path.basename(img_path))
+
+        start_time = time.time()
+        value = func(img_path, msk_path)
+        end_time = time.time()
+
+        logger.info("%.2f seconds to process" % (end_time - start_time))
+
+        return value
+    return inner
+
+
+@_time_image_processing
+def blob_features(image_path, mask_path):
     """Process a single image.
 
     :param image_path: the absolute file path to the image
     :param mask_path: the absolute file path to the mask
     :returns: statistics of the blobs in the image
     """
-    img_name = os.path.basename(args[0])
+    img_name = os.path.basename(image_path)
 
-    logger.info("Processing image %s" % img_name)
-    start = time.time()
+    img, msk = preprocess_image(image_path, mask_path)
+    props = detect_blobs(img, msk)
+    props['img_name'] = pd.Series([img_name] * props.shape[0])
 
-    props = _find_features(*args, **kwargs)
-
-    end = time.time()
-    logger.info("%d blobs found in image %s" % (props[0].shape[0], img_name))
-    # logger.info("%d lines found in image %s" % (props[1].shape[0], img_name))
-    logger.debug("%.2f seconds to process" % (end-start))
-
-    for df in props:
-        df['img_name'] = pd.Series([img_name]*df.shape[0])
+    logger.info("%d blobs found in image %s" % (props.shape[0], img_name))
 
     return props
 
 
-def _find_features(image_path, mask_path):
-    img, msk = preprocess_image(image_path, mask_path)
-    blobs_df = detect_blobs(img, msk)
-    # linear_df, _ = detect_linear(img, msk)
-    intensity_df = detect_intensity(blobs_df, img)
-    return [blobs_df, intensity_df]
-
-
-def multiprocess_images(args):
+def func_star(func, args):
     """Helper method for multiprocessing images.
 
     Pass the function arguments to the functions running in the child process
@@ -75,11 +76,18 @@ def multiprocess_images(args):
     :param args: arguments to the process_image function
     :returns: result of the process image function
     """
-    return process_image(*args)
+    return func(*args)
+
+
+def multi_process_images(image_function, paths, num_processes):
+    func = functools.partial(func_star, image_function)
+    multiprocessing.freeze_support()
+    pool = multiprocessing.Pool(num_processes)
+    return pool.map(func, paths)
 
 
 @_time_reduction
-def run_multi_process(image_dir, mask_dir, num_processes=4):
+def run_blob_reduction(image_dir, mask_dir, num_processes=4):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
@@ -87,13 +95,8 @@ def run_multi_process(image_dir, mask_dir, num_processes=4):
     :returns: pandas DataFrame with the features for each image
     """
     paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    multiprocessing.freeze_support()
-    pool = multiprocessing.Pool(num_processes)
-    feature_frames = pool.map(multiprocess_images, paths)
-    feature_frames = list(zip(*feature_frames))
-
-    props = [pd.concat(frames, ignore_index=True) for frames in feature_frames]
-    return props
+    features = multi_process_images(blob_features, paths, num_processes)
+    return pd.concat(features)
 
 
 @_time_reduction
@@ -121,6 +124,33 @@ def run_texture_reduction(image_dir, mask_dir, num_processes=4):
         logger.info("%.2f seconds to process" % (end-start))
 
     return pd.concat(texture_features)
+
+
+@_time_image_processing
+def intensity_features(img_path, msk_path):
+    img_name = os.path.basename(img_path)
+
+    img, msk = preprocess_image(img_path, msk_path)
+    img = img[msk == 1]
+    img_series = pd.Series(img)
+    img_described = img_series.describe()
+
+    # create dataframe of histogram features from the described series
+    stats = pd.DataFrame(img_described.as_matrix()).T
+    stats.columns = img_described.index
+    stats.index = [img_name]
+
+    stats['skew'] = img_series.skew()
+    stats['kurtosis'] = img_series.kurtosis()
+
+    return stats
+
+
+@_time_reduction
+def run_intensity_reduction(image_dir, mask_dir, num_processes=4):
+    paths = [p for p in iterate_directories(image_dir, mask_dir)]
+    features = multi_process_images(intensity_features, paths, num_processes)
+    return pd.concat(features)
 
 
 @_time_reduction

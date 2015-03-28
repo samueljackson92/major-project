@@ -3,7 +3,7 @@ import nose.tools
 import numpy as np
 
 from mia.reduction import (process_image, run_raw_reduction,
-                           run_texture_reduction)
+                           run_texture_reduction, intensity_features)
 from ..test_utils import get_file_path, assert_lists_equal
 
 
@@ -43,3 +43,8 @@ class ReductionRegressionTest(unittest.TestCase):
 
         nose.tools.assert_equal(features.shape, (2, 16))
         np.testing.assert_array_equal(features.index.values, expected_index)
+
+    def test_intensity_features(self):
+        features = intensity_features(self._img_path, self._msk_path)
+        print features
+        assert False

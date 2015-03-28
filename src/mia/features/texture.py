@@ -4,8 +4,10 @@ This module provides a collection of functions for running texture based
 features on patches of images.
 
 """
+import pandas as pd
 import numpy as np
 import scipy.stats as stats
+import skimage
 from skimage import feature, filters
 
 from mia.features.blobs import extract_blob
@@ -49,6 +51,7 @@ def glcm_features(image, distances, orientations, properties):
     :param properties: list of properties to compute from the GLCM
     :returns: matrix of features computed from the GLCM
     """
+    image = skimage.img_as_ubyte(image)
     glcm = feature.greycomatrix(image, distances, orientations)
     return np.array([feature.greycoprops(glcm, prop) for prop in properties])
 
@@ -104,3 +107,20 @@ def blob_texture_props(image, blobs, properties, distances, orientations):
     tex_props = np.hstack([tex_props.mean(axis=0), tex_props.std(axis=0),
                            tex_props.max(axis=0), tex_props.min(axis=0)])
     return tex_props
+
+
+def texture_from_clusters(clusters):
+    tex_features = []
+    for i, cluster in enumerate(clusters):
+        thetas = np.arange(0, np.pi, np.pi/8)
+        props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+        features = glcm_features(cluster, [1], thetas, props)
+        # compute mean across all orientations
+        features = np.mean(features, axis=2)
+
+        prop_suffix = '_cluster_%d' % (i+1)
+        col_names = [name + prop_suffix for name in props]
+        df = pd.DataFrame(features.T, columns=col_names)
+        tex_features.append(df)
+
+    return pd.concat(tex_features, axis=1)

@@ -6,7 +6,8 @@ import numpy as np
 from medpy.io import load
 
 import skimage
-from skimage import io, transform, morphology, measure, filters
+from skimage import io, transform, morphology, filters
+from sklearn import cluster
 
 
 def preprocess_image(image_path, mask_path=None):
@@ -202,3 +203,31 @@ def make_mask(img):
     msk[img > thresh] = 1
     msk = skimage.img_as_uint(msk)
     return msk
+
+
+def cluster_image(img, n_clusters=5):
+    kmeans = cluster.KMeans(n_clusters=n_clusters, n_init=5)
+    X = img.reshape(img.size, 1)
+    labels = kmeans.fit_predict(X)
+    labels = labels.reshape(img.shape)
+    return labels
+
+
+def clusters_from_labels(img, labels):
+    clusters = []
+    for i in np.unique(labels):
+        img_cluster = img.copy()
+        img_cluster[labels != i] = 0
+        clusters.append(img_cluster)
+
+    return np.array(clusters)
+
+
+def sort_clusters_by_density(clusters):
+    totals = []
+    for c in clusters:
+        if np.count_nonzero(c) > 0:
+            totals.append(np.mean(c[np.nonzero(c)]))
+        else:
+            totals.append(0)
+    return clusters[np.argsort(totals)]

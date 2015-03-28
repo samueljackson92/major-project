@@ -84,3 +84,19 @@ class TextureRegressionTest(unittest.TestCase):
         tex_props = blob_texture_props(self._img, blobs, properties,
                                        distances, orientations)
         nose.tools.assert_equal(tex_props.shape, (20,))
+
+    def test_texture_from_clusters(self):
+        img_path = get_file_path("mias/mdb154.png")
+        msk_path = get_file_path("mias/masks/mdb154_mask.png")
+        img, msk = preprocess_image(img_path, msk_path)
+
+        labels = cluster_image(img)
+        clusters = clusters_from_labels(img, labels)
+        srtd_clusters = sort_clusters_by_density(clusters)[1:]
+        tex_features = texture_from_clusters(srtd_clusters)
+
+        props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+        expected_cols = [prop + '_cluster_%d' % (i+1)
+                         for i in range(clusters[1:].shape[0]) for prop in props]
+        nose.tools.assert_equal(tex_features.shape, (1, 16))
+        np.testing.assert_array_equal(tex_features.columns.values, expected_cols)

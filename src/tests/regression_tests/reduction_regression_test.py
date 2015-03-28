@@ -1,7 +1,9 @@
 import unittest
 import nose.tools
+import numpy as np
 
-from mia.reduction import process_image, run_raw_reduction
+from mia.reduction import (process_image, run_raw_reduction,
+                           run_texture_reduction)
 from ..test_utils import get_file_path, assert_lists_equal
 
 
@@ -31,3 +33,13 @@ class ReductionRegressionTest(unittest.TestCase):
         features = run_raw_reduction(img_dir, msk_dir)
 
         nose.tools.assert_equal(features.shape, (2, 87283))
+
+    def test_run_texture_reduction(self):
+        img_dir = get_file_path("mias/")
+        msk_dir = get_file_path("mias/masks/")
+        features = run_texture_reduction(img_dir, msk_dir)
+
+        expected_index = ['mdb154.png', 'mdb158.png']
+
+        nose.tools.assert_equal(features.shape, (2, 16))
+        np.testing.assert_array_equal(features.index.values, expected_index)

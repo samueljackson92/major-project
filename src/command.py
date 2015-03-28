@@ -47,17 +47,25 @@ def reduction(image_directory, masks_directory, output_file, num_processes):
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
 @click.argument('output-file', type=click.Path())
+@click.option('--num-processes', default=2,
+              help="Num of processes to use for the reduction.")
+def texture_reduction(image_directory, masks_directory, output_file,
+                      num_processes):
+    features = mia.reduction.run_texture_reduction(image_directory,
+                                                   masks_directory,
+                                                   num_processes)
+    features.to_csv(output_file)
+
+
+@cli.command()
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
+@click.argument('output-file', type=click.Path())
 def raw_reduction(image_directory, masks_directory, output_file):
     feature_matrix = mia.reduction.raw_reduction(image_directory,
                                                  masks_directory)
     np.save(output_file, feature_matrix)
 
-
-@cli.command()
-@click.argument('csv-file', type=click.Path())
-@click.argument('output-file', type=click.Path())
-def feature_statistics(csv_file, output_file):
-    mia.reduction.feature_statistics(csv_file, output_file)
 
 
 @cli.command()

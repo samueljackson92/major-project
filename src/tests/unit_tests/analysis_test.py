@@ -109,15 +109,15 @@ class AnalysisTests(unittest.TestCase):
         features = features_from_blobs(df)
 
         nose.tools.assert_equal(features.shape, (360, 12))
-
-    def test_features_from_intensity(self):
-        path = get_file_path("2015-03-05-results.csv")
-        df = pd.DataFrame.from_csv(path)
-        df.index = df.image_name
-
-        features = features_from_intensity(df)
-
-        nose.tools.assert_equal(features.shape, (360, 8))
+    # 
+    # def test_features_from_intensity(self):
+    #     path = get_file_path("2015-03-05-results.csv")
+    #     df = pd.DataFrame.from_csv(path)
+    #     df.index = df.image_name
+    #
+    #     features = features_from_intensity(df)
+    #
+    #     nose.tools.assert_equal(features.shape, (360, 8))
 
     def test_remove_duplicate_index(self):
         path = get_file_path("2015-03-05-results.csv")

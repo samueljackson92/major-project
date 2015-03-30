@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import skimage
-from skimage import feature, filters
+from skimage import feature, filters, util
 
 from mia.features.blobs import extract_blob
 from mia.utils import vectorize_array
@@ -52,7 +52,7 @@ def glcm_features(image, distances, orientations, properties):
     :returns: matrix of features computed from the GLCM
     """
     image = skimage.img_as_ubyte(image)
-    glcm = feature.greycomatrix(image, distances, orientations)
+    glcm = feature.greycomatrix(image, distances, orientations, normed=True)
     return np.array([feature.greycoprops(glcm, prop) for prop in properties])
 
 
@@ -108,16 +108,18 @@ def blob_texture_props(image, blobs, properties, distances, orientations):
 
 
 def texture_from_clusters(clusters):
+    thetas = np.arange(0, np.pi, np.pi/8)
+    props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+
     tex_features = []
     for i, cluster in enumerate(clusters):
-        thetas = np.arange(0, np.pi, np.pi/8)
-        props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+        prop_suffix = '_cluster_%d' % (i+1)
+        col_names = [name + prop_suffix for name in props]
+
         features = glcm_features(cluster, [1], thetas, props)
         # compute mean across all orientations
         features = np.mean(features, axis=2)
 
-        prop_suffix = '_cluster_%d' % (i+1)
-        col_names = [name + prop_suffix for name in props]
         df = pd.DataFrame(features.T, columns=col_names)
         tex_features.append(df)
 

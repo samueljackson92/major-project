@@ -29,51 +29,68 @@ def cli(log_level):
 ###############################################################################
 
 
-@cli.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-@click.argument('output-file', type=click.Path())
-@click.option('--num-processes', default=2,
-              help="Num of processes to use for the reduction.")
-def blob_reduction(image_directory, masks_directory, output_file, num_processes):
-    blobs = mia.reduction.run_blob_reduction(image_directory,
-                                             masks_directory,
-                                             num_processes)
-    blobs.to_csv(output_file + '_blobs.csv')
+@cli.group()
+def reduction():
+    pass
 
-@cli.command()
+
+@reduction.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
 @click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
-def texture_reduction(image_directory, masks_directory, output_file,
-                      num_processes):
-    features = mia.reduction.run_texture_reduction(image_directory,
-                                                   masks_directory,
-                                                   num_processes)
+def blob(image_directory, masks_directory, output_file, num_processes):
+    features = mia.reduction.blob_reduction(image_directory, masks_directory,
+                                            num_processes)
     features.to_csv(output_file)
 
 
-@cli.command()
+@reduction.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
 @click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
-def intensity_reduction(image_directory, masks_directory, output_file,
-                        num_processes):
-    features = mia.reduction.run_intensity_reduction(image_directory,
-                                                     masks_directory,
-                                                     num_processes)
+def texture(image_directory, masks_directory, output_file, num_processes):
+    features = mia.reduction.texture_reduction(image_directory,
+                                               masks_directory,
+                                               num_processes)
     features.to_csv(output_file)
 
 
-@cli.command()
+@reduction.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
 @click.argument('output-file', type=click.Path())
-def raw_reduction(image_directory, masks_directory, output_file):
+@click.option('--num-processes', default=2,
+              help="Num of processes to use for the reduction.")
+def texture_cluster(image_directory, masks_directory, output_file,
+                    num_processes):
+    features = mia.reduction.texture_cluster_reduction(image_directory,
+                                                       masks_directory,
+                                                       num_processes)
+    features.to_csv(output_file)
+
+
+@reduction.command()
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
+@click.argument('output-file', type=click.Path())
+@click.option('--num-processes', default=2,
+              help="Num of processes to use for the reduction.")
+def intensity(image_directory, masks_directory, output_file, num_processes):
+    features = mia.reduction.intensity_reduction(image_directory,
+                                                 masks_directory,
+                                                 num_processes)
+    features.to_csv(output_file)
+
+
+@reduction.command()
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
+@click.argument('output-file', type=click.Path())
+def raw(image_directory, masks_directory, output_file):
     feature_matrix = mia.reduction.raw_reduction(image_directory,
                                                  masks_directory)
     np.save(output_file, feature_matrix)

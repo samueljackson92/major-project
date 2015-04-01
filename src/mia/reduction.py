@@ -13,7 +13,8 @@ from itertools import repeat
 from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs
 from mia.features.intensity import detect_intensity, intensity_props
-from mia.features.texture import texture_from_clusters, glcm_features
+from mia.features.texture import (texture_from_clusters, glcm_features,
+                                  detect_texture)
 from mia.io_tools import iterate_directories
 from mia.utils import (preprocess_image, log_kernel, cluster_image,
                        clusters_from_labels, sort_clusters_by_density)
@@ -79,6 +80,11 @@ def intensity_reduction(*args, **kwargs):
 @_time_reduction
 def intensity_from_blobs(*args, **kwargs):
     return multi_process_images(blob_intensity_features, *args, **kwargs)
+
+
+@_time_reduction
+def texture_from_blobs(*args, **kwargs):
+    return multi_process_images(blob_texture_features, *args, **kwargs)
 
 
 @_time_reduction
@@ -203,6 +209,21 @@ def blob_intensity_features(img_path, msk_path, blobs_frame):
     return intensity_props
 
 
+@_time_image_processing
+def blob_texture_features(img_path, msk_path, blobs_frame):
+    img, msk = preprocess_image(img_path, msk_path)
+    img_name = os.path.basename(img_path)
+
+    blobs = blobs_frame.loc[img_name]
+    blobs = blobs[['x', 'y', 'radius']]
+
+    logger.info("Detecting texture features in %d blobs" % blobs.shape[0])
+
+    texture_props = detect_texture(img, blobs.as_matrix())
+    texture_props.index = pd.Series([img_name] * texture_props.shape[0])
+    return texture_props
+
+
 def func_star(func, args):
     """Helper method for multiprocessing images.
 
@@ -217,7 +238,7 @@ def func_star(func, args):
 def multi_process_images(image_function, image_dir, mask_dir, *args, **kwargs):
     paths = [p for p in iterate_directories(image_dir, mask_dir)]
     func, func_args = _prepare_function_for_mapping(image_function, paths,
-                                                    args, kwargs)
+                                                    args)
     multiprocessing.freeze_support()
     pool = multiprocessing.Pool(kwargs['num_processes'])
     frames = pool.map(func, func_args)
@@ -225,13 +246,12 @@ def multi_process_images(image_function, image_dir, mask_dir, *args, **kwargs):
     return pd.concat(frames)
 
 
-def _prepare_function_for_mapping(image_function, paths, args, kwargs):
+def _prepare_function_for_mapping(image_function, paths, args):
     """Prepare a function for use with multiprocessing.
 
     This will prepare the arguments for the function ina representation that
     can be mapped via multiprocessing.
     """
     func = functools.partial(func_star, image_function)
-    func_args = [tup + arg + kwarg for tup, arg, kwarg in
-                 zip(paths, repeat(args), repeat(kwargs))]
+    func_args = [tup + arg for tup, arg in zip(paths, repeat(args))]
     return func, func_args

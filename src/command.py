@@ -114,6 +114,23 @@ def intensity_from_blobs(image_directory, masks_directory, blobs_file,
     features.to_csv(output_file)
 
 
+@reduction.command()
+@click.argument('image-directory', type=click.Path())
+@click.argument('masks-directory', type=click.Path())
+@click.argument('blobs_file', type=click.Path())
+@click.argument('output-file', type=click.Path())
+@click.option('--num-processes', default=2,
+              help="Num of processes to use for the reduction.")
+def texture_from_blobs(image_directory, masks_directory, blobs_file,
+                       output_file, num_processes):
+    blobs_frame = pd.DataFrame.from_csv(blobs_file)
+    features = mia.reduction.texture_from_blobs(image_directory,
+                                                masks_directory,
+                                                blobs_frame,
+                                                num_processes=num_processes)
+    features.to_csv(output_file)
+
+
 @cli.command()
 @click.argument('image-file', type=click.Path())
 @click.argument('mask-file', required=False, type=click.Path())

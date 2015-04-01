@@ -2,9 +2,7 @@ import unittest
 import nose.tools
 import numpy as np
 
-from mia.reduction import (raw_reduction, blob_features,
-                           intensity_features, texture_features,
-                           texture_cluster_features)
+from mia.reduction import *
 from ..test_utils import get_file_path, assert_lists_equal
 
 
@@ -18,11 +16,8 @@ class ReductionRegressionTest(unittest.TestCase):
     def test_process_image_real_mammogram(self):
         blobs_df = blob_features(self._img_path, self._msk_path)
 
-        nose.tools.assert_equal(blobs_df.shape[1], 13)
-        blob_columns = ['x', 'y', 'radius', 'count', 'mean',
-                        'std', 'min', '25%', '50%', '75%', 'max',
-                        'skew', 'kurtosis']
-
+        blob_columns = ['x', 'y', 'radius']
+        nose.tools.assert_equal(blobs_df.shape[1], 3)
         assert_lists_equal(blobs_df.columns.values, blob_columns)
 
     def test_raw_reduction(self):

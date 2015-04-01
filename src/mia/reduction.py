@@ -143,14 +143,10 @@ def blob_features(image_path, mask_path):
     img, msk = preprocess_image(image_path, mask_path)
     blob_props = detect_blobs(img, msk)
     blob_props.index = pd.Series([img_name] * blob_props.shape[0])
-    intensity_props = detect_intensity(img, blob_props.as_matrix())
-    intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
 
-    props = pd.concat([blob_props, intensity_props], axis=1)
+    logger.info("%d blobs found in image %s" % (blob_props.shape[0], img_name))
 
-    logger.info("%d blobs found in image %s" % (props.shape[0], img_name))
-
-    return props
+    return blob_props
 
 
 @_time_image_processing

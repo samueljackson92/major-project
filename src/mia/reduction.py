@@ -7,7 +7,8 @@ import functools
 import numpy as np
 import pandas as pd
 import multiprocessing
-from skimage import transform, util
+from skimage import transform
+from itertools import repeat
 
 from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs
@@ -36,11 +37,11 @@ def _time_reduction(func):
 
 def _time_image_processing(func):
     @functools.wraps(func)
-    def inner(img_path, msk_path):
-        logger.info("Processing image %s" % os.path.basename(img_path))
+    def inner(*args, **kwargs):
+        logger.info("Processing image %s" % os.path.basename(args[0]))
 
         start_time = time.time()
-        value = func(img_path, msk_path)
+        value = func(*args, **kwargs)
         end_time = time.time()
 
         logger.info("%.2f seconds to process" % (end_time - start_time))
@@ -50,39 +51,34 @@ def _time_image_processing(func):
 
 
 @_time_reduction
-def blob_reduction(image_dir, mask_dir, num_processes=4):
+def blob_reduction(*args, **kwargs):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
     :param mask_dir: mask directory where the data set is stored
     :returns: pandas DataFrame with the features for each image
     """
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(blob_features, paths, num_processes)
-    return pd.concat(features)
+    return multi_process_images(blob_features, *args, **kwargs)
 
 
 @_time_reduction
-def texture_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(texture_features,
-                                    paths, num_processes)
-    return pd.concat(features)
+def texture_reduction(*args, **kwargs):
+    return multi_process_images(texture_features, *args, **kwargs)
 
 
 @_time_reduction
-def texture_cluster_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(texture_cluster_features,
-                                    paths, num_processes)
-    return pd.concat(features)
+def texture_cluster_reduction(*args, **kwargs):
+    return multi_process_images(texture_cluster_features, *args, **kwargs)
 
 
 @_time_reduction
-def intensity_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(intensity_features, paths, num_processes)
-    return pd.concat(features)
+def intensity_reduction(*args, **kwargs):
+    return multi_process_images(intensity_features, *args, **kwargs)
+
+
+@_time_reduction
+def intensity_from_blobs(*args, **kwargs):
+    return multi_process_images(blob_intensity_features, *args, **kwargs)
 
 
 @_time_reduction
@@ -203,8 +199,24 @@ def func_star(func, args):
     return func(*args)
 
 
-def multi_process_images(image_function, paths, num_processes):
-    func = functools.partial(func_star, image_function)
+def multi_process_images(image_function, image_dir, mask_dir, *args, **kwargs):
+    paths = [p for p in iterate_directories(image_dir, mask_dir)]
+    func, func_args = _prepare_function_for_mapping(image_function, paths,
+                                                    args, kwargs)
     multiprocessing.freeze_support()
-    pool = multiprocessing.Pool(num_processes)
-    return pool.map(func, paths)
+    pool = multiprocessing.Pool(kwargs['num_processes'])
+    frames = pool.map(func, func_args)
+
+    return pd.concat(frames)
+
+
+def _prepare_function_for_mapping(image_function, paths, args, kwargs):
+    """Prepare a function for use with multiprocessing.
+
+    This will prepare the arguments for the function ina representation that
+    can be mapped via multiprocessing.
+    """
+    func = functools.partial(func_star, image_function)
+    func_args = [tup + arg + kwarg for tup, arg, kwarg in
+                 zip(paths, repeat(args), repeat(kwargs))]
+    return func, func_args

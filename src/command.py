@@ -42,7 +42,7 @@ def reduction():
               help="Num of processes to use for the reduction.")
 def blob(image_directory, masks_directory, output_file, num_processes):
     features = mia.reduction.blob_reduction(image_directory, masks_directory,
-                                            num_processes)
+                                            num_processes=num_processes)
     features.to_csv(output_file)
 
 
@@ -55,7 +55,7 @@ def blob(image_directory, masks_directory, output_file, num_processes):
 def texture(image_directory, masks_directory, output_file, num_processes):
     features = mia.reduction.texture_reduction(image_directory,
                                                masks_directory,
-                                               num_processes)
+                                               num_processes=num_processes)
     features.to_csv(output_file)
 
 
@@ -67,9 +67,10 @@ def texture(image_directory, masks_directory, output_file, num_processes):
               help="Num of processes to use for the reduction.")
 def texture_cluster(image_directory, masks_directory, output_file,
                     num_processes):
-    features = mia.reduction.texture_cluster_reduction(image_directory,
-                                                       masks_directory,
-                                                       num_processes)
+    features = \
+        mia.reduction.texture_cluster_reduction(image_directory,
+                                                masks_directory,
+                                                num_processes=num_processes)
     features.to_csv(output_file)
 
 
@@ -82,7 +83,7 @@ def texture_cluster(image_directory, masks_directory, output_file,
 def intensity(image_directory, masks_directory, output_file, num_processes):
     features = mia.reduction.intensity_reduction(image_directory,
                                                  masks_directory,
-                                                 num_processes)
+                                                 num_processes=num_processes)
     features.to_csv(output_file)
 
 

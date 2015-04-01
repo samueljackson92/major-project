@@ -8,13 +8,33 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import skimage
-from skimage import feature, filters, util
+from skimage import feature, filters
 
 from mia.features.blobs import extract_blob
 from mia.utils import vectorize_array
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
                  'correlation']
+
+
+def detect_texture(img, blobs):
+    def _extract_texture(blob):
+        return pd.concat([pd.DataFrame([blob], columns=['x', 'y', 'radius']),
+                          texture_props(extract_blob(blob, img))], axis=1)
+
+    frames = map(_extract_texture, blobs)
+    return pd.concat(frames)
+
+
+def texture_props(img_blob):
+    thetas = np.arange(0, np.pi, np.pi/8)
+    props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+
+    features = glcm_features(img_blob, [1], thetas, props)
+    # compute mean across all orientations
+    features = np.mean(features, axis=2)
+
+    return pd.DataFrame(features.T, columns=props)
 
 
 def gabor_features(image, frequencies, orientations):

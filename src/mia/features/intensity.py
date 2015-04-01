@@ -3,14 +3,12 @@ from mia.features.blobs import extract_blob
 
 
 def detect_intensity(img, blobs):
+    def _extract_intensity(blob):
+        return pd.concat([pd.DataFrame([blob], columns=['x', 'y', 'radius']),
+                          intensity_props(extract_blob(blob, img))], axis=1)
 
-    intensity_features = []
-    for blob in blobs:
-        img_blob = extract_blob(blob, img)
-        stats = intensity_props(img_blob)
-        intensity_features.append(stats)
-
-    return pd.concat(intensity_features)
+    frames = map(_extract_intensity, blobs)
+    return pd.concat(frames)
 
 
 def intensity_props(img):

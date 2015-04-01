@@ -7,12 +7,14 @@ import functools
 import numpy as np
 import pandas as pd
 import multiprocessing
-from skimage import transform, util
+from skimage import transform
+from itertools import repeat
 
 from convolve_tools import deformable_covolution
 from mia.features.blobs import detect_blobs
 from mia.features.intensity import detect_intensity, intensity_props
-from mia.features.texture import texture_from_clusters, glcm_features
+from mia.features.texture import (texture_from_clusters, glcm_features,
+                                  detect_texture)
 from mia.io_tools import iterate_directories
 from mia.utils import (preprocess_image, log_kernel, cluster_image,
                        clusters_from_labels, sort_clusters_by_density)
@@ -36,11 +38,11 @@ def _time_reduction(func):
 
 def _time_image_processing(func):
     @functools.wraps(func)
-    def inner(img_path, msk_path):
-        logger.info("Processing image %s" % os.path.basename(img_path))
+    def inner(*args, **kwargs):
+        logger.info("Processing image %s" % os.path.basename(args[0]))
 
         start_time = time.time()
-        value = func(img_path, msk_path)
+        value = func(*args, **kwargs)
         end_time = time.time()
 
         logger.info("%.2f seconds to process" % (end_time - start_time))
@@ -50,39 +52,39 @@ def _time_image_processing(func):
 
 
 @_time_reduction
-def blob_reduction(image_dir, mask_dir, num_processes=4):
+def blob_reduction(*args, **kwargs):
     """Process a collection of images using multiple process
 
     :param image_dir: image directory where the data set is stored
     :param mask_dir: mask directory where the data set is stored
     :returns: pandas DataFrame with the features for each image
     """
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(blob_features, paths, num_processes)
-    return pd.concat(features)
+    return multi_process_images(blob_features, *args, **kwargs)
 
 
 @_time_reduction
-def texture_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(texture_features,
-                                    paths, num_processes)
-    return pd.concat(features)
+def texture_reduction(*args, **kwargs):
+    return multi_process_images(texture_features, *args, **kwargs)
 
 
 @_time_reduction
-def texture_cluster_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(texture_cluster_features,
-                                    paths, num_processes)
-    return pd.concat(features)
+def texture_cluster_reduction(*args, **kwargs):
+    return multi_process_images(texture_cluster_features, *args, **kwargs)
 
 
 @_time_reduction
-def intensity_reduction(image_dir, mask_dir, num_processes=4):
-    paths = [p for p in iterate_directories(image_dir, mask_dir)]
-    features = multi_process_images(intensity_features, paths, num_processes)
-    return pd.concat(features)
+def intensity_reduction(*args, **kwargs):
+    return multi_process_images(intensity_features, *args, **kwargs)
+
+
+@_time_reduction
+def intensity_from_blobs(*args, **kwargs):
+    return multi_process_images(blob_intensity_features, *args, **kwargs)
+
+
+@_time_reduction
+def texture_from_blobs(*args, **kwargs):
+    return multi_process_images(blob_texture_features, *args, **kwargs)
 
 
 @_time_reduction
@@ -141,14 +143,10 @@ def blob_features(image_path, mask_path):
     img, msk = preprocess_image(image_path, mask_path)
     blob_props = detect_blobs(img, msk)
     blob_props.index = pd.Series([img_name] * blob_props.shape[0])
-    intensity_props = detect_intensity(img, blob_props.as_matrix())
-    intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
 
-    props = pd.concat([blob_props, intensity_props], axis=1)
+    logger.info("%d blobs found in image %s" % (blob_props.shape[0], img_name))
 
-    logger.info("%d blobs found in image %s" % (props.shape[0], img_name))
-
-    return props
+    return blob_props
 
 
 @_time_image_processing
@@ -192,6 +190,36 @@ def texture_cluster_features(img_path, msk_path):
     return tex_features
 
 
+@_time_image_processing
+def blob_intensity_features(img_path, msk_path, blobs_frame):
+    img, msk = preprocess_image(img_path, msk_path)
+    img_name = os.path.basename(img_path)
+
+    blobs = blobs_frame.loc[img_name]
+    blobs = blobs[['x', 'y', 'radius']]
+
+    logger.info("Detecting intensity features in %d blobs" % blobs.shape[0])
+
+    intensity_props = detect_intensity(img, blobs.as_matrix())
+    intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
+    return intensity_props
+
+
+@_time_image_processing
+def blob_texture_features(img_path, msk_path, blobs_frame):
+    img, msk = preprocess_image(img_path, msk_path)
+    img_name = os.path.basename(img_path)
+
+    blobs = blobs_frame.loc[img_name]
+    blobs = blobs[['x', 'y', 'radius']]
+
+    logger.info("Detecting texture features in %d blobs" % blobs.shape[0])
+
+    texture_props = detect_texture(img, blobs.as_matrix())
+    texture_props.index = pd.Series([img_name] * texture_props.shape[0])
+    return texture_props
+
+
 def func_star(func, args):
     """Helper method for multiprocessing images.
 
@@ -203,8 +231,23 @@ def func_star(func, args):
     return func(*args)
 
 
-def multi_process_images(image_function, paths, num_processes):
-    func = functools.partial(func_star, image_function)
+def multi_process_images(image_function, image_dir, mask_dir, *args, **kwargs):
+    paths = [p for p in iterate_directories(image_dir, mask_dir)]
+    func, func_args = _prepare_function_for_mapping(image_function, paths,
+                                                    args)
     multiprocessing.freeze_support()
-    pool = multiprocessing.Pool(num_processes)
-    return pool.map(func, paths)
+    pool = multiprocessing.Pool(kwargs['num_processes'])
+    frames = pool.map(func, func_args)
+
+    return pd.concat(frames)
+
+
+def _prepare_function_for_mapping(image_function, paths, args):
+    """Prepare a function for use with multiprocessing.
+
+    This will prepare the arguments for the function ina representation that
+    can be mapped via multiprocessing.
+    """
+    func = functools.partial(func_star, image_function)
+    func_args = [tup + arg for tup, arg in zip(paths, repeat(args))]
+    return func, func_args

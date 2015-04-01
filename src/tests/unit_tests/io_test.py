@@ -79,8 +79,7 @@ class IOTests(unittest.TestCase):
     def test_dump_mapping_to_json(self):
         output_file = 'test_data.json'
         mapping = pd.DataFrame(np.ones((10, 2)), columns=['x', 'y'])
-        mapping['class'] = np.zeros(10)
-        dump_mapping_to_json(mapping, ['x', 'y'], output_file)
+        dump_mapping_to_json(mapping, ['x', 'y'], np.zeros(10), output_file)
 
         nose.tools.assert_true(os.path.isfile(output_file))
 
@@ -88,7 +87,7 @@ class IOTests(unittest.TestCase):
             data = json.load(f)
 
         nose.tools.assert_equal(len(data), 1)
-        nose.tools.assert_equal(data[0]['name'], 'BI-RADS Class 0')
+        nose.tools.assert_equal(data[0]['name'], 'Class: 0')
         nose.tools.assert_equal(len(data[0]['data']), 10)
 
         self._output_files.append(output_file)

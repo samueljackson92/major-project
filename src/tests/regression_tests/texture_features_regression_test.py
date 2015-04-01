@@ -1,7 +1,7 @@
 import unittest
 import nose.tools
 
-from mia.features.linear_structure import detect_linear, extract_feature
+from mia.features.linear_structure import detect_linear, extract_line
 from mia.features.blobs import detect_blobs
 from mia.features.texture import *
 from mia.utils import *
@@ -40,7 +40,7 @@ class TextureRegressionTest(unittest.TestCase):
         frequencies = np.arange(0.1, 5.0)
 
         for i, props in regions.iterrows():
-            image_section = extract_feature(props, self._img)
+            image_section = extract_line(props, self._img)
             gabor_magnitudes = gabor_features(image_section, frequencies, orientations)
             stats = image_orthotope_statistics(gabor_magnitudes)
 
@@ -70,7 +70,7 @@ class TextureRegressionTest(unittest.TestCase):
         distances = [1,2,4,8]
 
         for i, props in regions.iterrows():
-            image_section = extract_feature(props, self._img)
+            image_section = extract_line(props, self._img)
             features = glcm_features(image_section, distances, orientations, properties)
             nose.tools.assert_equals(features.shape, (2,4,8))
 

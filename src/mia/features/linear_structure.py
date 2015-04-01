@@ -13,7 +13,7 @@ from skimage import measure, morphology
 
 from mia.features._orientated_bins import orientated_bins
 from mia.features._nonmaximum_suppression import nonmaximum_suppression
-from mia.utils import binary_image, erode_mask
+from mia.utils import binary_image
 
 
 def detect_linear(img, msk, radius=10, nbins=12, threshold=4e-2):
@@ -27,10 +27,6 @@ def detect_linear(img, msk, radius=10, nbins=12, threshold=4e-2):
     :returns: tuple -- containing (line_image, regions)
     """
     line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
-
-    msk = erode_mask(msk, kernel_size=10)
-    line_strength = line_strength * msk
-
     line_strength_suppressed = nonmaximum_suppression(line_strength,
                                                       line_orientation, nbins)
 
@@ -46,7 +42,7 @@ def detect_linear(img, msk, radius=10, nbins=12, threshold=4e-2):
                                            'max_row', 'max_col']), line_image
 
 
-def extract_feature(props, image):
+def extract_line(props, image):
     """ Extract the area of an image belonging to a feature given a bounding box
 
     :param props: the properties of the region

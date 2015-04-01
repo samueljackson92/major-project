@@ -188,6 +188,21 @@ def texture_cluster_features(img_path, msk_path):
     return tex_features
 
 
+@_time_image_processing
+def blob_intensity_features(img_path, msk_path, blobs_frame):
+    img, msk = preprocess_image(img_path, msk_path)
+    img_name = os.path.basename(img_path)
+
+    blobs = blobs_frame.loc[img_name]
+    blobs = blobs[['x', 'y', 'radius']]
+
+    logger.info("Detecting intensity features in %d blobs" % blobs.shape[0])
+
+    intensity_props = detect_intensity(img, blobs.as_matrix())
+    intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
+    return intensity_props
+
+
 def func_star(func, args):
     """Helper method for multiprocessing images.
 

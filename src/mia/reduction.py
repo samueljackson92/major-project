@@ -11,6 +11,7 @@ from skimage import transform
 from itertools import repeat
 
 from convolve_tools import deformable_covolution
+from mia.features.linear_structure import detect_linear
 from mia.features.blobs import detect_blobs
 from mia.features.intensity import detect_intensity, intensity_props
 from mia.features.texture import (texture_from_clusters, glcm_features,
@@ -63,6 +64,11 @@ def blob_reduction(*args, **kwargs):
 
 
 @_time_reduction
+def line_reduction(*args, **kwargs):
+    return multi_process_images(line_features, *args, **kwargs)
+
+
+@_time_reduction
 def texture_reduction(*args, **kwargs):
     return multi_process_images(texture_features, *args, **kwargs)
 
@@ -78,13 +84,13 @@ def intensity_reduction(*args, **kwargs):
 
 
 @_time_reduction
-def intensity_from_blobs(*args, **kwargs):
-    return multi_process_images(blob_intensity_features, *args, **kwargs)
+def intensity_from_patches(*args, **kwargs):
+    return multi_process_images(patch_intensity_features, *args, **kwargs)
 
 
 @_time_reduction
-def texture_from_blobs(*args, **kwargs):
-    return multi_process_images(blob_texture_features, *args, **kwargs)
+def texture_from_patches(*args, **kwargs):
+    return multi_process_images(patch_texture_features, *args, **kwargs)
 
 
 @_time_reduction
@@ -143,10 +149,25 @@ def blob_features(image_path, mask_path):
     img, msk = preprocess_image(image_path, mask_path)
     blob_props = detect_blobs(img, msk)
     blob_props.index = pd.Series([img_name] * blob_props.shape[0])
+    blob_props['breast_area'] = np.count_nonzero(msk)
 
     logger.info("%d blobs found in image %s" % (blob_props.shape[0], img_name))
 
     return blob_props
+
+
+@_time_image_processing
+def line_features(image_path, mask_path):
+    img, msk = preprocess_image(image_path, mask_path)
+    img_name = os.path.basename(image_path)
+
+    line_props, _ = detect_linear(img, msk)
+    line_props.index = pd.Series([img_name] * line_props.shape[0])
+    line_props['breast_area'] = np.count_nonzero(msk)
+
+    logger.info("%d blobs found in image %s" % (line_props.shape[0], img_name))
+
+    return line_props
 
 
 @_time_image_processing
@@ -191,31 +212,28 @@ def texture_cluster_features(img_path, msk_path):
 
 
 @_time_image_processing
-def blob_intensity_features(img_path, msk_path, blobs_frame):
+def patch_intensity_features(img_path, msk_path, patch_frame):
     img, msk = preprocess_image(img_path, msk_path)
     img_name = os.path.basename(img_path)
 
-    blobs = blobs_frame.loc[img_name]
-    blobs = blobs[['x', 'y', 'radius']]
+    patch = patch_frame.loc[[img_name]]
 
-    logger.info("Detecting intensity features in %d blobs" % blobs.shape[0])
+    logger.info("Detecting intensity features in %d patch" % patch.shape[0])
 
-    intensity_props = detect_intensity(img, blobs.as_matrix())
+    intensity_props = detect_intensity(img, patch)
     intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
     return intensity_props
 
 
 @_time_image_processing
-def blob_texture_features(img_path, msk_path, blobs_frame):
+def patch_texture_features(img_path, msk_path, patch_frame):
     img, msk = preprocess_image(img_path, msk_path)
     img_name = os.path.basename(img_path)
 
-    blobs = blobs_frame.loc[img_name]
-    blobs = blobs[['x', 'y', 'radius']]
+    patch = patch_frame.loc[[img_name]]
+    logger.info("Detecting texture features in %d patch" % patch.shape[0])
 
-    logger.info("Detecting texture features in %d blobs" % blobs.shape[0])
-
-    texture_props = detect_texture(img, blobs.as_matrix())
+    texture_props = detect_texture(img, patch)
     texture_props.index = pd.Series([img_name] * texture_props.shape[0])
     return texture_props
 

@@ -11,19 +11,27 @@ import skimage
 from skimage import feature, filters
 
 from mia.features.blobs import extract_blob
+from mia.features.linear_structure import extract_line
 from mia.utils import vectorize_array
 
 GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
                  'correlation']
 
 
-def detect_texture(img, blobs):
-    def _extract_texture(blob):
-        return pd.concat([pd.DataFrame([blob], columns=['x', 'y', 'radius']),
-                          texture_props(extract_blob(blob, img))], axis=1)
+def detect_texture(img, patches):
 
-    frames = map(_extract_texture, blobs)
-    return pd.concat(frames)
+    def _extract_texture(row):
+        _, patch = row
+        if 'area' in patch:
+            img_patch = extract_line(patch, img)
+        else:
+            img_patch = extract_blob(patch, img)
+        return texture_props(img_patch)
+
+    frames = map(_extract_texture, patches.iterrows())
+    features = pd.concat(frames)
+    features.index = patches.index
+    return pd.concat([patches, features], axis=1)
 
 
 def texture_props(img_blob):

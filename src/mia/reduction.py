@@ -217,7 +217,6 @@ def patch_intensity_features(img_path, msk_path, patch_frame):
     img_name = os.path.basename(img_path)
 
     patch = patch_frame.loc[[img_name]]
-
     logger.info("Detecting intensity features in %d patch" % patch.shape[0])
 
     intensity_props = detect_intensity(img, patch)

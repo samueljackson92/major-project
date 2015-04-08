@@ -9,10 +9,10 @@ def detect_intensity(img, patches):
 
     def _extract_intensity(row):
         _, patch = row
-        if 'area' in patch:
-            img_patch = extract_line(patch, img)
+        if 'radius' in patch.index:
+            img_patch = extract_blob(patch[['x', 'y', 'radius']], img)
         else:
-            img_patch = extract_blob(patch, img)
+            img_patch = extract_line(patch, img)
         return intensity_props(img_patch)
 
     frames = map(_extract_intensity, patches.iterrows())

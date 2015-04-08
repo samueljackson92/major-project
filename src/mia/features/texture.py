@@ -22,10 +22,10 @@ def detect_texture(img, patches):
 
     def _extract_texture(row):
         _, patch = row
-        if 'area' in patch:
-            img_patch = extract_line(patch, img)
+        if 'radius' in patch:
+            img_patch = extract_blob(patch[['x', 'y', 'radius']], img)
         else:
-            img_patch = extract_blob(patch, img)
+            img_patch = extract_line(patch, img)
         return texture_props(img_patch)
 
     frames = map(_extract_texture, patches.iterrows())

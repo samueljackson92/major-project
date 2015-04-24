@@ -22,7 +22,7 @@ def preprocess_image(image_path, mask_path=None):
     if mask_path is not None:
         msk = load_mask(mask_path)
         msk = resize_mask_to_image(msk, img.shape)
-        img = img * msk
+        img[msk == 0] = 0
 
     return img, msk
 
@@ -37,9 +37,11 @@ def load_image(image_path):
 
 
 def load_synthetic_mammogram(image_path):
-    image_data, image_header = load(image_path)
-    img = np.invert(image_data)
-    img = skimage.img_as_float(img)
+    img, image_header = load(image_path)
+    img = np.invert(img)
+    img = img.astype('float64')
+    img = normalise_image(img)
+    img = skimage.transform.pyramid_expand(img, 2)
     return img
 
 
@@ -70,17 +72,12 @@ def resize_mask_to_image(msk, img_shape):
     return msk
 
 
-def normalise_image(img, new_min=0, new_max=1):
-    """Normalise an image between a range.
+def normalise_image(img):
+    """Normalise an image
 
-    :param new_min: lower bound to normalise to. Default 0
-    :param new_min: upper bound to normalise to. Default 1
-    :returns: ndarry --  the normalise image
+    :returns: ndarry --  the normalised image
     """
-
-    old_max, old_min = img.max(), img.min()
-    img = (img - old_min) * (new_max - new_min) / (old_max - old_min) + new_min
-    return img
+    return (img-img.min())/(img.max()-img.min())
 
 
 def binary_image(img, threshold):

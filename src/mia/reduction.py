@@ -7,17 +7,17 @@ import functools
 import numpy as np
 import pandas as pd
 import multiprocessing
+import skimage
 from skimage import transform
 from itertools import repeat
 
-from convolve_tools import deformable_covolution
 from mia.features.linear_structure import detect_linear
 from mia.features.blobs import detect_blobs
 from mia.features.intensity import detect_intensity, intensity_props
 from mia.features.texture import (texture_from_clusters, glcm_features,
-                                  detect_texture)
+                                  detect_texture, filter_image_for_texture)
 from mia.io_tools import iterate_directories
-from mia.utils import (preprocess_image, log_kernel, cluster_image,
+from mia.utils import (preprocess_image, log_kernel, cluster_image, erode_mask,
                        clusters_from_labels, sort_clusters_by_density)
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,6 @@ def raw_reduction(image_directory, masks_directory):
     """
     IMG_SHAPE = (3328, 2560)
     rname = re.compile(r"p(\d{3}-\d{3}-\d{5})-([a-z]{2})\.png")
-    kernel = log_kernel(8.0)
 
     feature_matrix = []
     image_dirs = iterate_directories(image_directory, masks_directory)
@@ -119,18 +118,22 @@ def raw_reduction(image_directory, masks_directory):
             msk = np.fliplr(msk)
 
         img = transform.resize(img, IMG_SHAPE)
-        img = transform.pyramid_reduce(img, np.sqrt(2)*7)
+        img = transform.pyramid_reduce(img, 8)
 
         msk = transform.resize(msk, IMG_SHAPE)
-        msk = transform.pyramid_reduce(msk, np.sqrt(2)*7)
+        msk = transform.pyramid_reduce(msk, 8)
 
-        msk[msk < 1] = 0
-        msk[msk == 1] = 1
-        img = img * msk
+        img = skimage.img_as_ubyte(img)
 
-        img = -deformable_covolution(img, msk, kernel)
+        orientations = np.arange(0, np.pi, np.pi/4)
+        imgs = np.array([filter_image_for_texture(img, o, 'contrast')
+                         for o in orientations])
+        img = imgs.mean(axis=0)
+
+        msk = erode_mask(msk, kernel_size=10)
+        img[msk == 0] = 0
+
         img = img.flatten()
-
         feature_matrix.append(img)
 
     return np.vstack(feature_matrix)
@@ -217,7 +220,7 @@ def patch_intensity_features(img_path, msk_path, patch_frame):
     img_name = os.path.basename(img_path)
 
     patch = patch_frame.loc[[img_name]]
-    logger.info("Detecting intensity features in %d patch" % patch.shape[0])
+    logger.info("Detecting intensity features in %d patches" % patch.shape[0])
 
     intensity_props = detect_intensity(img, patch)
     intensity_props.index = pd.Series([img_name] * intensity_props.shape[0])
@@ -230,7 +233,7 @@ def patch_texture_features(img_path, msk_path, patch_frame):
     img_name = os.path.basename(img_path)
 
     patch = patch_frame.loc[[img_name]]
-    logger.info("Detecting texture features in %d patch" % patch.shape[0])
+    logger.info("Detecting texture features in %d patches" % patch.shape[0])
 
     texture_props = detect_texture(img, patch)
     texture_props.index = pd.Series([img_name] * texture_props.shape[0])

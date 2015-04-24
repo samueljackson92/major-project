@@ -40,6 +40,32 @@ def tSNE(feature_matrix, **kwargs):
 
 
 @_handle_data_frame
+def isomap(feature_matrix, **kwargs):
+    """Run the Isomap algorithm on the feature space of a collection of images
+
+    :param feature_matrix: matrix of features use with the Isomap
+    :returns: 2darray -- lower dimensional mapping of the Isomap algorithm
+    """
+    feature_matrix = standard_scaler(feature_matrix)
+    isomap = manifold.Isomap(**kwargs)
+    fit_output = isomap.fit_transform(feature_matrix)
+    return fit_output
+
+
+@_handle_data_frame
+def lle(feature_matrix, **kwargs):
+    """Run the Locally Linear Embedding algorithm on the feature space of a collection of images
+
+    :param feature_matrix: matrix of features use with the Isomap
+    :returns: 2darray -- lower dimensional mapping of the Isomap algorithm
+    """
+    feature_matrix = standard_scaler(feature_matrix)
+    lle = manifold.LocallyLinearEmbedding(**kwargs)
+    fit_output = lle.fit_transform(feature_matrix)
+    return fit_output
+
+
+@_handle_data_frame
 def standard_scaler(feature_matrix):
     scalar = preprocessing.StandardScaler()
     feature_matrix = scalar.fit_transform(feature_matrix)

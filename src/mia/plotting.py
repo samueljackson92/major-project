@@ -60,6 +60,7 @@ def plot_linear_structure(img, line_image):
     fig, ax = plt.subplots()
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
     ax.imshow(line_image, cmap=plt.cm.autumn)
+    ax.grid(False)
     plt.show()
 
 
@@ -143,7 +144,7 @@ def plot_risk_classes_single(data_frame, column_name):
     plt.legend(loc='upper right')
 
 
-def plot_scatter_2d(data_frame, columns, labels=None, annotate=False,
+def plot_scatter_2d(data_frame, columns=[0, 1], labels=None, annotate=False,
                     **kwargs):
     """ Create a scatter plot from a pandas data frame
 
@@ -167,7 +168,7 @@ def plot_scatter_2d(data_frame, columns, labels=None, annotate=False,
     return ax
 
 
-def plot_scatter_3d(data_frame, columns, labels=None):
+def plot_scatter_3d(data_frame, columns=[0, 1, 2], labels=None, ax=None, **kwargs):
     """ Create a 3D scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot
@@ -181,11 +182,40 @@ def plot_scatter_3d(data_frame, columns, labels=None):
     data = df.as_matrix().T
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(*data, c=labels, cmap=cm.Spectral_r)
+    if ax is None:
+        ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(*data, c=labels, cmap=cm.Spectral_r, **kwargs)
     ax.set_xlabel(columns[0])
     ax.set_ylabel(columns[1])
     ax.set_zlabel(columns[2])
+    return ax
+
+
+def plot_mapping_3d(m, real_index, phantom_index, labels):
+    hologic_map = m.loc[real_index]
+    phantom_map = m.loc[phantom_index]
+
+    hol_labels = labels[hologic_map.index]
+    syn_labels = labels[phantom_map.index]
+
+    ax = plot_scatter_3d(hologic_map, labels=hol_labels, s=10)
+    ax = plot_scatter_3d(phantom_map, labels=syn_labels, ax=ax,
+                         marker='^', s=50)
+    return ax
+
+
+def plot_mapping_2d(m, real_index, phantom_index, labels):
+    hologic_map = m.loc[real_index]
+    phantom_map = m.loc[phantom_index]
+
+    hol_labels = labels[hologic_map.index]
+    syn_labels = labels[phantom_map.index]
+
+    ax = plot_scatter_2d(hologic_map, labels=hol_labels, s=10)
+    ax = plot_scatter_2d(phantom_map, labels=syn_labels, ax=ax,
+                         marker='^', s=50)
+    return ax
 
 
 def plot_scattermatrix(data_frame, label_name=None):

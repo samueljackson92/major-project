@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 
+from skimage import transform
 import mia
 
 logging.basicConfig(level=logging.INFO)
@@ -159,6 +160,7 @@ def detect_blobs(image_file, mask_file):
 def detect_linear(image_file, mask_file):
     img, msk = mia.utils.preprocess_image(image_file, mask_file)
     _, line_image = mia.features.linear_structure.detect_linear(img, msk)
+    img = transform.pyramid_reduce(img, 4)
     mia.plotting.plot_linear_structure(img, line_image)
 
 

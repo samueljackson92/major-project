@@ -75,9 +75,12 @@ def blob_props(feature_set):
                       small, med, large, avg_density])
 
     df = pd.DataFrame([props], columns=column_names)
-    df['lower_radius_qt'] = feature_set['radius'].quantile(.25)
-    df['upper_radius_qt'] = feature_set['radius'].quantile(.75)
     df['upper_dist_count'] = upper_dist_count
+
+    df['25%'] = np.percentile(blob_radii, 25)
+    df['50%'] = np.percentile(blob_radii, 50)
+    df['75%'] = np.percentile(blob_radii, 75)
+
     return df
 
 
@@ -101,7 +104,7 @@ def _multiscale_pyramid_detection(image, *args):
     for i, img in enumerate(_log_pyramid(image, *args)):
 
         local_maxima = feature.peak_local_max(img, min_distance=0,
-                                              threshold_abs=0.001,
+                                              threshold_abs=0.00001,
                                               footprint=np.ones((5, 5)),
                                               threshold_rel=0.0,
                                               exclude_border=False)

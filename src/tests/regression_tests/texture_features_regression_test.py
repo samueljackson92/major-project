@@ -100,3 +100,23 @@ class TextureRegressionTest(unittest.TestCase):
                          for i in range(clusters[1:].shape[0]) for prop in props]
         nose.tools.assert_equal(tex_features.shape, (1, 16))
         np.testing.assert_array_equal(tex_features.columns.values, expected_cols)
+
+    def test_texture_filter(self):
+        img_path = get_file_path("../../../data/p214-010-60001-cl.png")
+        msk_path = get_file_path("../../../data/masks/f214-010-60001-cl_mask.png")
+        img, msk = preprocess_image(img_path, msk_path)
+
+        img = skimage.transform.pyramid_reduce(img, 8)
+        msk = skimage.transform.pyramid_reduce(msk, 8)
+
+        orientations = np.arange(0, np.pi, np.pi/4)
+        props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
+
+        img = skimage.img_as_ubyte(img)
+        tex_images = [filter_image_for_texture(img, orientation, prop)
+                      for orientation in orientations
+                      for prop in props]
+
+        for img in tex_images:
+            io.imshow(img)
+            io.show()

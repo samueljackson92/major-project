@@ -9,6 +9,7 @@ import numpy as np
 import scipy.stats as stats
 import skimage
 from skimage import feature, filters
+from scipy.ndimage.filters import generic_filter
 
 from mia.features.blobs import extract_blob
 from mia.features.linear_structure import extract_line
@@ -84,6 +85,11 @@ def glcm_features(image, distances, orientations, properties):
     return np.array([feature.greycoprops(glcm, prop) for prop in properties])
 
 
+def glcm_feature(image, distance, orientation, prop):
+    glcm = feature.greycomatrix(image, [distance], [orientation], normed=True)
+    return feature.greycoprops(glcm, prop)
+
+
 def image_orthotope_statistics(image_orthotope):
     """ Calculate the mean, std, and skew of an image orthotope
 
@@ -152,3 +158,17 @@ def texture_from_clusters(clusters):
         tex_features.append(df)
 
     return pd.concat(tex_features, axis=1)
+
+
+def filter_image_for_texture(img, orientation, prop, kernel_size=5):
+
+    def filter_texture_non_zero(window, *args):
+        window = window.reshape((kernel_size, kernel_size))
+        if np.count_nonzero(window) > 0:
+            return glcm_feature(window, *args)
+        else:
+            return 0
+
+    return generic_filter(img, filter_texture_non_zero,
+                          size=kernel_size,
+                          extra_arguments=(1, orientation, prop))

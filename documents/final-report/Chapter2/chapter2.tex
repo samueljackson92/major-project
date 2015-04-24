@@ -5,21 +5,13 @@
 
 The technical outcome of this project was to produce an image analysis pipeline. Broadly speaking the pipeline can be broken into four distinct components. These are feature detection and extraction, dimensionality reduction, quality evaluation, and visualisation.
 
-
-\begin{figure}
-	\label{fig:pipeline-diagram}
-	\centering
-	\includegraphics[width=0.8\textwidth]{Images/pipeline-diagram.png}	
-	\caption{Conceptual overview of the image analysis pipeline produced as part of this project.}
-\end{figure}
-
 \section{Techniques}
 
 \subsection{Preprocessing}
 Very little preprocessing of the images has been used in this project. Each of the mammograms used has an accompanying binary mask which is used to remove the background and pectoral muscle (see section \ref{sec:datasets}). The skin around the edge of the breast can cause issues with the blob and line detection due to the intense response during image acquisition. As we are only interested in structure within the parenchyma binary erosion is performed on the breast masks using a disk shaped kernel with a radius of 30 pixels.
 
 \subsection{Features}
-\label{sec:features}
+\label{sec:experiment-features}
 In this project we have used three different types of image features to build a feature space from the mammogram datasets. We have used two different types of shape features one to detect blobs and one to detect linear structure. These features intrinsically define a ROI which has some parenchyma pattern of interest. From the ROIs defined by these features we can extract intensity features (based on the image histogram of the ROI) and texture features (in the case of this project GLCM features).
 
 \subsubsection{Blob Features}
@@ -49,6 +41,19 @@ Where $d$ is the distance between the two blobs and the $r_A$ and $r_B$ are the 
 
 Merging proceeds as follows: if a blob is external then it remains retained. If a blob is internal to a larger (coarser) blob it will be removed. If the blobs intersect one another and they are closely located ($d \leq r_A + \alpha r_B$ for $0 \leq \alpha \leq 1$, assuming $r_A \geq r_B$). In the experiments documented in the report overlap parameter $\alpha$ used was 0.01. 
 
+For each of the blobs detected, the coordinates of the detected blob and the radius (i.e. the sigma of the Gaussian associated with the scale the blob was detected at) are saved to a comma separated value (CSV) file. This file was then loaded into the IPython notebook system for analysis. Using the analysis python module developed as part of the general pipeline framework the following features were calculated from the radius and position of the blobs for each image:
+
+\begin{itemize}
+	\item Number of blobs detected
+	\item Average radius
+	\item Standard deviation of the radius
+	\item Min \& max radius
+	\item Small/medium/large radius count: For the radius was binned into three separate equally sized bins across the range scales used to detect blobs.
+	\item Density: the average distance between this blob and the $k$ nearest blobs. In all experiments $k$ was set to 4.
+	\item 25/50/75 percentiles
+	\item Count of blobs above the mean.
+\end{itemize}
+
 
 \subsubsection{Line Features}
 Along with shape features based on blobs of high intensity a shape feature based on finding linear structure within a mammogram was used. Linear structure aims to try and characterise the ductal shapes visible in a typical mammogram. For the implementation of this feature we follow the work of Zwiggelaar et al. \cite{zwiggelaar1996finding} and use an orientated bins method to pick out ROIs which may otherwise be missed using just blob features alone.
@@ -57,16 +62,64 @@ The orientated bins method proposed in ref. \cite{zwiggelaar1996finding} filters
 
 Once the line image for has been generated the results can be enhanced by applying non-maximal suppression \cite{sonka2014image} to the line image to strengthen the detected structure. After suppression the image is once thresholded using a conservative value to remove noise and the image is converted to a binary image. A morphological closing operation is used to improve the connectivity of the line shapes detected from the image. Any points which are within an 8-connectivity of one another are counted as being part of the same structure.
 
-The resulting shape features can be measured by standard first order statistics to produce descriptive features about the blobs and lines detected from the mammogram. Examples of such features are the min, max, and mean size (radius/area) of the shapes detected at each scale.
+The resulting shape features can be measured by standard first order statistics to produce descriptive features about the blobs and lines detected from the mammogram. As with blob features the detections were exported to a CSV file and then loaded into a IPython notebook for further analysis. Features created from the distribution of areas detected by the line features were:
+
+\begin{itemize}
+	\item Number of lines detected
+	\item Average area
+	\item Standard deviation of the areas
+	\item Min \& max area
+	\item 25/50/75 percentiles
+	\item Count of areas above the mean.
+\end{itemize}
 
 \subsubsection{Intensity}
-The shape features detected using orientated bins and multi-scale blobs define regions of interest across the breast. From these ROIs the patch of the image which is covered by the area or radius of the shape feature can be extracted. The histogram of the intensity values of this image patch provide can provide additional discriminative information about ROI. Descriptive statistics of the ROI such as mean, variance, standard deviation, min, max, upper and lower quartiles can compute from the patch histogram.
+The shape features detected using orientated bins and multi-scale blobs define regions of interest across the breast. From these ROIs the patch of the image which is covered by the area or radius of the shape feature can be extracted. The histogram of the intensity values of this image patch provide can provide additional discriminative information about ROI. Descriptive statistics derived from the histogram of the ROI were computed. The final features derived were:
+
+\begin{itemize}
+	\item Number of intensity values
+	\item Mean
+	\item Standard deviation.
+	\item Min \& max values
+	\item 25/50/75 percentiles
+	\item Skew
+	\item Kurtosis
+\end{itemize}
 
 \subsubsection{Texture}
-As with intensity features, texture features can be extracted from the patches defined by the shapes features as well. In this project we have only used texture features derived from the grey-level co-occurance matrix \cite{haralick1973textural}.
+As with intensity features, texture features can be extracted from the patches defined by the shapes features as well. In this project we have only used texture features derived from the grey-level co-occurance matrix \cite{haralick1973textural}. The properties computed from the co-occurrence matrices were homogeneity, dissimilarity, energy, and contrast. The definitions of each are given as the following:
+
+Homogeneity:
+\begin{equation}
+	\sum\limits_{i,j=0}^{levels-1} \frac{P_{i,j}}{1+(i-j)^2}
+\end{equation}
+
+Dissimilarity:
+\begin{equation}
+	\sum\limits_{i,j=0}^{levels-1} P_{i,j}|i-j|
+\end{equation}
+
+Energy (or the square root of the angular second moment):
+\begin{equation}
+	\sqrt{ \sum\limits_{i,j=0}^{levels-1} P_{i,j}^2 }
+\end{equation}
+
+Contrast:
+\begin{equation}
+	\sum\limits_{i,j=0}^{levels-1} P_{i,j}(i-j)^2
+\end{equation}
+
+The experiments performed in chapter \ref{subsec:results-texture} all used a distance of 1 and a combination of eight different orientations of angles 0.0, 22.5, 45.0, 67.5, 90.0, 112.5, 135.0, 157.5 degrees.
+
 
 \subsection{Dimensionality Reduction}
-In this project the t-SNE as the dimensionality reduction algorithm with which to produce the lower dimensional representations from the higher dimensional feature spaces. The implementation we have used as part of this project is the standard algorithm available through the sci-kit learn library. Before running the dimensionality reduction algorithm the input feature matrix is standardised by removing the mean from each feature and scaling to standard variance.
+In this project the t-SNE as the dimensionality reduction algorithm with which to produce the lower dimensional representations from the higher dimensional feature spaces. The implementation we have used as part of this project is the standard algorithm available through the scikit learn library. 
+
+Before running the dimensionality reduction algorithm the input feature matrix is standardised by removing the mean from each feature and scaling to standard variance. This ensures that the all of the features will roughly on the same scale as one another and therefore that the distance metric used to compute neighbours shouldn't be heavily weighted in favour of feature orders of magnitude larger than the others.
+
+t-SNE was chosen as the primary dimensionality reduction algorithm for use in this project because 1) it generally produces reasonably good visual representations when reducing data to 2 or 3 dimensions and 2) it aims to preserve the local neighbourhood to produce representations where points close in the higher dimensional space will be close in the visualisation. This is useful because it can be used to visually show whether the points corresponding to synthetic mammograms appear close to the real mammogram images.
+
+Unfortunately, a major limitation of the t-SNE algorithm is that it make no attempt to preserve the global structure of the underlying manifold in higher dimensional space. For this reason the mappings produced for t-SNE cannot be used to infer anything about the global structure of the manifold.
 
 \subsection{Visualisation}
 The visualisation aspects of this project have largely been handled by the inbuilt functionality that available in the matplotlib and pandas Python libraries. However I have also implemented some additional custom visualisation techniques for examining what the images look like for each point in the lower dimensional mapping.
@@ -77,7 +130,6 @@ In order to examine the how images change across the lower dimensional mapping a
 \subsubsection{Median Image Plot}
 Similarly to the previous visualisation this visualisation takes a projection of the feature space and creates a two dimensional histogram of the points. From each of the resulting bins the median point in both the $x$ and $y$ directions if found. The image which corresponds to this point is selected to be used as part of the visualisation. Each of the images is stitched together to form a matrix of images in the same shape as the lower dimensional mapping.
 
-
 \section{Datasets}
 \label{sec:datasets}
 In this project we are using two different datasets. One consisting of mammograms for taken from a collection of real patients. The other dataset is a collection of artificially generated breast phantoms generously created by the University of Pennsylvania. 
@@ -86,7 +138,7 @@ In this project we are using two different datasets. One consisting of mammogram
 The dataset of real mammograms was taken from a private dataset captured using a Hologic full field digital mammography system. The dataset contains images of 90 unique patients each with a craniocaudal and mediolateral oblique view of both the left and right breasts, resulting in 360 total images. Each image in the dataset also has a corresponding binary breast mask. This mask is used to segment the  background and the pectoral muscle from the breast parenchyma.
 
 \subsection{Synthetic Data}
-The synthetic breast phantoms were generated by the University of Pennsylvania using the techniques outlined by Bakic et al. \cite{bakic2002mammogram1, bakic2002mammogram2, bakic2003mammogram3}. Their simulation system consists of three major components: a breast tissue model, a compression model, and an acquisition model. Adipose tissue compartments within the breast are modelled using thin shells in areas of primarily adipose tissue and as blobs in areas of predominantly fibroglandular tissue. Ductal lobes are also simulated by the model using a randomly generated tree. 
+The synthetic breast phantoms were generated by the University of Pennsylvania using the techniques outlined by Bakic et al. \cite{bakic2002mammogram1, bakic2002mammogram2, bakic2003mammogram3}. Their simulation system consists of three major components: a breast tissue model, a compression model, and an acquisition model. Adipose tissue compartments within the breast are modelled using thin shells in areas of primarily adipose tissue and as blobs in areas of predominantly fibroglandular tissue. Ductal lobes are also simulated by the model using a randomly generated tree. As the phantoms have not been formally assigned a BI-RADS by an expert radiologist (as in the case of the real mammogram dataset) the ground truth for the risk associated with a particular mammogram is given by it's volumetric breast density (VBD). This information was supplied in the meta-data produced alongside the phantom mammograms.
 
 \section{Implementation}
 \label{sec:implementation}

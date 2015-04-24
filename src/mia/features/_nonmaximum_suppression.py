@@ -31,7 +31,7 @@ def nonmaximum_suppression(line_strength, line_orientation, nbins,
     parallel_orientation = parallel_orientation % len(kernels)
 
     return filter_for_maximum_direction(kernels, line_strength,
-                                        parallel_orientation)
+                                        line_orientation)
 
 
 def filter_for_maximum_direction(kernels, line_strength, parallel_orientation):
@@ -43,11 +43,18 @@ def filter_for_maximum_direction(kernels, line_strength, parallel_orientation):
                                  line orientation image
     :returns: ndarray -- the suppressed line strength image
     """
+
+    def func(window):
+        if np.argmax(window) != 1:
+            return 0
+        return 1
+
     filtered_images = []
     for kernel in kernels:
         filtered_image = np.zeros(line_strength.shape)
-        filters.maximum_filter(line_strength, footprint=kernel,
-                               output=filtered_image)
+        # filters.maximum_filter(line_strength, footprint=kernel,
+        #                        output=filtered_image)
+        filters.generic_filter(line_strength, func, footprint=kernel, output=filtered_image)
         filtered_images.append(filtered_image)
 
     line_strength_suppressed = np.zeros(line_strength.shape)
@@ -62,20 +69,20 @@ def generate_kernels(kernel_size):
     :param kernel_size: the size of the kernels to create.
     :returns: list -- the generated kernels
     """
-    horizontal = np.zeros(shape=(kernel_size, kernel_size), dtype='int64')
+    horizontal = np.zeros(shape=(kernel_size, kernel_size), dtype='int8')
     horizontal[1] = np.ones(kernel_size)
 
-    vertical = np.zeros(shape=(kernel_size, kernel_size), dtype='int64')
-    vertical[:, 1] = np.ones(kernel_size, dtype='int64')
+    vertical = np.zeros(shape=(kernel_size, kernel_size), dtype='int8')
+    vertical[:, 1] = np.ones(kernel_size)
 
-    left_diagonal = np.eye(kernel_size, dtype='int64')
+    left_diagonal = np.eye(kernel_size, dtype='int8')
     right_diagonal = np.fliplr(left_diagonal)
 
     kernels = np.array([
-        np.where(horizontal),
-        np.where(left_diagonal),
-        np.where(vertical),
-        np.where(right_diagonal)
+        horizontal,
+        left_diagonal,
+        vertical,
+        right_diagonal
     ])
 
     return kernels

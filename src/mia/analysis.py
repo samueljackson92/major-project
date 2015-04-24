@@ -5,11 +5,13 @@ a dataset of images.
 import functools
 import logging
 import re
+import random
 import numpy as np
 import pandas as pd
 
 from sklearn import manifold, preprocessing
 from mia.features.blobs import blob_props
+from mia.features.linear_structure import line_props
 from mia.features.intensity import intensity_props
 
 logger = logging.getLogger(__name__)
@@ -145,9 +147,52 @@ def features_from_intensity(df):
     return features.reset_index(level=1, drop=True)
 
 
+def features_from_lines(df):
+    features = df.groupby(df.index).apply(line_props)
+    return features.reset_index(level=1, drop=True)
+
+
 def remove_duplicate_index(df):
     index_name = df.index.name
     md = df.reset_index()
     md.drop_duplicates(index_name, inplace=True)
     md.set_index(index_name, inplace=True)
     return md
+
+
+def create_random_subset(data_frame, column_name):
+    def _select_random(x):
+        return x.ix[random.sample(x.index, 1)]
+
+    group = data_frame.groupby(column_name)
+    random_subset = group.apply(_select_random)
+    random_subset.drop(column_name, axis=1, inplace=True)
+    random_subset.reset_index(drop=True, level=0, inplace=True)
+    return random_subset
+
+
+def group_by_scale_space(data_frame):
+    radius_groups = data_frame.groupby([data_frame.radius, data_frame.index])
+    blobs_by_scale = radius_groups.apply(lambda x: x.mean())
+
+    scale_groups = blobs_by_scale.groupby(level=0)
+    features = pd.DataFrame(index=blobs_by_scale.index.levels[1])
+
+    for scale_num, (i, x) in enumerate(scale_groups):
+        x = x.reset_index(level=0, drop=True)
+        x = x.drop(['radius'], axis=1)
+        features = features.join(x, rsuffix='_%d' % scale_num)
+
+    features.fillna(features.mean(), inplace=True)
+    return features
+
+
+def sort_by_scale_space(data_frame, n_features):
+    features = data_frame.copy()
+    features = normalize_data_frame(features)
+    features.columns = data_frame.columns
+
+    cols = [features.columns[i::n_features] for i in range(n_features)]
+    cols = [c for l in cols for c in l]
+    features = features[cols]
+    return features

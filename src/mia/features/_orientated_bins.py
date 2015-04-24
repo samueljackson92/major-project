@@ -155,12 +155,12 @@ def filter_image(img, orientated_bins, neighbourhood):
     :returns: tuple -- containing the strength and orientation images
     """
     average_images = np.array([apply_filter(img, kernel)
-                              for kernel in orientated_bins])
+                               for kernel in orientated_bins])
     neighbourhood_image = apply_filter(img, neighbourhood)
 
     orientation_image = np.argmax(average_images, axis=0)
-    strength_image = np.amax(average_images, axis=0) - neighbourhood_image
-
+    strength_image = np.amax(average_images, axis=0)
+    strength_image -= neighbourhood_image
     return strength_image, orientation_image
 
 

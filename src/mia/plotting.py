@@ -271,7 +271,7 @@ def _prepare_figure(size):
 
 def _prepare_median_image(img_name, path, blobs_df, axs_iter):
     """ Function to load an image if one is present in the square"""
-    scale_factor = 16
+    scale_factor = 8
 
     ax = axs_iter.next()
     ax.set_axis_off()

@@ -2,33 +2,90 @@
 lower dimensional mapping produce by manifold learning algorithms.
 """
 
+import itertools
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 
 
-def trustworthiness(high_data, low_data, k):
+def coranking_matrix(high_data, low_data):
     n, m = high_data.shape
-    w = 2.0 / (n*k*(2*n - 3*k - 1))
-
     high_distance = pairwise_distances(high_data)
     low_distance = pairwise_distances(low_data)
 
     high_ranking = high_distance.argsort(axis=1).argsort(axis=1)
+    low_ranking = low_distance.argsort(axis=1).argsort(axis=1)
 
-    high_dist_indicies = high_distance.argsort(axis=1)
-    low_dist_indicies = low_distance.argsort(axis=1)
+    Q, xedges, yedges = np.histogram2d(high_ranking.flatten(),
+                                       low_ranking.flatten(),
+                                       bins=n)
 
-    high_k_neighbours = high_dist_indicies[:, 1:k+1]
-    low_k_neighbours = low_dist_indicies[:, 1:k+1]
-
-    neighbour_differences = [np.setdiff1d(ln, hn) for ln, hn in
-                             zip(low_k_neighbours, high_k_neighbours)]
-
-    rank_differences = np.array([sum(rank[diffs] - k) for rank, diffs in
-                                zip(high_ranking, neighbour_differences)])
-
-    return 1 - w*rank_differences.sum()
+    Q = Q[1:, 1:]  # remove rankings which correspond to themselves
+    return Q
 
 
-def continuity(high_data, low_data, k):
-    return trustworthiness(low_data, high_data, k)
+def trustworthiness(Q, K):
+    """ Trustworthiness measures the number of hard extrusions present in a
+    mapping. This can be thought of as a measure of the number of false
+    positives.
+
+    :param Q: the co-ranking matrix to calculate trustworthiness from
+    :param K: the number of neighbours to use.
+    """
+    n, _ = Q.shape
+    n += 1
+
+    # Indicies for the lower left section of Q. Quantifying hard intrusions.
+    it = itertools.product(range(K, n-1), range(K))
+    summation = sum([(k - K) * Q[k, l] for k, l in it])
+
+    g = _tc_normalisation_weight(K, n)
+    w = 2.0 / g
+    return 1 - w * summation
+
+
+def continuity(Q, K):
+    """ Continuity measures the number of hard extrusions present in a
+    mapping. I can be thought of as a measure of the number of false negatives.
+
+    :param Q: the co-ranking matrix to calculate continuity from
+    :param K: the number of neighbours to use.
+    """
+
+    n, _ = Q.shape
+    n += 1
+
+    # Indicies for the upper right section of Q. Quantifying hard extrustions.
+    it = itertools.product(range(K), range(K, n-1))
+    summation = sum([(l - K) * Q[k, l] for k, l in it])
+
+    g = _tc_normalisation_weight(K, n)
+    w = 2.0 / g
+    return 1 - w * summation
+
+
+def _tc_normalisation_weight(K, n):
+    """ Compute the normalisation weight for the trustworthiness and continuity
+    measures.
+    """
+    if K < (n/2):
+        return n*K*(2*n - 3*K - 1)
+    elif K >= (n/2):
+        return n*(n - K)*(n - K - 1)
+
+
+def LCMC(Q, K):
+    """ The local continuity meta-criteria measures the number of mild
+    intrusions and extrusions. This can be thought of as a measure of the
+    number of true postives.
+
+    :param Q: the co-ranking matrix to calculate continuity from
+    :param K: the number of neighbours to use.
+    """
+
+    n = Q.shape[0] + 1
+
+    # Indicies for the upper right section of Q. Quantifying true positives.
+    it = itertools.product(range(K), range(K))
+    summation = sum([Q[k, l] for k, l in it])
+
+    return (K / (1. - n)) + (1. / (n*k)) * summation

@@ -140,6 +140,27 @@ Often data points within the feature space do not lie on a linear subspace. Inst
 \subsubsection{t-Distributed Stochastic Neighbour Embedding}
 t-Distributed Stochastic Neighbour Embedding (t-SNE) \cite{van2008visualizing} is a non-linear dimensionality reduction technique which aims to preserve the distance between very similar data points. t-SNE models the high and low dimensional representations as joint probability distributions modelled using Student's t-distributions. The algorithm optimises the mapping by minimising the Kullback-Leibler divergence between the two distributions. In this way it models the probability that a higher dimensional point $p$ would choose $q$ as its neighbour. t-SNE can be used both with Euclidean distance or with other distance metrics.
 
+\section{Quality Measures}
+Performing dimensionality reduction on a dataset by definition causes a loss of information. The quality of the mapping produced by a dimensionality reduction algorithm can be measured by examining home the neighbourhood of a point in the higher dimensional data changes relative to the lower dimensional representation. In a good representation the neighbours in the higher dimensional space should be almost the same in the lower dimensional space. 
+
+One way to quantify the quality of dimensionality reduction was suggested by Venna and Kaski \cite{kaski2003trustworthiness} is by measuring the trustworthiness and continuity of the mapping. If a mapping is trustworthy the $k$ closest neighbours in the original space will be neighbours in the projected space. Specifically the trustworthiness metric measures how many points in the low dimensional neighbourhood are not in the high dimensional neighbourhood. The trustworthiness measure is defined as:
+
+\begin{equation}
+	T = 1 - \frac{2}{Nk - 3k - 1} \sum\limits_{i=1}^N \sum\limits_{j \in U_k(i)} (r(i,j) - k)
+\end{equation} 
+
+Where $N$ is the number of samples, $r(i,j)$ is the rank of sample $j$ with respect to the distance from $i$ and $U_k(j)$ is the set of points that are in the neighbourhood of the low dimensional space but not the original space. The fraction $\frac{2}{Nk - 3k - 1}$ is used to scale the value to the range 0 to 1.
+
+On the other side of the coin the quality of a mapping can be degraded by discontinuity. Discontinuity is effectively the reverse of the trustworthiness measure. If the neighbours exist in the neighbourhood of the original space but not in the mapping then the nature of the original space may not be preserved due to discontinuities in the projection. The measure of continuity is given by:
+
+\begin{equation}
+	C = 1 - \frac{2}{Nk - 3k - 1} \sum\limits_{i=1}^N \sum\limits_{j \in V_k(i)} (\hat{r}(i,j) - k)
+\end{equation}
+
+Where $N$ is the number of samples, $\hat{r}(i,j)$ is the rank of sample $j$ with respect to the distance from $i$ and $V_k$ is the set of points that are in the neighbourhood of the high dimensional space but not in the mapping. Again, the fraction $\frac{2}{Nk - 3k - 1}$ is use to scale the value to the range 0 to 1.
+
+The measures of trustworthiness and continuity are closely related to the co-ranking matrix discussed by Lee and Verleysen \cite{lee2009quality}.
+
 \section{Visualisation}
 \label{sec:visualisation}
 Traditionally plots of related low dimensional variables can be visualised directly using two or three dimensional scatterplots. However, direct visualisation of data with more than two or three dimensions is impossible with traditional methods. While dimensionality reduction techniques can be used to reduce the dimensionality of data down to two or three dimensions, it is unlikely that two or three dimensions are enough to accurately capture the structure of a complex higher dimensional manifold.
@@ -159,9 +180,6 @@ An Andrews plot defines each $n$-dimensional data point as a Fourier series with
 
 \subsection{RadViz}
 RadViz \cite{novakova2009radviz} is a technique for visualising data points on a plane. RadViz models each $n$ dimensional data point as a single point on a 2D plane surrounded by a unit circle on which each of the $n$ features are placed equal distance apart from one another. Each data point is virtually ``connected" to each of the points on the unit circle via a ``spring". All of the springs are in equilibrium with one another and the final resting point for a point in the visualisation corresponds to the total strength exerted over point by each spring.
-
-\section{Quality Measures}
-TODO
 
 \section{Analysis}
 This project aims to investigate the effect of mapping the feature space of both real and synthetic mammograms to a lower dimensional representation. This will involve the extraction of a variety of different shape, intensity, and texture features to produce a high dimensional feature space. We will then use dimensionality reduction techniques to produce a lower dimensional mapping and visualise the results using an appropriate technique. 

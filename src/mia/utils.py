@@ -23,6 +23,7 @@ def preprocess_image(image_path, mask_path=None):
         msk = load_mask(mask_path)
         msk = resize_mask_to_image(msk, img.shape)
         img[msk == 0] = 0
+        img[msk != 0] = normalise_image(img[msk != 0])
 
     return img, msk
 
@@ -40,7 +41,6 @@ def load_synthetic_mammogram(image_path):
     img, image_header = load(image_path)
     img = np.invert(img)
     img = img.astype('float64')
-    img = normalise_image(img)
     img = skimage.transform.pyramid_expand(img, 2)
     return img
 

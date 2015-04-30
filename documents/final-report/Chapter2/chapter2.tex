@@ -15,11 +15,12 @@ Very little preprocessing of the images has been used in this project. Each of t
 In this project we have used three different types of image features to build a feature space from the mammogram datasets. We have used two different types of shape features one to detect blobs and one to detect linear structure. These features intrinsically define a ROI which has some parenchyma pattern of interest. From the ROIs defined by these features we can extract intensity features (based on the image histogram of the ROI) and texture features (in the case of this project GLCM features).
 
 \subsubsection{Blob Features}
+\label{subsubsec:implementation-blob-features}
 The blob detection was achieved by following an approach similar to that described by Chen et al. \cite{chen2013multiscale, chen2013mammographic}. This is a multi-scale approach based on building a Laplacian of Gaussian (LoG) pyramid over ten different scales. 
 
 To obtain a multi-scale view but retain comparative performance (due to the very large size of mammographic images) instead of increasing the size of the kernel the sigma of the Gaussian is fixed to 8.0 and the image is smoothed and downscaled by a factor or $\sqrt{2}$ instead. Once the image has been convolved with the LoG kernel, the resulting image is finally upscaled to full size before peak detection.
 
-Each of the mammographic images in the real dataset come with a set of breast masks which segment the tissue of the breast from the result of the image (such as the pectoral muscle). This helps to ensure that we are detecting the only within the parenchyma but causes issues due to a large edge response produced from the LoG kernel around the edge of the breast. In Chen's thesis this effect was dealt with by means of a "deformable" convolution. The image is convolved with a standard image kernel when the area of the kernel is entirely within the mask area. When the kernel being convolved falls outside of the mask the filter kernel is modified so that it returns zero outside of the mask and the LoG response normalised by the number of nonzero pixels otherwise.
+Each of the mammographic images in the real dataset come with a set of breast masks which segment the tissue of the breast from the result of the image (such as the pectoral muscle). This helps to ensure that we are detecting the only within the parenchyma but causes issues due to a large edge response produced from the LoG kernel around the edge of the breast. In Chen's thesis this effect was dealt with by means of a ``deformable" convolution. The image is convolved with a standard image kernel when the area of the kernel is entirely within the mask area. When the kernel being convolved falls outside of the mask the filter kernel is modified so that it returns zero outside of the mask and the LoG response normalised by the number of nonzero pixels otherwise.
 
 For each scale image produced the local maxima are detected using maximum filter and a conservative threshold. The resulting position of the peak defines the location of the blob detected in the image while the effective sigma of the Gaussian for the scale of the image $\sigma k i$ (where $i$ is the scale and $k$ is the downscale factor equal to $\sqrt{2}$) is the radius of the blob.
 
@@ -91,7 +92,7 @@ The shape features detected using orientated bins and multi-scale blobs define r
 \end{itemize}
 
 \subsubsection{Texture}
-As with intensity features, texture features can be extracted from the patches defined by the shapes features as well. In this project we have only used texture features derived from the grey-level co-occurance matrix \cite{haralick1973textural}. The properties computed from the co-occurrence matrices were homogeneity, dissimilarity, energy, and contrast. The definitions of each are given as the following:
+As with intensity features, texture features can be extracted from the patches defined by the shapes features as well. In this project we have only used texture features derived from the grey-level co-occurrence matrix \cite{haralick1973textural}. The properties computed from the co-occurrence matrices were homogeneity, dissimilarity, energy, and contrast. The definitions of each are given as the following:
 
 Homogeneity:
 \begin{equation}
@@ -115,6 +116,7 @@ Contrast:
 
 The experiments performed in chapter \ref{subsec:results-texture} all used a distance of 1 and a combination of eight different orientations of angles 0.0, 22.5, 45.0, 67.5, 90.0, 112.5, 135.0, 157.5 degrees.
 
+Both intensity and texture features will produce some entires zero entries for blobs of larger scales because there were none detected in that image. This causes the projections produced to be split into cluster according to what the size of the largest blob detected was. To prevent this unwanted effect zero entires were replace by the mean value for the relevant scale.
 
 \subsection{Dimensionality Reduction}
 In this project the t-SNE as the dimensionality reduction algorithm with which to produce the lower dimensional representations from the higher dimensional feature spaces. The implementation we have used as part of this project is the standard algorithm available through the scikit learn library. 
@@ -150,6 +152,10 @@ As the phantoms have not been formally assigned a BI-RADS by an expert radiologi
 
 None of the breast phantoms came with masks, but the masks are an essential part of blob detection. As none of the phantoms contain a pectoral muscle the masks were generated by simply using Otsu's method \cite{otsu1975threshold} to create a binary mask for each phantom. 
 
+
+\subsection{Comparison of Features}
+We can compare the features using the Kolmogorov–Smirnov two sample test....
+
 \section{Implementation}
 \label{sec:implementation}
 This section provides a brief overview of the implementation details used in the project. All of the methods discussed in the preceding sections were implemented in Python. The technical output of the project is a Python library and command line tool which is used to create the pipeline discussed in the first part of this chapter.
@@ -157,11 +163,12 @@ This section provides a brief overview of the implementation details used in the
 \subsection{Python Package}
 The majority of the components used in the project are built upon the top of the scipy stack \cite{jones2014scipy}. Two major additional libraries (which also rely on the scipy stack) which have been used heavily in the project are the scikit image \cite{van2014scikit} and scikit learn \cite{pedregosa2011scikit} projects.
 
-The library created as part of this project forms a complete python package. The package consists of five top level modules and a collection of submodules implementing specific functionality relating to the features detected by the system. The description of each of the modules is as follows:
+The library created as part of this project forms a complete python package. The package consists of six top level modules and a collection of submodules implementing specific functionality relating to the features detected by the system. The description of each of the modules is as follows:
 
 \begin{itemize}
 	\item {\bf reduction}: The reduction module implements functions performing multi-processed feature extraction from a dataset.
 	\item {\bf analysis}: The analysis module implements commonly used functions used to analyse the images after feature extraction has been performed. These functions are typically called directly from the python interpreter to in a IPython notebook session.
+	\item {\bf coranking} This module contains the code for computing the co-ranking matrix form two representations of the same dataset.
 	\item {\bf plotting}: This module provides a collection of custom, convenience plotting functions that largely depend on the matplotlib library.
 	\item {\bf io\_tools}: The io\_tools module implements functions for iterating over directories of images and there corresponding masks as well as image loadings and preprocessing functions.
 	\item {\bf utils}: The utils module contains a collection of miscellaneous helper functions used in various places throughout the package.
@@ -183,6 +190,10 @@ The command line tools offered by the program are built using the Click library 
 
 Other useful commands included in the CLI interface are the ability to run and plot the output of shape feature detection from a single image and the running the t-SNE algorithm on a feature dataset from the command line.
 
+\subsection{Multiprocessing}
+The image processing component of the pipeline created for this project is extremely time consuming. The two shape features used in this project take up to a minute to process a single image. The biggest contribution to the running time is the filtering and convolution of the images. Sadly this is an operation that is intrinsically complex and therefore slow. However, since the processing of an image is completely separate from all other images multiprocessing support becomes an option. 
+
+The feature detection routines produces as part of the Python package all support multiprocessing through the Python multiprocessing module. Each routine has support to use an unlimited number of threads although in practice the physical limitations of the computer hardware used limited the number to just two. Despite only using one additional process this still managed to speed up the feature detection routines for the whole set of images by several hours.
 
 
 

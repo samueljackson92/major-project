@@ -1,5 +1,10 @@
 \documentclass[11pt,a4paper]{report}
 
+\makeatletter
+\newcommand\primitiveinput[1]
+{\@@input #1 }
+\makeatother
+
 % Aberstwyth dissertation LaTeX Template
 % Authors: Dr. Hannah Dee (hmd1@aber.ac.uk), Neil Taylor (nst@aber.ac.uk)
 % This has been adapted from the Leeds Thesis template and the 
@@ -29,6 +34,11 @@
 %\usepackage{natbib}
 
 \usepackage{bm}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\usepackage{graphicx}
+%\usepackage{subcaption}
 % Use the following to selectively exclude chapters
 %\includeonly{cover,abstract,acknowledge,declare,chapter1,chapter2}
 \begin{document}

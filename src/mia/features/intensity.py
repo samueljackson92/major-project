@@ -3,6 +3,7 @@ import numpy as np
 
 from mia.features.blobs import extract_blob
 from mia.features.linear_structure import extract_line
+from skimage import transform
 
 
 def detect_intensity(img, patches):
@@ -12,7 +13,8 @@ def detect_intensity(img, patches):
         if 'radius' in patch.index:
             img_patch = extract_blob(patch[['x', 'y', 'radius']], img)
         else:
-            img_patch = extract_line(patch, img)
+            small_img = transform.pyramid_reduce(img, 4)
+            img_patch = extract_line(patch, small_img)
         return intensity_props(img_patch)
 
     frames = map(_extract_intensity, patches.iterrows())

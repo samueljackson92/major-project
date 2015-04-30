@@ -76,22 +76,26 @@ A radiologist will then classify the breast according to one of 7 categories aft
 \label{sec:features}
 Features are higher level descriptive abstractions computed from lower level structure such as areas of high intensity, edges, and corners present within an image. Features are the result of computing a descriptive property about an image from the intensity information contained within it. Hundreds of different types of features have been proposed \cite{cheng2006approaches, ganesan2013computer}. Broadly speaking, image features can be split into three distinct categories: shape (or morphological), intensity, and texture features. A brief review of some examples of each type are given in this section.
 
+
+\subsection{Intensity Features}
+Intensity features are possibly the simplest type of feature that can be detected from an image. Intensity features are simple descriptive statistics based on the grey-level histogram of an image or a patch of an image. Examples of such features are the mean, standard deviation/variance, skew, and kurtosis of the grey-level histogram of an ROI \cite{cheng2006approaches, christoyianni2000fast}.
+
+
 \subsection{Shape Features}
 Shape features are features which detected within an image based on the morphological properties of a region of interest (ROI) within an image. The ROI could either be a suspicious artefact present in the mammogram, such as a malignant or benign tumour or cluster of micro-calcifications \cite{cheng2006approaches}, or it could simply be a property present in the parenchymal structure of the mammogram (which is the approach used in this project) such as regions of high density tissue \cite{chen2013multiscale} or prominent linear structures \cite{zwiggelaar1996finding}.
 
 Typical example of features extracted from shapes of an ROI are the area covered by the shape, the circularity or rectangularity of the shape, and measures based on the perimeter of the shape \cite{petrick1999combined}. Additional features based on the normalised radial length (NRL) \cite{kilday1993classifying} such as boundary roughness, mean, entropy and area ratio \cite{petrick1999combined, petrick1996automated}, and statistics based on normalised chord length \cite{you1984performance} such as the first four statistical  moments of the resulting chord distribution \cite{el1996shape}.
 
-\subsection{Intensity Features}
-Intensity features are simple descriptive statistics based on the grey-level histogram of an image. Examples of such features are the mean, standard deviation/variance, skew, and kurtosis of the grey-level histogram of an ROI \cite{cheng2006approaches, christoyianni2000fast}.
-
 \subsection{Texture Features}
-Texture features are measurements of an image based on the repetition of patterns over an ROI \cite{parker2010algorithms}. Features based on the texture of an image are highly desirable because mammograms are obtained using a single medium of acquisition and the spatial distribution of features can be found in a single band \cite{ganesan2013computer}.
+Texture features are measurements of an image based on the repetition of patterns over an ROI \cite{parker2010algorithms}. Features based on the texture of an image are highly desirable because mammograms are obtained using a single medium of acquisition and the spatial distribution of features can be found in a single band \cite{ganesan2013computer}. In general, texture features aim to capture information about the spatial arrangement of pixels in an image.
 
 A set of commonly used set of texture features can be derived from the grey-level co-occurrence matrices (GLCM) \cite{haralick1973textural}. Grey-level co-occurrence matrices are used to describe the positions of pixels having similar grey-level values \cite{parker2010algorithms}. Pixel pairs within the GLCM are defined over a range of distances between pixels (often simply one) and orientations (often $0^\circ$ , $45^\circ$, $90^\circ$, and $135^\circ$). From GLCMs computed for each direction and orientation features representing texture context information such as  contrast, homogeneity, energy and entropy \cite{haralick1973textural, cheng2006approaches, parker2010algorithms} can be calculated.
 
 Another approach to texture features uses the grey level difference statistics of a of an image vector. This takes the form of the absolute difference between pairs of grey levels within an image or between the average of local neighbourhoods. Like GLCM features, this technique is parameterised by the distances between the two image patches and the orientation of the distances used as an offset. First order statistics and measures of spread (such as entropy, contrast and angular second moment) can then the derived \cite{weszka1976comparative}.
 
-One final approach to mammogram texture analysis is the use of a grey level run length statistics. This technique counts the number of consecutive occurrences of pixels with the same grey level value in a given orientation. Features are based on weighting longer or shorter runs as being more significant can then be created from the run length distribution \cite{weszka1976comparative, cheng2006approaches}.  
+Grey level run length statistics are another approach to texture analysis of mammographic images. This technique counts the number of consecutive occurrences of pixels with the same grey level value in a given orientation. Features are based on weighting longer or shorter runs as being more significant can then be created from the run length distribution \cite{weszka1976comparative, cheng2006approaches}.
+
+One final method of acquiring texture features is the via a family of techniques based on Gabor filters. A Gabor filter kernel is the product of a Gaussian kernel and a  sinusoidal function. Gabor filters can be used to model the simple cells in the visual cortex and are therefore thought to be similar to the way humans perceive images \cite{marvcelja1980mathematical}. Grigorescu et al \cite{grigorescu2002comparison} compared three different types of texture features derived from Gabor filters such as Gabor energy, complex moments and grating cell operator features. 
 
 \section{Dimensionality Reduction}
 Collections of features extracted from a set of images form a feature matrix (also known as as feature space) where each row in the matrix corresponds to a single image and each column corresponds to a single feature extracted from that image. Each entry in the matrix contains the value of a specific feature detected for that image. The number of columns in a feature matrix $m$ is known as the dimensionality of feature matrix. The goal of a feature matrix is that it encapsulates key information about what we are aiming to measure, allowing us to make inferences about what the data is telling us.
@@ -138,28 +142,131 @@ Where $C$ is the co-variance matrix and $\mathbf{x}$ is the feature matrix. Eige
 Often data points within the feature space do not lie on a linear subspace. Instead they are embedded in a non-linear manifold within a higher dimensional space. In this case taking a linear projection such as that produced by PCA will result in a distorted results with many parts of data overlapping with one another. However, linear techniques such as PCA are often useful as a preprocessing step to remove highly redundant or noisy dimensions before using a non-linear dimensionality reduction method.
 
 \subsubsection{t-Distributed Stochastic Neighbour Embedding}
-t-Distributed Stochastic Neighbour Embedding (t-SNE) \cite{van2008visualizing} is a non-linear dimensionality reduction technique which aims to preserve the distance between very similar data points. t-SNE models the high and low dimensional representations as joint probability distributions modelled using Student's t-distributions. The algorithm optimises the mapping by minimising the Kullback-Leibler divergence between the two distributions. In this way it models the probability that a higher dimensional point $p$ would choose $q$ as its neighbour. t-SNE can be used both with Euclidean distance or with other distance metrics.
+t-Distributed Stochastic Neighbour Embedding (t-SNE) \cite{van2008visualizing} is a non-linear dimensionality reduction technique which aims is particularly well suited to the visualisation of higher dimensional spaces. 
 
-\section{Quality Measures}
-Performing dimensionality reduction on a dataset by definition causes a loss of information. The quality of the mapping produced by a dimensionality reduction algorithm can be measured by examining home the neighbourhood of a point in the higher dimensional data changes relative to the lower dimensional representation. In a good representation the neighbours in the higher dimensional space should be almost the same in the lower dimensional space. 
-
-One way to quantify the quality of dimensionality reduction was suggested by Venna and Kaski \cite{kaski2003trustworthiness} is by measuring the trustworthiness and continuity of the mapping. If a mapping is trustworthy the $k$ closest neighbours in the original space will be neighbours in the projected space. Specifically the trustworthiness metric measures how many points in the low dimensional neighbourhood are not in the high dimensional neighbourhood. The trustworthiness measure is defined as:
+t-SNE is an adaption of the older stochastic neighbour embedding (SNE) algorithm \cite{hinton2002stochastic}. Stochastic neighbour embedding models distances between points in the higher dimensional dataset as conditional probabilities. The conditional probability $p_{j|i}$ that point $x_i$ would pick $x_j$ as a neighbour if picked in proportion to their probability density under a Gaussian centred at $x_i$. Formally this is given by the equation
 
 \begin{equation}
-	T = 1 - \frac{2}{Nk - 3k - 1} \sum\limits_{i=1}^N \sum\limits_{j \in U_k(i)} (r(i,j) - k)
-\end{equation} 
-
-Where $N$ is the number of samples, $r(i,j)$ is the rank of sample $j$ with respect to the distance from $i$ and $U_k(j)$ is the set of points that are in the neighbourhood of the low dimensional space but not the original space. The fraction $\frac{2}{Nk - 3k - 1}$ is used to scale the value to the range 0 to 1.
-
-On the other side of the coin the quality of a mapping can be degraded by discontinuity. Discontinuity is effectively the reverse of the trustworthiness measure. If the neighbours exist in the neighbourhood of the original space but not in the mapping then the nature of the original space may not be preserved due to discontinuities in the projection. The measure of continuity is given by:
-
-\begin{equation}
-	C = 1 - \frac{2}{Nk - 3k - 1} \sum\limits_{i=1}^N \sum\limits_{j \in V_k(i)} (\hat{r}(i,j) - k)
+	p_{j|i} = \frac{e^{-||x_i - x_j ||^2 / 2\sigma^2}}{\sum_{k\neq j} e^{-||x_i - x_k ||^2 / 2\sigma^2}}
 \end{equation}
 
-Where $N$ is the number of samples, $\hat{r}(i,j)$ is the rank of sample $j$ with respect to the distance from $i$ and $V_k$ is the set of points that are in the neighbourhood of the high dimensional space but not in the mapping. Again, the fraction $\frac{2}{Nk - 3k - 1}$ is use to scale the value to the range 0 to 1.
+Similarly the probability for the lower dimensional mapping is given by
 
-The measures of trustworthiness and continuity are closely related to the co-ranking matrix discussed by Lee and Verleysen \cite{lee2009quality}.
+\begin{equation}
+	q_{j|i} = \frac{e^{-||y_i - y_j ||^2}}{\sum_{k\neq j} e^{-||x_i - x_k ||^2}}
+\end{equation}
+
+Where $\sigma$ in this case is set to $\frac{1}{\sqrt{2}}$. In a perfect projection the point conditional probabilities $p_{ij}$ and $q_{ij}$ would be identical. SNE attempts to find the best possible mapping by minimising the different between the two conditional probability distributions given by the Kullback-Liebler divergence using gradient descent. The cost function used by gradient descent is given by
+
+\begin{equation}
+	C = \sum\limits_i \sum\limits_j p_{j|i} \log \frac{p_{j|i}}{q_{j|i}}
+\end{equation}
+
+The parameters of the algorithm are the learning rate for gradient descent and the choice of the initial sigma for the Gaussian. The choice of sigma is dependant on the density of the dataset being visualised and so is generated by means of a binary search for a sigma that produces a probability distribution $P_{i}$ that matches a fixed perplexity term specified by the user and defined as:
+
+\begin{equation}
+	Perp(P_i) = 2^{- \sum\limits_i p_{j|i}\log_{2} p_{j|i}}
+\end{equation}
+
+t-SNE improves on SNE by solving two key issues with SNE. The first issue is that the cost function for SNE is difficult to optimise. Instead of minimising the sum of Kullback-Liebler divergences between the two conditional probabilities $p_{j|i}$ and $q_{j|i}$ the difference between the joint probability distributions $P$ and $Q$ are minimised instead. This is given by
+
+\begin{equation}
+	C = \sum\limits_i \sum\limits_j P_{ij} \log \frac{p_{ij}}{q_{ij}}
+\end{equation}
+
+Subsequently the definition for the pairwise similarities changes slightly to
+
+\begin{equation}
+	p_{ij} = \frac{e^{-||x_i - x_j ||^2 / 2\sigma^2}}{\sum_{k\neq l} e^{-||x_k - x_l ||^2 / 2\sigma^2}}
+\end{equation}
+
+\begin{equation}
+	q_{ij} = \frac{e^{-||y_i - y_j ||^2}}{\sum_{k\neq l} e^{-||x_k - x_l ||^2}}
+\end{equation}
+
+To prevent outliers in the higher dimensional space from becoming extremely small and having little influence over the cost function $p_{ij}$ is set to the symmetrised conditional probabilities via $p_{ij} = \frac{p_{j|i} = p_{i|j}}{2n}$.
+
+The second improvement that t-SNE offers is a solution to the effects of the "crowding problem". This is where the area required to faithfully display the data points which are of similar distance from each other in higher dimensional space is much larger than the available space in the lower dimensional representation. t-SNE combats this problem by using the Student's t distribution instead of a Gaussian to convert low dimensional points to probabilities, changing the definition of $q_{ij}$ to
+
+\begin{equation}
+	q_{ij} = \frac{(1 + ||y_i - y_j ||^2)^{-1}}{\sum_{k\neq l} (1 + ||x_k - x_l ||^2)^{-1}} 
+\end{equation}
+
+The heavier tails present in the Student's t distribution allows for moderately distance points to be forced further out in the lower dimensional mapping. 
+
+\section{Quality Measures}
+Performing dimensionality reduction on a dataset by definition causes a loss of information. As such, as lower dimensional embedding with always contain differences compared to the higher dimensional representation. The quality of the mapping produced by a dimensionality reduction algorithm can be measured by examining home the neighbourhood of a point in the higher dimensional data changes relative to the lower dimensional representation. In a good representation the neighbours in the higher dimensional space should be almost the same in the lower dimensional space. 
+
+A common way of quantifying the quality of dimensionality reduction is by using measures derived from the co-ranking matrix \cite{lee2008rank}. Informally the co-ranking matrix is a square matrix representing the joint histogram of ranks between the two spaces. In this context the rank of data point $j$ is a number representing its position in the ordered list of data points sorted by distance from point $i$.
+
+More formally the co-ranking matrix is given by the following definition. Let the higher dimensional dataset be denoted by $X = \{x_1, ..., x_n\} \subset \mathbb{R}^H$ and the lower dimensional set by $Y = \{y_1, ..., y_n\} \subset \mathbb{R}^L$. Let $\delta_{ij}$ denote the distance between the data point $i$ and $j$ in $\mathbb{R}^H$ and $d_{ij}$ the corresponding distance in $\mathbb{R}^L$. The rank of $x_j$ with respect to $x_i$ is given by
+
+\begin{equation}
+	\rho_{ij} = |\{k | \delta_{ik} < \delta_{ij} \lor (\delta_{ik} = \delta_{ij} \land 1 \leq k < j \leq N\}|
+\end{equation}
+
+Analogously the rank of $y_j$ with respect to $y_i$ is given by
+
+\begin{equation}
+	r{ij} = |\{k | d_{ik} < d_{ij} \lor (d_{ik} = d_{ij} \land 1 \leq k < j \leq N\}|
+\end{equation}
+
+The co-ranking matrix is then defined as the histogram of all rank errors $\bm{Q} = [q_{kl}]_{1 \leq k, l \leq N-1}$ where
+
+\begin{equation}
+	q_{kl} = |\{(i,j) | \rho_{ij} = k \land r_{ij} = l\}|
+\end{equation}
+
+In an idealised, perfect projection the co-ranking matrix would be a square diagonal matrix. However, because pairs of points will inevitably change their rank between the original representation and the projection errors in ranking will show up as off-diagonal entries in the matrix. A point whose rank decreases ($\rho_{ij} > d_{ij}$)  is called an intrusion. Conversely a point whose rank increases ($\rho_{ij} < d_{ij}$) is called an extrusion. A number of different weighted sums of the co-ranking matrix have been proposed aim to measure the properties of the rank errors over local neighbourhoods of size $K$.
+
+The co-ranking matrix may be further subdivided into four blocks based on the first $K$ rows and columns. Formally this is given by the cartesian product of the index sets $\mathbb{F}_K = \{1, .., K\}$ and $\mathbb{L}_K \{K+1, ..., N-1\}$ as follows:
+
+\begin{align}
+	\mathbb{UL}_K = \mathbb{F}_K \times \mathbb{F}_K,  \mathbb{UR}_K = \mathbb{F}_K \times \mathbb{L}_K
+	\\
+	\mathbb{LL}_K = \mathbb{L}_K \times \mathbb{F}_K,  \mathbb{LR}_K = \mathbb{L}_K \times \mathbb{L}_K
+\end{align}
+
+\begin{figure}
+	\label{fig:co-ranking-matrix}
+	\centering
+	\includegraphics[width=0.8\textwidth]{Images/co-ranking.png}	
+	\caption{Global structure of the co-ranking matrix. Trustworthiness measures hard intrusions and continuity measures hard extrusions in the lower left and upper right submatrix respectively. The local continuity meta-criteria measures the mild intrusion and extrusions in the upper left submatrix. Image source: \cite{mokbel2013visualizing}}
+\end{figure}
+
+
+One set of measures which can be derived from the co-ranking matrix was suggested by Venna and Kaski \cite{kaski2003trustworthiness} measures the trustworthiness and continuity of the mapping. If a mapping is trustworthy the $k$ closest neighbours in the original space will be neighbours in the projected space. Specifically the trustworthiness metric measures how many points in the low dimensional neighbourhood are not in the high dimensional neighbourhood. In the context of the co-ranking matrix trustworthiness measures the "hard" intrusions into the local neighbourhood corresponding to the lower left portion of the co-ranking matrix given by $\mathbb{LL_K}$. Another interpretation is to view this as measuring the number of true positives. The trustworthiness measure is defined in terms of the co-ranking matrix as \cite{lee2009quality}:
+
+\begin{equation}
+	T = 1 - \frac{2}{G_{K}} \sum\limits_{(k,l) \in \mathbb{LL}_K} (k - K)q_{kl}
+\end{equation} 
+
+Where $G_K$ is a normalising constant defined as
+
+\begin{equation}
+\label{eq:co-ranking-norm}
+	G_K =
+\left\{
+	\begin{array}{ll}
+		NK(2N - 3K - 1)  & \mbox{if } K < N \\
+		N(N - K)(N - K - 1) & \mbox{if } K \geq N
+	\end{array}
+\right.
+\end{equation}
+
+On the other side of the coin the quality of a mapping can be degraded by discontinuity. Discontinuity is effectively the reverse of the trustworthiness measure. If the neighbours exist in the neighbourhood of the original space but not in the mapping then the nature of the original space may not be preserved due to discontinuities in the projection. In the context of the co-ranking matrix continuity measures the number of "hard" extrusions into the local neighbourhood which corresponds to the upper right proportion of the co-ranking matrix given by $\mathbb{UR_K}$. The measure of continuity in terms of the co-ranking matrix is given by \cite{lee2009quality}:
+
+\begin{equation}
+	C = 1 - \frac{2}{G_{K}} \sum\limits_{(k,l) \in \mathbb{UR}_K} (l - K)q_{kl}
+\end{equation}
+
+Where $G_K$ is the same as in equation \ref{eq:co-ranking-norm}.
+
+Another measure proposed by Chen and Buja \cite{chen2009local} is the local continuity meta-criteria (LCMC). In contrast to the measures of trustworthiness and continuity which attempts to quantify the error in the projection the LCMC attempts to quantify how well the dimensionality reduction algorithm performed. The LCMC can be viewed as a measure of the true positives. In the context of the co-ranking matrix the LCMC is given by
+
+\begin{equation}
+	LCMC = \frac{K}{1 - N} + \frac{1}{NK} \sum\limits_{(k,l) \in \mathbb{UL}_K} q_{kl}
+\end{equation}
 
 \section{Visualisation}
 \label{sec:visualisation}
@@ -202,15 +309,22 @@ The technical work of the project will be concerned with implementing some exist
 	\caption{Conceptual overview of the image analysis pipeline to be produced as part of this project.}
 \end{figure}
 
-There are four core components of the methodology that need to be considered before implementation. The first is a decision on the number and type of features to be extracted from the images. Ideally the method used in this project should incorporate approaches that cover all three categories discussed in section \ref{sec:features}. This is so that a good variation in the discriminative properties of an image will be incorporated into the system. Focussing on only one technique for features considerably reduces the information that could be used to discriminate between images.
+There are four core components of the methodology that need to be considered before implementation. The first is a decision on the number and type of features to be extracted from the images. Ideally the method used in this project should incorporate approaches that cover all three categories discussed in section \ref{sec:features}. This is so that a good variation in the discriminative properties of an image will be incorporated into the system. Focussing on only one technique for features considerably reduces the information that could be used to discriminate between images. 
 
-The second is the choice of dimensionality reduction techniques used to produce a lower dimensional mapping. Many different methods have been proposed for dimensionality reduction. It is highly likely relationship between variables in the feature space will not be a linear subspace. For this reason the chosen technique will almost certainly be a non-linear dimensionality reduction technique. However, it may be the case that the a linear dimensionality reduction technique such as PCA can be used to remove extremely redundant dimensions and reduce noise as a preprocessing step to a non-linear dimensionality reduction technique.    
+In this project, it is proposed that shape features are focussed on first. Due to the differences between real and synthetic mammograms, shape features are most likely to be the most successful for comparison between the two datasets. Then the focus will then sift to implementing intensity features and finally texture features. It is proposed that two shape features are used, one which detects blob features proposed by Chen et al. \cite{chen2013multiscale} and a linear structure feature proposed by Zwiggelaar et al. \cite{zwiggelaar1996finding}. Regarding texture features those which are based on the GLCM \cite{haralick1973textural} are well tested and should be comparatively easy to implement and interpret. 
+
+The second is the choice of dimensionality reduction techniques used to produce a lower dimensional mapping. Many different methods have been proposed for dimensionality reduction. It is highly likely relationship between variables in the feature space will not be a linear subspace. For this reason the chosen technique will almost certainly be a non-linear dimensionality reduction technique. However, it may be the case that the a linear dimensionality reduction technique such as PCA can be used to remove extremely redundant dimensions and reduce noise as a preprocessing step to a non-linear dimensionality reduction technique. 
+
+t-SNE is a good choice for visualisation as it is specifically designed to find embedding which are produce good clusters and and preserve local neighbourhoods. However using just this one approach does not tell us anything about the global structure of the manifold on which the higher dimensional data lies. For understanding the global structure of the system it would be worth examining the projection created from a technique such as Isomap or locally linear embedding. All three of these are common dimensionality reduction approaches that are readily available in many languages and platforms (see section \ref{sec:choice-of-language}).
 
 Thirdly the lower dimensional mapping must be visualised. This may be done either directly if the mapping is to two or three dimensions. Alternatively the a higher dimensional plot such as those discussed in section \ref{sec:visualisation} could be used to higher examine the dimensional spaces. The choice of visualisation techniques will depend heavily on the choice of the two prior components. It is likely that the project will use a combination of different visualisation strategies depending on what specific aspect of the dataset is being examined. One of the issues with higher dimensional data is that it is impossible to produce visualisation that accurately capture all aspects of the data at once. Whatever technique is used will only ever show a projection of the feature space at best.
 
 The final component of the system will be a form of quality measurement. While visual examination of the mapping is a necessity for qualitatively interpreting how the mapping is derived from the feature space, it is important to gain a quantitive measurement of the mapping. Quantitive measures can be used to check parameters for the dimensionality reduction algorithm are well configured and compare can compare between different combinations of features. 
 
+There will be two main results produced by this project. The first is an analysis of how well each of the features extracted and subsequent projections produced the phantom dataset match with those of the real mammogram dataset. The second is an analysis of the quality of the projections produced. This is important as it measures the quality of the 
+
 \subsection{Choice of Language}
+\label{sec:choice-of-language}
 A technical decision must also be made regarding the choice of technologies and programming languages to be used as part of the project. All four components of the system are likely to be non-trivial to implement. Where possible existing implementations of parts of the four major components of this project should be used. The reasons for this are twofold. 1) using existing implementations should ensure that the development time is kept to a minimum, 2) they are likely to be better tested for validity. 
 
 The programming language used as part of the system must be capable of easily implementing high level operations. It would be useful if the language of choice readily includes high level libraries for image processing and dimensionality reduction as well as statistical packages. At the time of writing there are several contenders for potential language choices to be used in this project. 

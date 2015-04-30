@@ -21,8 +21,8 @@ def _handle_data_frame(func):
     @functools.wraps(func)
     def inner(feature_matrix, **kwargs):
         if isinstance(feature_matrix, pd.DataFrame):
-            fit_output = func(feature_matrix.as_matrix(), **kwargs)
-            return pd.DataFrame(fit_output, index=feature_matrix.index)
+            fit_output, error = func(feature_matrix.as_matrix(), **kwargs)
+            return pd.DataFrame(fit_output, index=feature_matrix.index), error
         else:
             return func(feature_matrix)
     return inner
@@ -38,7 +38,7 @@ def tSNE(feature_matrix, **kwargs):
     feature_matrix = standard_scaler(feature_matrix)
     tSNE = manifold.TSNE(**kwargs)
     fit_output = tSNE.fit_transform(feature_matrix)
-    return fit_output
+    return fit_output, None
 
 
 @_handle_data_frame
@@ -51,7 +51,8 @@ def isomap(feature_matrix, **kwargs):
     feature_matrix = standard_scaler(feature_matrix)
     isomap = manifold.Isomap(**kwargs)
     fit_output = isomap.fit_transform(feature_matrix)
-    return fit_output
+    error = isomap.reconstruction_error()
+    return fit_output, error
 
 
 @_handle_data_frame
@@ -64,7 +65,8 @@ def lle(feature_matrix, **kwargs):
     feature_matrix = standard_scaler(feature_matrix)
     lle = manifold.LocallyLinearEmbedding(**kwargs)
     fit_output = lle.fit_transform(feature_matrix)
-    return fit_output
+    error = lle.reconstruction_error_
+    return fit_output, error
 
 
 @_handle_data_frame

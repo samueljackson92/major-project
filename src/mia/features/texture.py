@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import skimage
-from skimage import feature, filters
+from skimage import feature, filters, transform
 from scipy.ndimage.filters import generic_filter
 
 from mia.features.blobs import extract_blob
@@ -26,7 +26,8 @@ def detect_texture(img, patches):
         if 'radius' in patch:
             img_patch = extract_blob(patch[['x', 'y', 'radius']], img)
         else:
-            img_patch = extract_line(patch, img)
+            small_img = transform.pyramid_reduce(img, 4)
+            img_patch = extract_line(patch, small_img)
         return texture_props(img_patch)
 
     frames = map(_extract_texture, patches.iterrows())

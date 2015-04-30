@@ -49,10 +49,18 @@ In conclusion I found this project to be a mostly enjoyable and rewarding experi
 
 \section{Future Work}
 \label{sec:future-work}
+There are a multitude of ways in which this project could be extended. This section lists of of the ways in which I believe the project could be expanded along with a justification as to why each point would be worth investigating.
 
- - Classification
- - Topological data analysis
- - Improvements to features (bins)
- - Improvements to deformable convolution
- - Better nd-visulisation methods
+One piece of additional work I would have liked to of investigated is to run the projections produced through a couple of common classifiers (such as, for example, a non-linear SVM). Alongside the quality metrics for visualisation, this would give me some raw numbers quantifying how well a classifier performs on the feature spaces produced by my implementations. While this would have little benefit to the projects main goals of examining the differences between synthetic and real feature spaces, it would have given me . This would have the additional advantage of providing a quantitive way of adjusting the parameters for the feature extraction and dimensionality reduction components of the system.
+
+Another improvement I would have liked to have made to the system is the to speed up the performance of the deformable convolution module. Currently this module provides a very slow implementation of the convolution operator. While this is necessarily slow around the edge of mask being convolved with the image because of the nature of modifying the kernel with every convolution this does not need to be the case across the main portion of the image. For most of the breast two 1D second derivative Gaussian kernel in vertical and horizontal directions could be used and simply summed together to produce the same response but reducing the overall complexity.
+
+I believe that the best feature used in this project was the multi-scale blob feature. I think that if I were to continue developing this project I would have experimented with making the linear structure feature multi-scale. I think that this feature misses some of the very small and very large scale linear structures because the algorithm has trouble detecting features across all scales with the same parameters (bins size, threshold etc.). For smaller lines the kernel proves to be too large and the line response does not show through strongly enough to avoid getting removed by thresholding. Likewise for larger lines the opposite is true; the response from the kernel in all directions appears uniform. Using this, duplicated lines detected across scales could be removed using a merging method like blob features, but it would obviously have to be more complicated because of the inconsistent size and shape of line features.
+
+With regards to the visualisation aspect of this project I feel that there are several areas for further expansion. One method that captures my attention was a point wise measure of quality for lower dimensional mappings derived from the co-ranking matrix \cite{mokbel2013visualizing}. This can be used to colour the data points in a scatterplot of the lower dimensional mapping of a feature space. I feel that an approach based on a technique such as this provide a much easier visual interpretation of the quality of the visualisation in comparison of the measures of trustworthiness, continuity, and LCMC.
+
+During this project I have not focussed too much on the use of higher dimensional representations of the feature space. While these are often not as easy to interpret as a 2D or 3D scatterplot, they can provide useful additional insight. One thing which I would have liked to have tried in my project is to implement a method of ordering features according to there importance such as proposed by many methods listed in ref. \cite{bertini2011quality}. In particular my imagination was captured by the discussion of ordering parallel coordinates axes using the Hough transform \cite{tatu2009combining} and interactive feature selection by information loss \cite{johansson2009interactive}.
+
+One aspect that I did not focus on much during the course of this project was ``topological" aspect in the project title. Mid way through the course of this project I began to read into the field of topological data analysis \cite{carlsson2009topology}. I think while this area is not necessarily directly related to the examining the goals of this specific project it would be an area I feel would be worth examining. I think that exploring the topology of the mammographic feature space might yield some interesting relationships and I would be excited to explore this area further.
+
  

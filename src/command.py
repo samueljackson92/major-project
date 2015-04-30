@@ -1,10 +1,11 @@
 import click
 import logging
 import pandas as pd
-import numpy as np
 
 from skimage import transform
 import mia
+
+from mia.reduction.reducers import *
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mia")
@@ -42,8 +43,8 @@ def reduction():
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
 def blob(image_directory, masks_directory, output_file, num_processes):
-    features = mia.reduction.blob_reduction(image_directory, masks_directory,
-                                            num_processes=num_processes)
+    reduction = BlobFeaturesReduction(image_directory, masks_directory)
+    features = reduction.reduce(num_processes=num_processes)
     features.to_csv(output_file)
 
 
@@ -54,94 +55,40 @@ def blob(image_directory, masks_directory, output_file, num_processes):
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
 def line(image_directory, masks_directory, output_file, num_processes):
-    features = mia.reduction.line_reduction(image_directory, masks_directory,
-                                            num_processes=num_processes)
+    reduction = LineFeaturesReduction(image_directory, masks_directory)
+    features = reduction.reduce(num_processes=num_processes)
     features.to_csv(output_file)
 
 
 @reduction.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
+@click.argument('patch_file', type=click.Path())
 @click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
-def texture(image_directory, masks_directory, output_file, num_processes):
-    features = mia.reduction.texture_reduction(image_directory,
-                                               masks_directory,
-                                               num_processes=num_processes)
-    features.to_csv(output_file)
-
-
-@reduction.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-@click.argument('output-file', type=click.Path())
-@click.option('--num-processes', default=2,
-              help="Num of processes to use for the reduction.")
-def texture_cluster(image_directory, masks_directory, output_file,
-                    num_processes):
-    features = \
-        mia.reduction.texture_cluster_reduction(image_directory,
-                                                masks_directory,
-                                                num_processes=num_processes)
-    features.to_csv(output_file)
-
-
-@reduction.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-@click.argument('output-file', type=click.Path())
-@click.option('--num-processes', default=2,
-              help="Num of processes to use for the reduction.")
-def intensity(image_directory, masks_directory, output_file, num_processes):
-    features = mia.reduction.intensity_reduction(image_directory,
-                                                 masks_directory,
-                                                 num_processes=num_processes)
-    features.to_csv(output_file)
-
-
-@reduction.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-@click.argument('output-file', type=click.Path())
-def raw(image_directory, masks_directory, output_file):
-    feature_matrix = mia.reduction.raw_reduction(image_directory,
-                                                 masks_directory)
-    np.save(output_file, feature_matrix)
-
-
-@reduction.command()
-@click.argument('image-directory', type=click.Path())
-@click.argument('masks-directory', type=click.Path())
-@click.argument('blobs_file', type=click.Path())
-@click.argument('output-file', type=click.Path())
-@click.option('--num-processes', default=2,
-              help="Num of processes to use for the reduction.")
-def intensity_from_patch(image_directory, masks_directory, blobs_file,
+def intensity_from_patch(image_directory, masks_directory, patch_file,
                          output_file, num_processes):
-    blobs_frame = pd.DataFrame.from_csv(blobs_file)
-    features = \
-        mia.reduction.intensity_from_patches(image_directory,
-                                             masks_directory,
-                                             blobs_frame,
-                                             num_processes=num_processes)
+    patch_frame = pd.DataFrame.from_csv(patch_file)
+    reduction = PatchIntensityFeaturesReduction(image_directory,
+                                                masks_directory)
+    features = reduction.reduce(patch_frame, num_processes=num_processes)
     features.to_csv(output_file)
 
 
 @reduction.command()
 @click.argument('image-directory', type=click.Path())
 @click.argument('masks-directory', type=click.Path())
-@click.argument('blobs_file', type=click.Path())
+@click.argument('patch_file', type=click.Path())
 @click.argument('output-file', type=click.Path())
 @click.option('--num-processes', default=2,
               help="Num of processes to use for the reduction.")
-def texture_from_patch(image_directory, masks_directory, blobs_file,
+def texture_from_patch(image_directory, masks_directory, patch_file,
                        output_file, num_processes):
-    blobs_frame = pd.DataFrame.from_csv(blobs_file)
-    features = mia.reduction.texture_from_patches(image_directory,
-                                                  masks_directory,
-                                                  blobs_frame,
-                                                  num_processes=num_processes)
+    patch_frame = pd.DataFrame.from_csv(patch_file)
+    reduction = PatchTextureFeaturesReduction(image_directory,
+                                              masks_directory)
+    features = reduction.reduce(patch_frame, num_processes=num_processes)
     features.to_csv(output_file)
 
 

@@ -41,7 +41,6 @@ class Reduction(object):
 
     @abc.abstractmethod
     def process_image(self, image_path, mask_path):
-        print "Hello"
         raise NotImplementedError("Method is not implemented")
 
     def reduce(self, *args, **kwargs):
@@ -61,7 +60,6 @@ class Reduction(object):
             self._process(*args, **kwargs)
 
     def _process(self, *args, **kwargs):
-        print "Hello"
         logger.info("Processing image %s" % os.path.basename(args[0]))
 
         start_time = time.time()

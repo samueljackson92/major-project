@@ -13,6 +13,12 @@ def assert_lists_equal(a, b):
     nose.tools.assert_true(sorted(a) == sorted(b))
 
 
+def assert_data_frame_columns_match(df, columns):
+    """Check if the columns of a data frame match as list"""
+    for name, exp_name in zip(df.columns, columns):
+        nose.tools.assert_equal(name, exp_name)
+
+
 def load_file(file_name):
     """Load a testing image"""
     path = get_file_path(file_name)

@@ -138,6 +138,31 @@ Principle components analysis aims to preserve the maximal covariance of the dat
 
 Where $C$ is the co-variance matrix and $\mathbf{x}$ is the feature matrix. Eigendecomposition is then performed on the covariance matrix and to obtain the basis vectors for the subspace. Taking the first $n$ basis vectors creates a linear projection of the data onto a lower dimensional representation.
 
+\subsubsection{Classic Multidimensional Scaling}
+Classic multidimensional scaling (MDS) is another commonly used linear dimensionality reduction technique. In contrast to PCA, MDS aims to preserve pairwise distances between points in the lower dimensional representation \cite{strange2014open}. Typically classic MDS begins by computing the distance matrix between points as given by
+
+\begin{equation}
+	\bm{S}_{ij} = || \bm{x}_i - \bm{x}_j ||^2
+\end{equation}
+
+Since the output this matrix is not necessarily positive semi-definite the matrix first be first transformed into a Gram matrix using the following operation \cite{strange2014open}
+
+\begin{equation}
+	F = - \frac{1}{2}\bm{HSH}
+\end{equation}
+
+Where $\bm{H}$ is a centring matrix with the value
+
+\begin{equation}
+	H = \bm{I} - \frac{1}{n}\bm{ee}^T
+\end{equation}
+
+In which $I$ is the identity matrix and $\bm{e}$ is a vector containing all ones. Performing eigendecomposition on the resulting matrix will result in a matrix of eigenvectors $\{\bm{q}_j\}_{j=1}^d$ and eigenvalues $\{\lambda_j\}_{j=1}^d$ as described in the first part of this section. The lower dimensional mapping produced by MDS is then given by
+
+\begin{equation}
+	Y = \{\sqrt{\lambda_j}\bm{q}_{ji}\}_{j=1}^n
+\end{equation}
+
 \subsection{Non Linear}
 Often data points within the feature space do not lie on a linear subspace. Instead they are embedded in a non-linear manifold within a higher dimensional space. In this case taking a linear projection such as that produced by PCA will result in a distorted results with many parts of data overlapping with one another. However, linear techniques such as PCA are often useful as a preprocessing step to remove highly redundant or noisy dimensions before using a non-linear dimensionality reduction method.
 
@@ -195,7 +220,32 @@ The second improvement that t-SNE offers is a solution to the effects of the "cr
 The heavier tails present in the Student's t distribution allows for moderately distance points to be forced further out in the lower dimensional mapping. 
 
 \subsubsection{Isomap}
-Isomap is a fairly old dimensionality reduction algorithm. Isomap is a spectral dimensionality reduction technique that is based on computing the geodesic distances between points embedded in the higher dimensional manifold.
+Isomap \cite{tenenbaum2000global} is a fairly old dimensionality reduction algorithm. Isomap is a spectral dimensionality reduction technique that is based on computing the geodesic distances between points embedded in the higher dimensional manifold. Isomap is effectively an extension of metric multi-dimensional scaling (MDS). 
+
+Instead of using the euclidean distance metric (as in MDS) a weighted graph between all points is constructed. The distance between two points on the manifold is then given by the shortest path between two nodes in the graph. Typically this graph is constructed by finding the $k$ nearest neighbours to the datapoint and then using Dijkstra’s algorithm (or equivalent) to build the graph. One the matrix of geodesic distances has been computed Isomap performs the same steps as classic MDS to achieve an embedding based on geodesic rather than euclidean distance.
+
+One of the biggest issues with Isomap is ``short-circuiting". This is where the parameter $k$ for the number of nearest neighbours is set to be too large. In this case a point's $k$ largest neighbour may not be anywhere near the point's actual local neighbourhood resulting in a sub optimum lower dimensional representation.
+
+\subsection{Locally Linear Embedding}
+Locally linear embedding (LLE) \cite{roweis2000nonlinear} is another dimensionality reduction algorithm that is based on the principle of eigendecomposition but is substantially different in its approach. While Isomap focusses on the global structure of the embedded manifold locally linear embedding aims to preserve the local structure.
+
+The fundamental assumption made by LLE is that the local neighbourhood surrounding a data point is roughly linear. Through this assumption LLE attempts to model each data point in terms of a matrix of weights required to ``recreate" a data point from its neighbours \cite{strange2014open}. 
+
+LLE begins by finding each data point's $k$ nearest neighbours. From the local neighbours a cost function can be defined that yields the reconstruction error of the weights given by
+
+\begin{equation}
+	\epsilon(\bm{W}) = \sum\limits_i || \bm{x}_i - \bm{W}_{ij}\bm{x}_j ||^2 
+\end{equation}
+
+Where $\bm{W}_{ij} = 0$ if $\bm{x}_j$ is not in the local neighbourhood and $\sum\limits_j \bm{W}_{ij} = 1$ if it is. Minimising the weight matrix yields a least squares problem described in \cite{roweis2000nonlinear}. After obtaining the optimal weights for reconstructing the data point the matrix $\bm{W}$ can be used for find the a lower dimensional representation by minimising the equivalent cost function for a lower dimensional representation given as
+
+ \begin{equation}
+ 	\Phi(\bm{Y}) = \sum\limits_i || \bm{y}_i - \bm{W}_{ij}\bm{y}_j ||^2 
+ \end{equation}
+ 
+ Subject to the constraints that the outputs are centred ($\sum\limits_j \bm{y}_i = 0$) and the outputs have unit covariance \cite{strange2014open}. Eigendecomposition of the feature matrix given by $\bm{F} = (\bm{I} - \bm{W})^T(\bm{I} - \bm{W})$  to obtain the bottom $d+1$ eigenvectors produces the desired embedding.
+ 
+ LLE often produces better results than Isomap especially when the local structure of the embedded manifold is more important than the global structure. The optimisation of LLE is also quicker in comparison, largely due to it's ability to take advantage of sparse matrix algorithms. LLE can also have issues if the chosen neighbourhood is too large or if the density of the higher dimensional space is not uniform.
 
 \section{Quality Measures}
 Performing dimensionality reduction on a dataset by definition causes a loss of information. As such, as lower dimensional embedding with always contain differences compared to the higher dimensional representation. The quality of the mapping produced by a dimensionality reduction algorithm can be measured by examining home the neighbourhood of a point in the higher dimensional data changes relative to the lower dimensional representation. In a good representation the neighbours in the higher dimensional space should be almost the same in the lower dimensional space. 
@@ -269,6 +319,22 @@ Another measure proposed by Chen and Buja \cite{chen2009local} is the local cont
 
 \begin{equation}
 	LCMC = \frac{K}{1 - N} + \frac{1}{NK} \sum\limits_{(k,l) \in \mathbb{UL}_K} q_{kl}
+\end{equation}
+
+One final measure that can be derived from the co-ranking matrix is the mean relative rank error (MMREs) proposed by Lee and Verleysen \cite{lee2007nonlinear}. The MRREs are similar to the measures of trustworthiness and continuity. While trustworthiness and continuity measure the ``hard"" intrusions and extrusions in a mapping, MRREs incorporate both ``mild" and ``hard" intrusions and extrusions. MRREs can be seen as quantifying both types of positives and negatives as opposed to trustworthiness and continuity only quantifying the false positives/negatives \cite{lee2009quality}. The MRREs are defined given in terms of the co-ranking matrix as
+
+\begin{equation}
+	W_n(K) = \frac{1}{H_k} \sum\limits_{(k,l) \in \mathbb{UL}_K \cup \mathbb{LL}_K} \frac{| k - l |}{l} q_{kl}
+\end{equation}
+
+\begin{equation}
+	W_v(K) = \frac{1}{H_k} \sum\limits_{(k,l) \in \mathbb{UL}_K \cup \mathbb{UR}_K} \frac{| k - l |}{l} q_{kl}
+\end{equation}
+
+Where $H_k$ is the normalising factor given by
+
+\begin{equation}
+	H_k = N \sum\limits_{k=1}^K \frac{| N - 2k -1 |}{k}
 \end{equation}
 
 \section{Visualisation}

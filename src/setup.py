@@ -11,7 +11,7 @@ import numpy as np
 
 # define the extension module
 convolve_tools = Extension('convolve_tools',
-                           sources=['convolve_tools/convolve_tools.c'],
+                           sources=['mia/convolve_tools/convolve_tools.c'],
                            include_dirs=[np.get_include()],
 			   extra_compile_args=['-std=c99'])
 
@@ -25,11 +25,11 @@ config = {
     'install_requires': requirements,
     'entry_points': '''
         [console_scripts]
-        mia=command:cli
+	mia=command:cli
     ''',
     'ext_modules': [convolve_tools],
     'packages': ['mia'],
-    'scripts': ['command.py'],
+    'scripts': ['mia/command.py'],
     'name': 'mia'
 }
 

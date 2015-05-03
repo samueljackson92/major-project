@@ -248,6 +248,7 @@ Where $\bm{W}_{ij} = 0$ if $\bm{x}_j$ is not in the local neighbourhood and $\su
  LLE often produces better results than Isomap especially when the local structure of the embedded manifold is more important than the global structure. The optimisation of LLE is also quicker in comparison, largely due to it's ability to take advantage of sparse matrix algorithms. LLE can also have issues if the chosen neighbourhood is too large or if the density of the higher dimensional space is not uniform.
 
 \section{Quality Measures}
+\label{sec:quality-measures}
 Performing dimensionality reduction on a dataset by definition causes a loss of information. As such, as lower dimensional embedding with always contain differences compared to the higher dimensional representation. The quality of the mapping produced by a dimensionality reduction algorithm can be measured by examining home the neighbourhood of a point in the higher dimensional data changes relative to the lower dimensional representation. In a good representation the neighbours in the higher dimensional space should be almost the same in the lower dimensional space. 
 
 A common way of quantifying the quality of dimensionality reduction is by using measures derived from the co-ranking matrix \cite{lee2008rank}. Informally the co-ranking matrix is a square matrix representing the joint histogram of ranks between the two spaces. In this context the rank of data point $j$ is a number representing its position in the ordered list of data points sorted by distance from point $i$.

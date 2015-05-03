@@ -116,7 +116,3 @@ class TextureRegressionTest(unittest.TestCase):
         tex_images = [filter_image_for_texture(img, orientation, prop)
                       for orientation in orientations
                       for prop in props]
-
-        for img in tex_images:
-            io.imshow(img)
-            io.show()

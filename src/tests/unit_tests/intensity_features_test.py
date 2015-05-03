@@ -18,10 +18,11 @@ class IntensityTests(unittest.TestCase):
     def test_intensity_props(self):
         props = intensity_props(self._img)
 
-        expected_result = [[1.00000000e+04, 7.95705882e-02, 2.25583335e-02,
-                            3.52941176e-02, 6.27450980e-02, 7.45098039e-02,
-                            9.41176471e-02, 2.07843137e-01, 8.10502678e-01,
-                            7.94866829e-01]]
         nose.tools.assert_true(isinstance(props, pd.DataFrame))
         nose.tools.assert_equal(props.shape, (1, 10))
+
+        path_name = "reference_results/tex1_intensity_features.npy"
+        result_path = get_file_path(path_name)
+        expected_result = np.load(result_path)
+
         np.testing.assert_almost_equal(props.as_matrix(), expected_result)

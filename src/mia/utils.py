@@ -24,6 +24,8 @@ def preprocess_image(image_path, mask_path=None):
         msk = resize_mask_to_image(msk, img.shape)
         img[msk == 0] = 0
         img[msk != 0] = normalise_image(img[msk != 0])
+    else:
+        img = normalise_image(img)
 
     return img, msk
 

@@ -24,7 +24,7 @@ class BlobDetectionTests(unittest.TestCase):
         props = blob_props(self._blobs)
 
         nose.tools.assert_true(isinstance(props, pd.DataFrame))
-        nose.tools.assert_equal(props.shape, (1, 12))
+        nose.tools.assert_equal(props.shape, (1, 13))
 
         ref_result = load_data_frame("reference_results/"
                                      "2015-03-05-results-blobs.csv")

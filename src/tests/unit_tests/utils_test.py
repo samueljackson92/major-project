@@ -23,8 +23,8 @@ class UtilsTest(unittest.TestCase):
         img = load_synthetic_mammogram(img_path)
 
         nose.tools.assert_equal(img.dtype, 'float64')
-        nose.tools.assert_equal(img.shape, (100, 100))
-        nose.tools.assert_less_equal(img.max(), 1.0)
+        nose.tools.assert_equal(img.shape, (200, 200))
+        nose.tools.assert_less_equal(img.max(), 255)
         nose.tools.assert_greater_equal(img.min(), 0.0)
 
     def test_load_synthetic_mask(self):
@@ -33,7 +33,7 @@ class UtilsTest(unittest.TestCase):
 
         nose.tools.assert_equal(img.dtype, 'float64')
         nose.tools.assert_equal(img.shape, (100, 100))
-        nose.tools.assert_less_equal(img.max(), 1.0)
+        nose.tools.assert_less_equal(img.max(), 255)
         nose.tools.assert_greater_equal(img.min(), 0.0)
 
     def test_load_image_real(self):
@@ -49,7 +49,7 @@ class UtilsTest(unittest.TestCase):
         img_path = get_file_path("synthetic_patch.dcm")
         img, msk = preprocess_image(img_path)
 
-        nose.tools.assert_equal(img.shape, (100, 100))
+        nose.tools.assert_equal(img.shape, (200, 200))
         nose.tools.assert_equal(msk, None)
         nose.tools.assert_less_equal(img.max(), 1.0)
         nose.tools.assert_greater_equal(img.min(), 0.0)
@@ -72,11 +72,11 @@ class UtilsTest(unittest.TestCase):
         msk_path = get_file_path("synthetic_mask_patch.png")
         img, msk = preprocess_image(img_path, msk_path)
 
-        nose.tools.assert_equal(img.shape, (100, 100))
+        nose.tools.assert_equal(img.shape, (200, 200))
         nose.tools.assert_less_equal(img.max(), 1.0)
         nose.tools.assert_greater_equal(img.min(), 0.0)
 
-        nose.tools.assert_equal(msk.shape, (100, 100))
+        nose.tools.assert_equal(msk.shape, (200, 200))
         nose.tools.assert_less_equal(msk.max(), 1.0)
         nose.tools.assert_greater_equal(msk.min(), 0.0)
 
@@ -92,15 +92,6 @@ class UtilsTest(unittest.TestCase):
 
         nose.tools.assert_equal(np.amax(img), 1)
         nose.tools.assert_equal(np.amin(img), 0)
-
-    def test_normalise_image_specified_range(self):
-        img = np.zeros((10, 10))
-        img = img-1
-        img[5, 5] = 255
-        img = normalise_image(img, new_max=100, new_min=-10)
-
-        nose.tools.assert_equal(np.amax(img), 100)
-        nose.tools.assert_equal(np.amin(img), -10)
 
     def test_binary_image(self):
         img = np.zeros((10, 10))

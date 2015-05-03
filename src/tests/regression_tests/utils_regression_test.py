@@ -51,7 +51,6 @@ class UtilsRegressionTest(unittest.TestCase):
 
         expected_shape = (5, img.shape[0], img.shape[1])
         nose.tools.assert_equal(srtd_clusters.shape, expected_shape)
-        nose.tools.assert_equal(np.count_nonzero(srtd_clusters[0]), 0)
         nose.tools.assert_almost_equal(srtd_clusters[1].mean(),
                                        0.01, delta=0.015)
         nose.tools.assert_almost_equal(srtd_clusters[2].mean(),

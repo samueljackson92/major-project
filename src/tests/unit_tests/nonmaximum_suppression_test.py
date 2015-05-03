@@ -2,7 +2,6 @@ import unittest
 import nose.tools
 import numpy as np
 
-from skimage import io, transform
 from ..test_utils import generate_linear_structure
 
 from mia.features._orientated_bins import orientated_bins
@@ -16,13 +15,13 @@ class NonMaximumSuppressionTest(unittest.TestCase):
         line_strength, line_orinetation = orientated_bins(linear_structure, nbins)
         suppressed = nonmaximum_suppression(line_strength, line_orinetation, nbins)
 
-        nose.tools.assert_equal(np.count_nonzero(suppressed), 200)
+        nose.tools.assert_equal(np.count_nonzero(suppressed), 60)
 
     def test_suppression_fails_incorrect_bins(self):
         linear_structure = generate_linear_structure(20)
         nbins = 6
         line_strength, line_orinetation = orientated_bins(linear_structure, 7,
-                                                            nbins=nbins)
+                                                          nbins=nbins)
 
         args = (line_strength, line_orinetation, nbins)
         nose.tools.assert_raises(ValueError, nonmaximum_suppression, *args)
@@ -34,4 +33,4 @@ class NonMaximumSuppressionTest(unittest.TestCase):
         suppressed = nonmaximum_suppression(line_strength, line_orinetation,
                                             nbins, kernel_size=6)
 
-        nose.tools.assert_equal(np.count_nonzero(suppressed), 260)
+        nose.tools.assert_equal(np.count_nonzero(suppressed), 60)

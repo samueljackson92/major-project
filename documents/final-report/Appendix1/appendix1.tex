@@ -1,2 +1,24 @@
 \chapter{Third-Party Code and Libraries}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{l p{14cm}}
+\toprule
+         name & description \\
+\midrule
+        click & Command line interface library used to create the various CLI tools supplied with the package created for this project.\\ \hline
+     coverage & Python library used to measure the coverage provided by the unit tests. This was used both by the developer and automatically run by the build server \\ \hline
+   matplotlib & Matplotlib is an general purpose 2D and 3D plotting library. This library has been heavily used both as a component of the pandas library, and in its own right to generate most of the plots shown in this document. \\ \hline
+        medpy & Library which provides functions for reading DICOM format images \\ \hline
+         nose & Python unit testing tool. This provides a suite of test helpers and assertion functions as well as a command line program used to run the project's unit \& regression tests \\ \hline
+        numpy & General purpose, fast and efficient array manipulation library. This is a core dependancy of scipy, pandas, and the scikit libraries. \\ \hline
+       pandas & Pandas provides high level data analysis and manipulation tools. This project is heavily dependant on pandas for its database-esque operations, plotting routines, and I/O routines.\\ \hline
+ scikit-image & scikit-image is built on top of the scipy library and provides many of the higher level image analysis functions such as loading and transforming images, as well as the implementation of the GLCM matrices used in the project.\\ \hline
+ scikit-learn & The scikit-learn library provided implementations of the manifold learning algorithms used in the project. This includes the implementations of t-SNE, LLE and Isomap. Other uses of the library were for pairwise distance computations and $k$-means clustering. \\ \hline
+        scipy & Scipy is a collection of mathematical, scientific, and engieering packages. Scipy is a core dependancy of many of the other third-party libraries used in this project. It has also been heavily used within the project itself.\\ \hline
+      seaborn & Seaborn is another plotting library built on top of matplotlib. It provides some additional plotting functionality not present in matplotlib itself.\\ \hline
+       sphinx & Sphinx is a library which can be used to automatically generate documentation from the docstrings of Python code.\\
+\bottomrule
+\end{tabular}	
+\caption{List of third-party libraries used in this project}
+\end{table}

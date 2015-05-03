@@ -52,9 +52,8 @@ def filter_for_maximum_direction(kernels, line_strength, parallel_orientation):
     filtered_images = []
     for kernel in kernels:
         filtered_image = np.zeros(line_strength.shape)
-        # filters.maximum_filter(line_strength, footprint=kernel,
-        #                        output=filtered_image)
-        filters.generic_filter(line_strength, func, footprint=kernel, output=filtered_image)
+        filters.generic_filter(line_strength, func, footprint=kernel,
+                               output=filtered_image)
         filtered_images.append(filtered_image)
 
     line_strength_suppressed = np.zeros(line_strength.shape)

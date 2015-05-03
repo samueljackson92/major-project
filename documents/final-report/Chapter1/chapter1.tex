@@ -133,7 +133,7 @@ Linear approaches to dimensionality reduction make the assumption that the data 
 Principle components analysis aims to preserve the maximal covariance of the data \cite{strange2014open}. First the covariance matrix of the feature space is computed via:
 
 \begin{equation}
-	C = \frac{1}{￼n}\Sigma \mathbf{x}_i \mathbf{x}_i^T
+	C = \frac{1}{n}\Sigma \mathbf{x}_i \mathbf{x}_i^T
 \end{equation}
 
 Where $C$ is the co-variance matrix and $\mathbf{x}$ is the feature matrix. Eigendecomposition is then performed on the covariance matrix and to obtain the basis vectors for the subspace. Taking the first $n$ basis vectors creates a linear projection of the data onto a lower dimensional representation.

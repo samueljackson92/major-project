@@ -68,7 +68,8 @@ class PatchTextureFeaturesReduction(MultiProcessedReduction):
         img_name = os.path.basename(img_path)
 
         patch = patch_frame.loc[[img_name]]
-        logger.info("Detecting texture features in %d patches" % patch.shape[0])
+        logger.info("Detecting texture features in %d patches"
+                    % patch.shape[0])
 
         texture_props = detect_texture(img, patch)
         texture_props.index = pd.Series([img_name] * texture_props.shape[0])

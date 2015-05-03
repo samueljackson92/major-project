@@ -56,7 +56,8 @@ def isomap(feature_matrix, **kwargs):
 
 @_handle_data_frame
 def lle(feature_matrix, **kwargs):
-    """Run the Locally Linear Embedding algorithm on the feature space of a collection of images
+    """Run the Locally Linear Embedding algorithm on the feature space of a
+    collection of images
 
     :param feature_matrix: matrix of features use with the Isomap
     :returns: 2darray -- lower dimensional mapping of the Isomap algorithm

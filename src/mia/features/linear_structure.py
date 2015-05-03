@@ -32,7 +32,7 @@ def detect_linear(img, msk, radius=20, nbins=8, threshold=5e-3):
     msk = transform.pyramid_reduce(msk, 4)
 
     line_strength, line_orientation = orientated_bins(img, radius, nbins=nbins)
-    line_strength[line_strength < 0.04] = 0 #0.002
+    line_strength[line_strength < 0.04] = 0
 
     line_strength = nonmaximum_suppression(line_strength,
                                            line_orientation, nbins,

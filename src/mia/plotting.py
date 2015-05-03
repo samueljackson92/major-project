@@ -168,7 +168,8 @@ def plot_scatter_2d(data_frame, columns=[0, 1], labels=None, annotate=False,
     return ax
 
 
-def plot_scatter_3d(data_frame, columns=[0, 1, 2], labels=None, ax=None, **kwargs):
+def plot_scatter_3d(data_frame, columns=[0, 1, 2], labels=None, ax=None,
+                    **kwargs):
     """ Create a 3D scatter plot from a pandas data frame
 
     :param data_frame: data frame containing the data to plot

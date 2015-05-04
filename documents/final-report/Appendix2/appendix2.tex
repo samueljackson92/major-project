@@ -1,3 +1,64 @@
-\chapter{Code samples}
+\chapter{Python Package Hierarchy}
 
-
+This appendix provides a directory listing of all the files present in the project.
+\begin{verbatim}
+|-- mia
+|   |-- __init__.py
+|   |-- analysis.py
+|   |-- command.py
+|   |-- convolve_tools
+|   |   `-- convolve_tools.c
+|   |-- coranking.py
+|   |-- features
+|   |   |-- __init__.py
+|   |   |-- _adjacency_graph.py
+|   |   |-- _nonmaximum_suppression.py
+|   |   |-- _orientated_bins.py
+|   |   |-- blobs.py
+|   |   |-- intensity.py
+|   |   |-- linear_structure.py
+|   |   `-- texture.py
+|   |-- io_tools.py
+|   |-- plotting.py
+|   |-- reduction
+|   |   |-- __init__.py
+|   |   |-- multi_processed_reduction.py
+|   |   |-- reducers.py
+|   |   `-- reduction.py
+|   `-- utils.py
+|-- scripts
+|   |-- make_masks.py
+|   |-- make_thumbs.py
+|   `-- swiss_roll.py
+|-- setup.py
+`-- tests
+    |-- __init__.py
+    |-- regression_tests
+    |   |-- __init__.py
+    |   |-- blob_detection_regression_test.py
+    |   |-- intensity_regression_test.py
+    |   |-- reducers_regression_test.py
+    |   |-- texture_features_regression_test.py
+    |   `-- utils_regression_test.py
+    |-- test_data
+    |   |-- mias
+    |   |   `-- masks
+    |   |-- reference_results
+    |   `-- texture_patches
+    |-- test_utils.py
+    `-- unit_tests
+        |-- __init__.py
+        |-- adjacency_graph_test.py
+        |-- analysis_test.py
+        |-- blob_detection_test.py
+        |-- command_test.py
+        |-- convolve_tools_test.py
+        |-- coranking_test.py
+        |-- intensity_features_test.py
+        |-- io_tools_test.py
+        |-- nonmaximum_suppression_test.py
+        |-- orientated_bins_test.py
+        |-- plotting_test.py
+        |-- texture_features_test.py
+        `-- utils_test.py
+\end{verbatim}

@@ -22,3 +22,60 @@
 \end{tabular}	
 \caption{List of third-party libraries used in this project}
 \end{table}
+
+Additionally there were a couple of smaller pieces of code used as part of this project that are not part of a third party library but which have been almost directly included as-is. These are documented below.
+
+\section{Support for Multiprocessing on Python methods}
+The standard Python multiprocessing library does not work with methods attached to Python objects because bound methods on an object cannot be pickled. The solution presented in ref. \cite{soMultiprocessing} was used to correct for this by adding a way to pickle and unpickle methods on Python classes.
+
+\begin{lstlisting}[language=Python]
+from copy_reg import pickle
+from types import MethodType
+
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+    for cls in cls.mro():
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+    return func.__get__(obj, cls)
+    
+pickle(MethodType, _pickle_method, _unpickle_method)	
+
+\end{lstlisting}
+
+\clearpage
+\section{Gaussian Kernel}
+The code used to create the Gaussian kernel used as part of the deformable convolution is taken from a Github gist by Andrew Giessel \cite{gistGaussianKernel}.
+
+\begin{lstlisting}[language=Python]
+import numpy as np
+ 
+def makeGaussian(size, fwhm = 3, center=None):
+    """ Make a square gaussian kernel.
+
+    size is the length of a side of the square
+    fwhm is full-width-half-maximum, which
+    can be thought of as an effective radius.
+    """
+ 
+    x = np.arange(0, size, 1, float)
+    y = x[:,np.newaxis]
+    
+    if center is None:
+        x0 = y0 = size // 2
+    else:
+        x0 = center[0]
+        y0 = center[1]
+    
+    return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
+
+\end{lstlisting}

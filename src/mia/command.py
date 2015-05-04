@@ -33,6 +33,9 @@ def cli(log_level):
 
 @cli.group()
 def reduction():
+    """Collection of commands for detecting features across a whole dataset of
+    images. Each reduction provides multi-processing support.
+    """
     pass
 
 

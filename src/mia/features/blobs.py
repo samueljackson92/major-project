@@ -41,8 +41,13 @@ def detect_blobs(image, mask=None, max_layer=10, downscale=np.sqrt(2),
     """
     blobs = _multiscale_pyramid_detection(image, mask, max_layer,
                                           downscale, sigma)
+    from mia.plotting import plot_blobs
+
     blobs = _remove_edge_blobs(blobs, image.shape)
     blobs = _remove_false_positives(blobs, image, mask)
+
+    plot_blobs(image, blobs)
+
     blobs = _merge_blobs(blobs, image, overlap)
     return _make_data_frame(blobs)
 

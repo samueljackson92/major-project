@@ -5,6 +5,7 @@ from mia.features.blobs import detect_blobs
 from mia.utils import preprocess_image
 from ..test_utils import get_file_path
 
+
 class BlobsRegressionTests(unittest.TestCase):
 
     def test_detect_blobs(self):

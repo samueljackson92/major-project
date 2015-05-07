@@ -13,6 +13,40 @@ class TextureTests(unittest.TestCase):
         img_path = get_file_path("texture_patches/texture1.png")
         cls._img, msk = preprocess_image(img_path)
 
+    def test_detect_intensity_with_blobs(self):
+        img_path = get_file_path("mias/mdb154.png")
+        img, msk = preprocess_image(img_path)
+
+        path = get_file_path("reference_results/mias-blobs.csv")
+        df = pd.DataFrame.from_csv(path)
+
+        texture = detect_texture(img, df.loc["mdb154.png"])
+
+        nose.tools.assert_true(isinstance(texture, pd.DataFrame))
+        nose.tools.assert_equal(texture.shape, (25, 8))
+
+        path_name = "reference_results/mdb154_texture_blobs.npy"
+        result_path = get_file_path(path_name)
+        expected_result = np.load(result_path)
+        np.testing.assert_almost_equal(texture.as_matrix(), expected_result)
+
+    def test_detect_intensity_with_lines(self):
+        img_path = get_file_path("mias/mdb154.png")
+        img, msk = preprocess_image(img_path)
+
+        path = get_file_path("reference_results/mias-lines.csv")
+        df = pd.DataFrame.from_csv(path)
+
+        texture = detect_texture(img, df.loc["mdb154.png"])
+
+        nose.tools.assert_true(isinstance(texture, pd.DataFrame))
+        nose.tools.assert_equal(texture.shape, (2, 10))
+
+        path_name = "reference_results/mdb154_texture_lines.npy"
+        result_path = get_file_path(path_name)
+        expected_result = np.load(result_path)
+        np.testing.assert_almost_equal(texture.as_matrix(), expected_result)
+
     def test_gabor_bank_features(self):
         orientations = np.arange(0, np.pi, np.pi/8)
         frequencies = np.arange(0.1, 5.0)
@@ -38,3 +72,9 @@ class TextureTests(unittest.TestCase):
         results_path = get_file_path('reference_results/tex1_glcm_features.npy')
         expected_result = np.load(results_path)
         np.testing.assert_array_equal(features, expected_result)
+
+    def test_filter_image_for_texture(self):
+        props = filter_image_for_texture(self._img, 0, 'dissimilarity')
+        results_path = get_file_path('reference_results/tex1_filter_for_texture.npy')
+        expected_result = np.load(results_path)
+        np.testing.assert_array_equal(props, expected_result)

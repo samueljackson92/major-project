@@ -143,11 +143,6 @@ def features_from_blobs(df):
     return features.reset_index(level=1, drop=True)
 
 
-def features_from_intensity(df):
-    features = df.groupby(df.index).apply(intensity_props)
-    return features.reset_index(level=1, drop=True)
-
-
 def features_from_lines(df):
     features = df.groupby(df.index).apply(line_props)
     return features.reset_index(level=1, drop=True)

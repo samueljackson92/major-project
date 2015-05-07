@@ -42,12 +42,45 @@ class AnalysisTests(unittest.TestCase):
         mapping = tSNE(df)
 
         nose.tools.assert_equal(mapping.shape, (360, 2))
+        nose.tools.assert_true(isinstance(mapping, pd.DataFrame))
 
     def test_tsne_with_matrix(self):
         feature_names = ['avg_radius', 'std_radius', 'blob_count']
         df = self._features[feature_names]
         matrix = df.as_matrix()
         mapping = tSNE(matrix)
+
+        nose.tools.assert_equal(mapping.shape, (360, 2))
+
+    def test_isomap_with_data_frame(self):
+        feature_names = ['avg_radius', 'std_radius', 'blob_count']
+        df = self._features[feature_names]
+        mapping = isomap(df)
+
+        nose.tools.assert_equal(mapping.shape, (360, 2))
+        nose.tools.assert_true(isinstance(mapping, pd.DataFrame))
+
+    def test_isomap_with_matrix(self):
+        feature_names = ['avg_radius', 'std_radius', 'blob_count']
+        df = self._features[feature_names]
+        matrix = df.as_matrix()
+        mapping = isomap(matrix)
+
+        nose.tools.assert_equal(mapping.shape, (360, 2))
+
+    def test_lle_with_data_frame(self):
+        feature_names = ['avg_radius', 'std_radius', 'blob_count']
+        df = self._features[feature_names]
+        mapping = lle(df)
+
+        nose.tools.assert_equal(mapping.shape, (360, 2))
+        nose.tools.assert_true(isinstance(mapping, pd.DataFrame))
+
+    def test_lle_with_matrix(self):
+        feature_names = ['avg_radius', 'std_radius', 'blob_count']
+        df = self._features[feature_names]
+        matrix = df.as_matrix()
+        mapping = lle(matrix)
 
         nose.tools.assert_equal(mapping.shape, (360, 2))
 
@@ -102,13 +135,20 @@ class AnalysisTests(unittest.TestCase):
         np.testing.assert_equal(md.index.values, df.index.values)
 
     def test_features_from_blobs(self):
-        path = get_file_path("2015-03-05-results.csv")
+        path = get_file_path("reference_results/mias-blobs.csv")
         df = pd.DataFrame.from_csv(path)
-        df.index = df.image_name
 
         features = features_from_blobs(df)
 
-        nose.tools.assert_equal(features.shape, (360, 13))
+        nose.tools.assert_equal(features.shape, (2, 13))
+
+    def test_features_from_lines(self):
+        path = get_file_path("reference_results/mias-lines.csv")
+        df = pd.DataFrame.from_csv(path)
+
+        features = features_from_lines(df)
+
+        nose.tools.assert_equal(features.shape, (2, 11))
 
     def test_remove_duplicate_index(self):
         path = get_file_path("2015-03-05-results.csv")
@@ -120,3 +160,45 @@ class AnalysisTests(unittest.TestCase):
         md = remove_duplicate_index(md)
 
         nose.tools.assert_equals(md.shape, (360, md.shape[1]))
+
+    def test_create_random_subset(self):
+        path = get_file_path("reference_results/mias-blobs.csv")
+        df = pd.DataFrame.from_csv(path)
+        df['img_name'] = df.index
+
+        subset = create_random_subset(df, 'img_name')
+        nose.tools.assert_true(isinstance(subset, pd.DataFrame))
+        nose.tools.assert_not_equal(subset.shape, df.shape)
+
+    def test_group_by_scale_space(self):
+        path = get_file_path("reference_results/mias-intensity.csv")
+        df = pd.DataFrame.from_csv(path)
+
+        scale_group = group_by_scale_space(df)
+        nose.tools.assert_true(isinstance(scale_group, pd.DataFrame))
+        nose.tools.assert_not_equal(scale_group.shape, df.shape)
+
+        cols = [c for c in scale_group.columns if 'mean' in c]
+
+        mean_1 = [0.631961, 0.645952, 0.625518, 0.694193, 0.669487,
+                  0.682446, 0.665435, 0.595569, 0.661376]
+        mean_2 = [0.606487, 0.623546, 0.625518, 0.590192, 0.612072,
+                  0.654829, 0.600061, 0.595569, 0.661376]
+
+        nose.tools.assert_equal(scale_group.shape, (2, 117))
+        np.testing.assert_array_almost_equal(scale_group.iloc[0][cols], mean_1)
+        np.testing.assert_array_almost_equal(scale_group.iloc[1][cols], mean_2)
+
+    def test_sort_by_scale_space(self):
+        path = get_file_path("reference_results/mias-intensity.csv")
+        df = pd.DataFrame.from_csv(path)
+        df.drop(['x', 'y', 'breast_area'], axis=1, inplace=True)
+
+        scale_group = group_by_scale_space(df)
+        scale_group = sort_by_scale_space(scale_group, 10)
+
+        nose.tools.assert_true(isinstance(scale_group, pd.DataFrame))
+        nose.tools.assert_not_equal(scale_group.shape, df.shape)
+
+        count_columns = ['count' in c for c in scale_group.columns[:8]]
+        nose.tools.assert_true(all(count_columns))

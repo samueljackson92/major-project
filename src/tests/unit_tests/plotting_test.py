@@ -116,7 +116,7 @@ class PlottingTests(unittest.TestCase):
     def test_plot_mapping_2d(self):
         data = np.random.rand(10, 2)
         df = pd.DataFrame(data, columns=['x', 'y'])
-        labels = pd.Series(np.random.randint(4, self._df.shape[0]))
+        labels = pd.Series(np.random.randint(4, size=self._df.shape[0]))
 
         index_a = pd.Series(np.arange(5))
         index_b = pd.Series(np.arange(5, 10))
@@ -126,7 +126,7 @@ class PlottingTests(unittest.TestCase):
     def test_plot_mapping_3d(self):
         data = np.random.rand(10, 3)
         df = pd.DataFrame(data, columns=['x', 'y', 'z'])
-        labels = pd.Series(np.random.randint(4, self._df.shape[0]))
+        labels = pd.Series(np.random.randint(4, size=self._df.shape[0]))
 
         index_a = pd.Series(np.arange(5))
         index_b = pd.Series(np.arange(5, 10))

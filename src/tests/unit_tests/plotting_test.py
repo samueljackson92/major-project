@@ -9,7 +9,7 @@ from mia.plotting import *
 from ..test_utils import get_file_path
 
 
-class IOTests(unittest.TestCase):
+class PlottingTests(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):

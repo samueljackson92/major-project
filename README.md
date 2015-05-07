@@ -4,7 +4,7 @@ MIA: Mammogram Image Analysis
 MIA is a python library for analysing mammographic image data. The library includes both an image analysis API and a command line interface. This project was produced as part of my 4th year coursework for the major project as Aberystwyth University.
 
 ## Overview
-The official documentation surrounding the major project (final report latex files etc.) reside in the `documentation` folder. The code dcoumentation generated from [sphinx](http://sphinx-doc.org) resides in the `doc` folder. The source code and tests for the code base lives in the `src` folder. A full listing of the source coder hierarchy is shown below:
+The official documentation surrounding the major project (final report latex files etc.) reside in the `documents` folder. The code dcoumentation generated from [sphinx](http://sphinx-doc.org) resides in the `doc` folder. The source code and tests for the code base lives in the `src` folder. A full listing of the source coder hierarchy is shown below:
 
 ```
 `-- src

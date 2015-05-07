@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- CSS imports -->
+        <link rel="stylesheet" href="style.css">
+
+        <!-- 3rd party JS imports -->
+        <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+        <script src="http://code.highcharts.com/highcharts.js"></script>
+        <script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+        <!-- JS imports -->
+        <script src="src/reduced-dimension-image-viewer.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            visualise({
+                title: 't-SNE on Mammography Data',
+                mapping: 'test.json',
+                imageDirectory: '/Volumes/Seagate/MammoData/thumbs/',
+                xAxisName: 'X',
+                yAxisName: 'Y',
+                showLegend: false,
+            });
+        </script>
+    </head>
+    <body>
+        <div id="page-wrap">
+            <div id="container">
+                <!-- div for the highcharts plot -->
+            </div>
+            <div id="image-viewer">
+                <!-- div for the thumbnail image -->
+            </div>
+        </div>
+    </body>
+</html>

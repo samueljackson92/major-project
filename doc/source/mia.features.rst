@@ -12,6 +12,14 @@ mia.features.blobs module
     :undoc-members:
     :show-inheritance:
 
+mia.features.intensity module
+-----------------------------
+
+.. automodule:: mia.features.intensity
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 mia.features.linear_structure module
 ------------------------------------
 

@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     mia.features
+    mia.reduction
 
 Submodules
 ----------
@@ -15,6 +16,22 @@ mia.analysis module
 -------------------
 
 .. automodule:: mia.analysis
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+mia.command module
+------------------
+
+.. automodule:: mia.command
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+mia.coranking module
+--------------------
+
+.. automodule:: mia.coranking
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,14 +48,6 @@ mia.plotting module
 -------------------
 
 .. automodule:: mia.plotting
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-mia.reduction module
---------------------
-
-.. automodule:: mia.reduction
     :members:
     :undoc-members:
     :show-inheritance:

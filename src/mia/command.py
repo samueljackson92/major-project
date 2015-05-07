@@ -1,3 +1,9 @@
+"""
+The comannd module provides a small CLI utility that allows detection of image
+features directly in the command line. This module is built using the Click
+library.
+"""
+
 import click
 import logging
 import pandas as pd

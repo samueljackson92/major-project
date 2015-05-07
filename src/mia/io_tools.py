@@ -12,7 +12,7 @@ def iterate_directories(image_directory, mask_directory):
     :param image_directory: the directory to iterate over.
     :param mask_directory: the directory in which to find the corresponding
                            image mask.
-    :returns: iterator to the image paths in the directory
+    :returns: iterator to the image paths in the directories
     """
 
     img_iterator = iterate_directory(image_directory)
@@ -21,7 +21,12 @@ def iterate_directories(image_directory, mask_directory):
         yield values
 
 
-def iterate_directory(directory, filter_func=None):
+def iterate_directory(directory):
+    """ Iterate of a directory of images
+
+    :param image_directory: the directory to iterate over.
+    :returns: iterator to the image paths in the directory
+    """
     check_is_directory(directory)
 
     for img_name in sorted(os.listdir(directory)):

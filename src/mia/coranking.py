@@ -1,5 +1,10 @@
 """ Module implements a coranking matrix for checking the quality of a
 lower dimensional mapping produce by manifold learning algorithms.
+
+Reference:
+
+Lee, John Aldo, and Michel Verleysen. "Rank-based quality assessment of
+nonlinear dimensionality reduction." ESANN. 2008.
 """
 
 import itertools
@@ -8,6 +13,13 @@ from sklearn.metrics.pairwise import pairwise_distances
 
 
 def coranking_matrix(high_data, low_data):
+    """Generate a co-ranking matrix from two data frames of high and low
+    dimensional data.
+
+    :param high_data: DataFrame containing the higher dimensional data.
+    :param low_data: DataFrame containing the lower dimensional data.
+    :returns: the co-ranking matrix of the two data sets.
+    """
     n, m = high_data.shape
     high_distance = pairwise_distances(high_data)
     low_distance = pairwise_distances(low_data)
@@ -66,6 +78,9 @@ def continuity(Q, K):
 def _tc_normalisation_weight(K, n):
     """ Compute the normalisation weight for the trustworthiness and continuity
     measures.
+
+    :param K: size of the neighbourhood.
+    :param n: total size of matrix.
     """
     if K < (n/2):
         return n*K*(2*n - 3*K - 1)

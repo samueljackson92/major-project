@@ -1,8 +1,5 @@
-"""Texture feature detection
-
-This module provides a collection of functions for running texture based
+"""This module provides a collection of functions for running texture based
 features on patches of images.
-
 """
 import pandas as pd
 import numpy as np
@@ -20,6 +17,14 @@ GLCM_FEATURES = ['contrast', 'dissimilarity', 'homogeneity', 'energy',
 
 
 def detect_texture(img, patches):
+    """Detect texture features from a collection of patches.
+
+    :param img: the image to detect texture features in.
+    :param patches: the patches of blobs to look at. Either defined by a radius
+        or by a min/max col/row.
+
+    :returns: DataFrame -- of texture features for each patch of image.
+    """
 
     def _extract_texture(row):
         _, patch = row
@@ -37,6 +42,12 @@ def detect_texture(img, patches):
 
 
 def texture_props(img_blob):
+    """Return the texture features for a patch of image
+
+    :param img: patch of image to create texture features for.
+    :returns: DataFrame -- containing the texture features for the patch.
+    """
+
     thetas = np.arange(0, np.pi, np.pi/8)
     props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
 
@@ -143,6 +154,12 @@ def blob_texture_props(image, blobs, properties, distances, orientations):
 
 
 def texture_from_clusters(clusters):
+    """ Compute the GLCM texture properties from image clusters.
+
+    :param clusters: clusters of pixels representing sections of the image
+    :returns: DataFrame -- of texture features for every cluster.
+    """
+
     thetas = np.arange(0, np.pi, np.pi/8)
     props = ['contrast', 'dissimilarity', 'homogeneity', 'energy']
 
@@ -162,6 +179,15 @@ def texture_from_clusters(clusters):
 
 
 def filter_image_for_texture(img, orientation, prop, kernel_size=5):
+    """ Filter a patch of image for GLCM texture
+
+    :param img: the image to filter.
+    :param orientation: the orientation to texture texture for.
+    :param prop: the property to compute.
+    :param kernel_size: the size of the kernel to used when extracting the
+        texture.
+    :returns: 2darray -- of texture features for every pixel.
+    """
 
     def filter_texture_non_zero(window, *args):
         window = window.reshape((kernel_size, kernel_size))

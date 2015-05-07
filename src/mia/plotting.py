@@ -1,3 +1,7 @@
+"""
+Various plotting utility functions.
+"""
+
 import logging
 import os.path
 import matplotlib.pyplot as plt
@@ -194,6 +198,14 @@ def plot_scatter_3d(data_frame, columns=[0, 1, 2], labels=None, ax=None,
 
 
 def plot_mapping_3d(m, real_index, phantom_index, labels):
+    """ Create a 3D scatter plot from a pandas data frame containing two
+    datasets
+
+    :param data_frame: data frame containing the data to plot
+    :param real_index: indicies of the real images.
+    :param real_index: indicies of the synthetic images.
+    :param labels: the labels used to colour the dataset by class.
+    """
     hologic_map = m.loc[real_index]
     phantom_map = m.loc[phantom_index]
 
@@ -207,6 +219,14 @@ def plot_mapping_3d(m, real_index, phantom_index, labels):
 
 
 def plot_mapping_2d(m, real_index, phantom_index, labels):
+    """ Create a 2D scatter plot from a pandas data frame containing two
+    datasets
+
+    :param data_frame: data frame containing the data to plot
+    :param real_index: indicies of the real images.
+    :param real_index: indicies of the synthetic images.
+    :param labels: the labels used to colour the dataset by class.
+    """
     hologic_map = m.loc[real_index]
     phantom_map = m.loc[phantom_index]
 
@@ -259,11 +279,22 @@ def plot_median_image_matrix(data_frame, img_path, label_name=None,
 
 
 def _load_blobs(raw_features_csv):
+    """Load blobs froma raw features CSV file
+
+    :param raw_features_csv: name of the CSV file.
+    :returns: DataFrame containing the blobs.
+    """
     features = pd.DataFrame.from_csv(raw_features_csv)
     return features[['x', 'y', 'radius', 'image_name']]
 
 
 def _prepare_figure(size):
+    """Create a figure of the given size with zero whitespace and return the
+    axes
+
+    :param size: size of the image
+    :returns axes: axes for each square in the plot.
+    """
     fig, axs = plt.subplots(size, size,
                             gridspec_kw={"wspace": 0, "hspace": 0})
     axs = np.array(axs).flatten()
@@ -271,7 +302,13 @@ def _prepare_figure(size):
 
 
 def _prepare_median_image(img_name, path, blobs_df, axs_iter):
-    """ Function to load an image if one is present in the square"""
+    """Prepare a image to be shown withing a squared area of a mapping.
+
+    :param img_name: name of the image
+    :param path: path of the image
+    :param blobs_df: data frame containing each of the blobs in the image.
+    :param axes_iter: iterate to the axes in the plot.
+    """
     scale_factor = 8
 
     ax = axs_iter.next()
@@ -293,6 +330,14 @@ def _prepare_median_image(img_name, path, blobs_df, axs_iter):
 
 
 def _select_blobs(blobs_df, img_name, scale_factor):
+    """Select all of the blobs in a given image and scale them to the correct
+    size
+
+    :param blobs_df: data frame containg the location and radius of the blobs.
+    :param img_name: name of the current image.
+    :param scale_factor: size to rescale the blobs to.
+    :returns: DataFrame -- data frame containing the rescaled blobs.
+    """
     b = blobs_df[blobs_df['image_name'] == img_name]
     b = b[['x', 'y', 'radius']].as_matrix()
     b /= scale_factor
@@ -300,6 +345,12 @@ def _select_blobs(blobs_df, img_name, scale_factor):
 
 
 def _load_image(path, scale_factor):
+    """Load an image and scale it to a given size.
+
+    :param path: loaction of the image on disk.
+    :param scale_factor: size to rescale the image to.
+    :returns: ndarray -- the image that was loaded.
+    """
     img = io.imread(path, as_grey=True)
     img = transform.resize(img, (img.shape[0]/scale_factor,
                                  img.shape[1]/scale_factor))
@@ -307,16 +358,32 @@ def _load_image(path, scale_factor):
 
 
 def _add_image_to_axis(img, ax, img_name):
+    """Add an image to a specific axis on the plot
+
+    :param img: the image to add
+    :param ax: the axis to add the image to.
+    :param img_name: the name of the image.
+    """
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
     ax.text(20, 0, img_name, style='italic', fontsize=3, color='white')
 
 
 def _add_blank_image_to_axis(ax, scale_factor):
+    """Add a blank image to a specific axis on the plot
+
+    :param ax: the axis to add the image to.
+    :param scale_factor: size to scale the blank image to.
+    """
     img = np.ones((3328/scale_factor, 2560/scale_factor))
     ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
 
 
 def _add_blobs_to_axis(ax, blobs):
+    """Draw blobs on an image in the figure.
+
+    :param ax: the axis to add the blobs to.
+    :param blobs: data frame containing the blobs.
+    """
     for blob in blobs:
         y, x, r = blob
         c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
@@ -324,6 +391,13 @@ def _add_blobs_to_axis(ax, blobs):
 
 
 def _bin_data_frame_2d(data_frame):
+    """Create a 2D histogram of each of the points in the data frame.
+
+    For each bin find the image which is median distance in both directions.
+
+    :param data_frame: the data frame containing the mapping.
+    :return: ndarray -- with each value containing the image name.
+    """
     hist, xedges, yedges = np.histogram2d(data_frame['0'], data_frame['1'])
     grid = []
     for x_bounds in zip(xedges, xedges[1:]):
@@ -338,6 +412,11 @@ def _bin_data_frame_2d(data_frame):
 
 
 def _find_median_image_name(data_frame):
+    """Find the median image name from a particular bin
+
+    :param data_frame: the data frame containing the mapping.
+    :return: string -- the image name.
+    """
     name = ''
     num_rows = data_frame.shape[0]
 
@@ -350,6 +429,13 @@ def _find_median_image_name(data_frame):
 
 
 def _find_points_in_bounds(data_frame, x_bounds, y_bounds):
+    """Find the data points what lie within a given bin
+
+    :param data_frame: data frame containing the mapping.
+    :param x_bounds: the x bounds of this bin
+    :param y_bounds: the y bounds of this bin
+    :returns: DataFrame -- data frame containing the values in this bin.
+    """
     xlower, xupper = x_bounds
     ylower, yupper = y_bounds
     xbounds = (data_frame['0'] >= xlower) & (data_frame['0'] < xupper)

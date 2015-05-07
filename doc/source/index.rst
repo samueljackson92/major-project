@@ -6,6 +6,8 @@
 Welcome to Mammogram Image Analysis's documentation!
 ====================================================
 
+MIA is a python library for analysing mammographic image data. The library includes both an image analysis API and a command line interface. This project was produced as part of my 4th year coursework for the major project at Aberystwyth University.
+
 Contents:
 
 .. toctree::

@@ -85,6 +85,15 @@ def blob_props(feature_set):
 
 
 def _blob_density(blobs, k):
+    """Compute a density feature from the blobs in a DataFrame.
+
+    This computes the average distance of the k of nearest neighbours for each
+    blob
+
+    :param blobs: DataFrame of blobs for an image
+    :param k: number of nearest neighbours to consider
+    :returns: float: the density measure.
+    """
     knn = neighbors.NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
     nbrs = knn.fit(blobs)
     distances, indicies = nbrs.kneighbors(blobs)
@@ -442,5 +451,10 @@ def _remove_blobs(blobs, remove_list):
 
 
 def _make_data_frame(blobs):
+    """ Make a data frame containing the blobs
+
+    :param blobs: ndarray containing the detected blobs.
+    :returns: DataFrame -- containing the same blobs but as a data frame.
+    """
     column_names = ['x', 'y', 'radius']
     return pd.DataFrame(blobs, columns=column_names)

@@ -1,5 +1,5 @@
-MIA: Mammogram Data Analysis
-============================
+MIA: Mammogram Image Analysis
+=============================
 
 MIA is a python library for analysing mammographic image data. The library includes both an image analysis API and a command line interface. This project was produced as part of my 4th year coursework for the major project as Aberystwyth University.
 
@@ -31,4 +31,9 @@ This command will iterate over all of the images in the data folder and use the 
 mia reduction intensity_from_patch ./data ./data/masks blobs_output.csv output.csv
 ```
 
-## 
+## Running the tests
+The unit/regression tests for the module can be run by using [nose](http://nose.readthedocs.org/en/latest/). The unit tests are located in `src/unit_tests` and the regression tests are located in `src/regression_tests`. You can run the all of the tests by using the following command:
+
+```
+nosetests --cover-package=mia
+```

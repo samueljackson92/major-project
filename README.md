@@ -70,6 +70,8 @@ The official documentation surrounding the major project (final report latex fil
             `-- utils_test.py
 ```
 
+The nd-viz contains the Javascript implementation of a multi dimensional image viewer. This takes a JSON file and displays a scatterplot with the corresponding image directories for each point. Currently the image directory to be viewed needs to be changed in the HTML source.
+
 ## Installation
 MIA can be install using the command line utility pip. If your Python install does not already include pip you can install it by following the instructions in this [link](https://pip.pypa.io/en/stable/installing.html).
 

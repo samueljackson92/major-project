@@ -1,4 +1,5 @@
 import analysis
+import command
 import coranking
 import features
 import io_tools

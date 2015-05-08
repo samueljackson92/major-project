@@ -84,7 +84,7 @@ pip install numpy
 To install MIA `cd` into the folder called `src` which contains a file called setup.py. Then run the following command:
 
 ```
-pip install .
+pip install --editable .
 ```
 
 ## Command Line Interface

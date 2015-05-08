@@ -75,7 +75,13 @@ The nd-viz contains the Javascript implementation of a multi dimensional image v
 ## Installation
 MIA can be install using the command line utility pip. If your Python install does not already include pip you can install it by following the instructions in this [link](https://pip.pypa.io/en/stable/installing.html).
 
-To install MIA `cd` into the folder called src which contains a file called setup.py. Then run the following command:
+The Numpy library is a prerequisite for the installation (it is required for compiling one of the modules). You can install Numpy using the following command:
+
+```
+pip install numpy
+```
+
+To install MIA `cd` into the folder called `src` which contains a file called setup.py. Then run the following command:
 
 ```
 pip install .

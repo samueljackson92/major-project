@@ -1,7 +1,7 @@
 import utils
 import io_tools
-from features import *
-from reduction import *
+from mia.features import *
+from mia.reduction import *
 import analysis
 import plotting
 import coranking

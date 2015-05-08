@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from sklearn import manifold, preprocessing
-from mia.features.blobs import blob_props
-from mia.features.linear_structure import line_props
+from features.blobs import blob_props
+from features.linear_structure import line_props
 
 logger = logging.getLogger(__name__)
 

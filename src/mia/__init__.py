@@ -1,8 +1,8 @@
-import analysis
-import command
-import coranking
-import features
-import io_tools
-import plotting
-import reduction
 import utils
+import io_tools
+import features
+import analysis
+import reduction
+import plotting
+import coranking
+import command

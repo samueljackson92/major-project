@@ -1,4 +1,4 @@
 import blobs
-import intensity
 import linear_structure
+import intensity
 import texture

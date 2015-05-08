@@ -7,7 +7,6 @@ with open('./requirements.txt', 'r') as file_handle:
     requirements = map(lambda s: s.strip(), file_handle.readlines())
 
 from distutils.core import Extension
-import numpy as np
 
 # define the extension module
 convolve_tools = Extension('convolve_tools',

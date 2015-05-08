@@ -1,7 +1,9 @@
+__all__ = ["reduction", "features"]
+
 import utils
 import io_tools
-from mia.features import *
-from mia.reduction import *
+import features
+import reduction
 import analysis
 import plotting
 import coranking

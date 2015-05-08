@@ -128,7 +128,7 @@ def detect_blobs(image_file, mask_file):
 @cli.command()
 @click.argument('image-file', type=click.Path())
 @click.argument('mask-file', required=False, type=click.Path())
-def detect_linear(image_file, mask_file):
+def detect_lines(image_file, mask_file):
     """Detect lines from a single image and display the detected lines plotted
     on an image.
     """
